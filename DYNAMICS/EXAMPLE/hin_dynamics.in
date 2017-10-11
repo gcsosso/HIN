@@ -1,0 +1,28 @@
+# This input file is fixed format. Do not mess with the keywords or line numbers!
+
+# Trajectory section
+SFILE  conf.gro            # structure file -> .gro file
+TFILE  traj..xtc   # set_7_conf_10.xtc   # trajectory file -> .xtc file
+FFRAME 0                # first frame to be taken into account -> n.
+STRIDE 1                   # stride: consider one frame every stride frames -> n. (i.e. time resolution)
+LFRAME 249999              # last frame to be taken into account -> n.
+T_OR   250                 # reciprocal of the number of frames taken as the origin for a new sampling interval (i.e. n. of time origins)
+DT     0.1                 # simulation time between each frame [ps]
+HW_EXC no                  # if this keyword is active, HW2 and considered along with HW1 atoms (usually we care about oxygens only...)
+
+# Real & reciprocal space stuff
+TD     yes                 # treat the whole thing as a 3D system ->  
+NS     1                   # n. of species for which we want to compute the dynamical properties -> n.
+WS     OW                  # which species -> e.g. 'OW', 'HW', as specified in the .gro file
+ZMIN   0.0  # 1.175               # zmin: lower bound for the computation along the normal to the surface [nm] - if TD = yes, not used (bulk 3D)
+ZMAX   8.0  # 5.475 # 1.475       # zmax: upper bound for the computation along the normal to the surface [nm] - if TD = yes, not used (bulk 3D)
+NSL    1      #                    # N. of slices along the z coord
+DZ     3.74 # 0.150               # dz: width of each z-slice [nm]
+QVEC   18.45 # 15.064              # MODULUS of the vector in reciprocal space to be considered for e.g. SISF (see Documentation...) [nm^{-1}]
+TAUT   0.5     # For this particular value of the SISF, we define our relaxation time [pure number]
+
+# Switches
+SWITCH_DIFF  yes           # Calculate the Mean Square Displacement the diffusion coefficient as well
+LINEAR       4.0           # We assume that the MSD is linear from (tmax-1)-((tmax-1)/LINEAR)
+SWITCH_SISF  yes           # Calculate the Self Intermediate Scattering Function. An estimate of the relaxation time is provided as well
+SWITCH_CHI4  yes           # Calculate the Chi_4 indicator. Tricky (normalization is ill-defined...)  

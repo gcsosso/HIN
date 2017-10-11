@@ -1,0 +1,10 @@
+* The trajectory must be unwrapped already (in gromacs reasoning, -pbc nojump)
+
+* The whole of this stuff is calculated in a 2D fashion, for slices along z.
+
+|k-vec|: MODULUS of the vector in reciprocal space to be considered for e.g. SISF. In an isotropic medium, the modulus is enough,
+! although to te precise, an isotropic average over several solid anlges must be considered to bring the imaginary part of the
+! r \dotp k product to 0 (isotropic average of sin functions...). However, in here we are definitely anisotropic because of the interface (CHECK)
+! AND, This is a 2D thing! Say, if in 3D you're interested in a q with modulus = 18.45 nm^{-1} (e.g. from a 3D structure factor),
+! the "corresponding" vector in 2D - with the same components would be q/sqrt(3/2) = 15.064 nm^{-1}
+

@@ -1,0 +1,61 @@
+* The temporal evolution of the z-density does not make so much sense. If one is interested in
+  monitoring z-dens along the way, the best way to do it is just be re-running the code specifying 
+  different time windows
+
+* Rings: if you're looking for DDC and/or HC cages, you better select a substantial fraction
+  of the system. If you're interested instead in getting rings statistics (n. of n-membered rings)
+  within the first overlayer, just select that by having a look at the actual trajectory
+  - Still don't know whether ri-n or r-n... 
+  -> MAXR and n- rings -> (4->6 | 5-> (up to 9) | ). Use 4 to save time when we are interested in 6-membered rings only.
+     Use 5 when we are interested in a ring statistics up to 7,8 or 9-membered rings
+
+* As the same atom can belong to rings of different size - not to mention DDC/HC cages and hexagons! - we have to choose
+  which particular size/cage/hex we want to color for VMD purposes. Set WCOL as:
+  0 - HEX -> user = 10
+  1 - DDC/HC -> user = 15/20
+  3,4,5,6,7,8,9 - _ n membered rings -> user = k
+  NOTE ! If the HB switch is active, the user field for e.g. a 5-membered ring would be 500, 6 -> 600, and so on..., as per 3,4,5,6,7,8,9 !
+
+* Clusters: usually one has oxygen, hydrogen1, hydrogen2, some virtual site, then oxygen again. The "Stride" refers to the interval between
+  each oxygens. That speed up things a bit. If not, by hand, to be implemented...
+  A stride=0 means by hand
+  - The region considered can be specified in the plumed.dat_TEMPLATE directly (zmin/zmax or around_sphere[+/- zcut])
+    Only OW plus HW1/HW2 allowed. Indexes of atoms are the only thing we change in the plumed.dat_TEMPLATE file, the rest is up to the use
+
+* Bonds:
+ Uses different z-slices with respect to z-dens, but - at the moment - the same species!
+
+* FFS stuff:
+  - If the R_CLS_ONLY keyword is set to yes, the code expects a idx.dat file (one line / nucleus, n. of particles within and list of the particles follows)
+    Then, the whole rings analysis is performed onto those particles only...
+  - The FFS_SURF keyword has to be switched on as well, you get a ton of stuff as the average over the whole traj (which is good, cause you are ineterested
+    in properties averaged for each interface)
+  - Basically the whole FFS analysis is performed within the RINGS module. A tipical input would look:
+
+# Rings Section - You must have the R.I.N.G.S. code ready at hand together with:
+# rings.in_TEMPLATE and options_TEMPLATE. Some stuff must be hardcoded beforehand (e.g. atomic species g(r) cutoffs)
+RINGS      yes                                                                 # calculate (or not) rings statistics
+R_EXE      '/home/gsosso/CODES/RINGS/V_1.2.7/rings-code-v1.2.7/BIN/bin/rings'      # R.I.N.G.S. executable
+R_CLS_ONLY yes                                                                 # Consider the atoms in the largest cluster only, reading indexes from an external file (idx.dat) - TBF
+R_ZMIN     0.0                                                                 # lower bound of the region for which we'll get the rings
+R_ZMAX     0.0                                                                 # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+R_NS       2                                                                   # n. of species for which we want to get the rings [1]
+R_WS       OW O3                                                               # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+RCUT       0.32                                                                # nearest neighbor cutoff [nm]
+HBCK       yes                                                                 # Consider only hydrogen-bonded rings
+HB_DIST    0.25                                                                # O-H distance criteria for HB [nm]         
+HB_ANGLE   30.0                                                                # O-H-O angle criteria for HB [deg] (deviation from pi)
+MAXR       9                                                                   # Will get up to MAXR-membered rings [min=6, max=9]
+HEX        no                                                                  # Get regular hexagonal rings
+ATHR       30.0                                                                # Angular threshold [deg]
+R_CLS      yes SIX                                                             # Cluster N-membered rings (e.g. SIX) or cages (CAG) [not yet implemented]
+CAGES      yes                                                                 # get (or) not DDC and HC cages 
+FFS_SURF   yes 1.5                                                             # distinguish between surf ans non surf clusters. gets asphericity and more as well... 
+WCOL       1                                                                   # Which atoms we color for VMD. See Documentation
+
+By loading the usual hin_structure.rings_cls.vmd.tcl VMD script selecting 
+hin_structure.out.rings.color, particles in the nuclei should be colored by 9, and:
+HEX -> user = 10
+DDC/HC -> user = 15/20
+
+

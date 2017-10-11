@@ -1,0 +1,50 @@
+# Set of tools: structure and dynamics of the INA-water interface and ice-like clusters
+
+Two codes only: 
+
+% Features:
+- Read .xtc trajectories
+- Compute different things according to the input file
+- Assume a slab geometry: some material with some water on top, typically TIP4P water. Quantities are computed along the z coordinate,
+  which is supposed to be normal to the slab.
+- Two makefiles & two executables, one for Linux, one other one for Mac OS
+
+hin_structure.x ( fix time evolution of zdens and rings statistics (all rings, cages). 
+- Ensemble averages and (in some selected cases...) time evolution of a number of structural quantities
+  - Select which part of the traj. we are interested in, and the stride by which we consider it - DONE
+  - Determine automatically which atomic species are involved, but consider a subset only, as specified in the input file - DONE
+* Compute (as a function of z)
+  [Just the first overlayer (or up to 2nd, 3rd). Z-range can be specified for (almost...) each quantity]
+   - Density profile - DONE (no temporal evolution, but we don't care that much at the moment)
+   - Coordination number - DONE (Sort of ill defined, though) TBF !!
+   - Hbond (how many, donor, acceptor) - TBD -> THINK about this one. What are we exactly interested in?
+     What could be the difference between one surface and another one, or the surface and the bulk? 
+     Identify 1st,2nd,3rd overlayer and get HB statistics? Need more switches!
+     What's important in terms of ice nucleation? Density of hbond/surface TBF !!
+   - Rings statistics - DONE (clustering missing) TBF !!
+     -> RINGS STATISTICS: how many rings of each size? 3-4-5-6-7-8 membered, first overlayer only - DONE
+     -> Check hexagons - DONE
+     -> Cluster them - TBD - Later on... TBF !!
+     -> VMD colors: devise a general scheme for all the switches... - DONE
+   - hbond paths - need Ali TBF !!
+   - Pair correlation function between water and surface - not sure it makes sense... TBF !!
+   - Voids TBF !!
+   - Voronoi polyedra  - TBF !!
+   - angular distribution - not sure it makes sense... - TBF !!
+- Based on PLUMED (be consistent with respect to which version! Keep track of the syntax as well!)
+   - Ice like nuclei:
+     - Based on some OP specified in plumed.dat. Can we run it from here? 
+       We need a template, a switch (only OW + HW1/HW2 allowed), some .tcl trick (.gro->.pdb), and the plumed driver 
+       * Be sure to note down the version!
+     - Asphericity *
+     - Highest z coord, Lowest z coord *
+     - Cross calculation with cages statistics (oh wow)
+
+hin_dynamics.x (basically done, unless we come up with some other quantity)
+- Time averages
+  - Select which part of the traj. we are interested in, the stride by which we consider it, and the number of time origins - DONE
+* Compute (as a function for z):
+   - MSD -> D - DONE
+   - SISF -> tau - DONE
+   - CHI4 - DONE
+   - HBond and water-surface bonds lifetimes - TBD

@@ -1,0 +1,24 @@
+FC_MAC=g95
+FFLAGS_MAC=-mmacosx-version-min=10.9.5 -ftrace=full  # -g -fbounds-check -Wall -ftrace=full # Debugging flags...
+LDLIBS_MAC=-L/Users/wolf/Work/LIBS/LIBXDR/xdrfile-1.1.4/BIN/lib -lxdrfile
+EXE_MAC=hin_dynamics_MaCoS.x 
+
+SRC_DIR=../SRC
+XTC_INTERFACE_DIR=../../XTC_INTERFACE
+BIN_DIR=../BIN
+
+mac: xtc-interface.o module_read_input.o hin_dynamics.o 
+	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input.o hin_dynamics.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
+xtc-interface.mod: $(XTC_INTERFACE_DIR)/xtc-interface.o $(XTC_INTERFACE_DIR)/xtc-interface.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(XTC_INTERFACE_DIR)/xtc-interface.f90	
+xtc-interface.o: $(XTC_INTERFACE_DIR)/xtc-interface.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(XTC_INTERFACE_DIR)/xtc-interface.f90
+module_read_input.mod: $(SRC_DIR)/module_read_input.o $(SRC_DIR)/module_read_input.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_read_input.f90
+module_read_input.o: $(SRC_DIR)/module_read_input.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_read_input.f90	
+hin_dynamics.o: $(SRC_DIR)/hin_dynamics.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/hin_dynamics.f90 
+
+clean:
+	rm -r -f *.o *.mod

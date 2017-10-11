@@ -1,0 +1,27 @@
+hin_structure.x
+input file: hin_structure.in
+
+Requirements:
+- XTC Library (xdrfile-1.1.4) [Free Software]. http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library
+- IF rings statistics is required -> R.I.N.G.S (rings-code-v1.2.7) [Free Software] http://rings-code.sourceforge.net
+- IF ice-like clusters are required -> PLUMED2 (development branch**) [Free Software] http://www.plumed.org/ 
+- Visualisation tool -> VMD (VMD_1.9.1) [Free Software] http://www.ks.uiuc.edu/Research/vmd/
+
+** git-show
+commit f4c9f45ea5b06621a7c8692bb19385c0ab25650e
+Merge: bf0304b e047788
+Author: Gareth Tribello <gareth.tribello@gmail.com>
+Date:   Tue Nov 17 12:28:51 2015 +0000
+
+    Merge branch 'master' of https://github.com/plumed/plumed2
+
+
+TO BE FIXED:
+* Segfault in R.I.N.G.S. analysis of large (~2000) chunks of system. Disappear when using smaller cutoff.
+Also, do I get ill defined rings? Doesn't seem like it... but I do for the Ice_IV branch, have a look!
+Triple check rings statistics
+* Get some timings. Some bits can probably be faster, although the bottleneck is probably PLUMED frame/frame (and bonds statistics as well)
+* Check the order by which we write things in there! Looks a bit odd at the moment...
+* Make it work on my Mac as well (Plumed needed!)
+* Assumes:
+- Ortorhombic cells. Can be improved. Need to fix this for CHLM !! TBD !!

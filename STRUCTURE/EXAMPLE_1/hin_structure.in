@@ -1,0 +1,53 @@
+# This input file is fixed format. Do not mess with the keywords order or line numbers!
+
+# Trajectory section
+SFILE  conf.gro            # structure file -> .gro file
+TFILE  traj.xtc            # trajectory file -> .xtc file
+FFRAME 0                   # first frame to be taken into account -> n.
+STRIDE 2                   # stride: consider one frame every stride frames -> n.
+LFRAME 8                   # last frame to be taken into account -> n.
+OUTXTC yes                 # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
+NS     4                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
+WS     OW oh ho HW1        # which species -> e.g. 'OW', 'HW', as specified in the .gro file
+HW_EXC yes                 # if this keyword is active, HW2 and considered along with HW1 atoms [recommended: yes]
+
+# z-Density section
+ZDENS  yes                 # calculate (or not) the z-density profile
+ZMIN   0.5                 # zmin: lower bound for the computation along the normal to the surface [nm]
+ZMAX   6.5                 # zmax: upper bound for the computation along the normal to the surface [nm]
+DZ     0.02                # dz: width of each z-slice [nm]
+
+# Rings Section - You must have the R.I.N.G.S. code ready at hand together with:
+# rings.in_TEMPLATE and options_TEMPLATE. Some stuff must be hardcoded beforehand (e.g. atomic species g(r) cutoffs)
+RINGS  no        						       # calculate (or not) rings statistics
+R_EXE  '/home/gsosso/CODES/RINGS/rings-code-v1.2.7/BIN/bin/rings'  # R.I.N.G.S. executable
+R_ZMIN 0.8							       # lower bound of the region for which we'll get the rings
+R_ZMAX 1.6							       # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+R_NS   1							       # n. of species for which we want to get the rings [1]
+R_WS   OW							       # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW]
+RCUT   0.32                                                            # nearest neighbor cutoff [nm]
+MAXR   9              						       # Will get up to MAXR-membered rings [min=6, max=9]
+HEX    yes    							       # Get regular hexagonal rings
+ATHR   30.0                                                            # Angular threshold [deg]
+R_CLS  no SIX							       # Cluster N-membered rings (e.g. SIX) or cages (CAG) - TO BE IMPLEMENTED
+CAGES  no							       # get (or) not DDC and HC cages - Not tested in here, but should ok
+WCOL   0   							       # Which atoms we color for VMD. See Documentation
+
+# Ice-like clusters section - You must have the PLUMED2 code ready at hand together with:
+# plumed.dat_TEMPLATE and .gro->.pdb .tcl script
+CLS    no						                # calculate (or not) ice-like clusters
+C_EXE  '/home/gsosso/CODES/PLUMED2/PLUMED_FFS_NEW/plumed2/BIN/bin/plumed driver' # plumed executable	
+OHS    4                                                                # Oxygen,hydrogen1,hydrogen2,something else. See Doc
+VMD_EXE '/home/gsosso/CODES/BIN/vmd'                                    # VMD executable
+PMPI   4						                # N. of MPI tasks for the plumed driver
+CLS_STAT no								# Get asphericity, z-plot, and more... - TO BE IMPLEMENTED
+
+# Bonds statistics						       
+BON    yes							       # calculate (or not) bonds statistics 	
+B_ZMIN 1.0							       # settings z-slices, typically much thicker than z-dens - minimum [nm]
+B_ZMAX 3.01     						               # max z [nm]	
+B_DZ   1.0							       # thickness of each slice [nm]	
+B_RCUT 0.32 0.0 0.32 0.0 0.0 0.0 0.0 0.0 0.32 0.0                      # cutoff for each pair as e.g. a,b -> aa, ab (ba), bb [nm]
+B_BINS 100                					       # number of bins for the P(bond_length)
+B_BMIN 0.0							       # lower bound for the P(bond_length)
+B_BMAX 0.6							       # upper bound for the P(bond_length)

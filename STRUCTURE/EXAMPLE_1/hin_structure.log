@@ -1,0 +1,13 @@
+ Time (ps):           0.000000  Step: 0 Frame: 0
+ Time (ps):       72000.000000  Step: 36000000 Frame: 2
+ Time (ps):      144000.000000  Step: 72000000 Frame: 4
+ Time (ps):      216000.000000  Step: 108000000 Frame: 6
+ Time (ps):      288000.000000  Step: 144000000 Frame: 8
+ We have taken into account  5 frames, from frame  0  to frame  8  with stride  2
+ We have written a subset of the original .xtc trajectory. See: hin_structure.out.xtc
+ We have computed the probability density distribution of bond lengths. See: hin_structure.out.bonds
+ We have  4 atomic species, namely OW oh ho HW1
+ We have  10  bond pairs
+ We have computed the coordination number. See: hin_structure.out.coord
+ We have  4 atomic species, namely OW oh ho HW1
+ We have  16  cn pairs
