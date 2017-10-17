@@ -75,6 +75,12 @@ call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_ring
 !enddo
 !close(877)
 
+! Set the averages to zero !
+nz_bAVE=0; n_ddc_AVE=0.0; n_hc_AVE=0.0; n_hex_AVE=0.0; n_cls_AVE=0.0; zop_AVE=0.0; 
+n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0; n_ddc_AVE_BULK=0.0; 
+n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0; ze_AVE=0.0; ze_AVE_BULK=0.0;  ze_AVE_SURF=0.0; 
+delta_AVE=0.0;  delta_AVE_BULK=0.0;  delta_AVE_SURF=0.0; esse_AVE=0.0; esse_AVE_BULK=0.0; 
+esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0; 
 
 if (trim(adjustl(switch_zdens)).eq.'yes') then
    call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
@@ -113,7 +119,8 @@ if (trim(adjustl(switch_electro)).eq.'yes'.or.(trim(adjustl(switch_order)).eq.'y
         nq,qqq_all,nat,sym,middle,pos,cart,mq,mq_all)
 endif
 
-if (trim(adjustl(switch_order)).eq.'yes'.and.trim(adjustl(switch_water)).eq.'yes') then
+!if (trim(adjustl(switch_order)).eq.'yes'.and.trim(adjustl(switch_water)).eq.'yes') then
+if (trim(adjustl(switch_order)).eq.'yes') then
    call order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh)
 endif
 

@@ -1,4 +1,4 @@
-GFORTRAN module created from ../SRC/module_rings.f90 on Mon Oct  2 15:24:56 2017
+GFORTRAN module created from ../SRC/module_rings.f90 on Tue Oct 17 17:13:57 2017
 MD5:e918adac6bd7752714bb707e273e69ec -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () ()

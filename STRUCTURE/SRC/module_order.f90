@@ -128,19 +128,24 @@ else ! molecules other than water
    ! END TBF
  
    do j=1,nat
-      if (trim(adjustl(sym(j))).eq.trim(adjustl(axis_1))) then
+      ! rescale the positions wrt the center of mass of each frame - than move the whole thing in the middle
+      pos(cart,j)=pos(cart,j)-com(cart)+middle
+      if (trim(adjustl(sym(j))).eq.trim(adjustl(axis_1)).and.pos(cart,j).gt.o_zmin.and.pos(cart,j).lt.o_zmax) then
          pos_1(:)=pos(:,j)
          flag_1=1 ; resn_1=resnum(j); idx_1=j; sym_1=trim(adjustl(sym(j)))
       endif
-      if (trim(adjustl(sym(j))).eq.trim(adjustl(axis_2))) then
+      if (trim(adjustl(sym(j))).eq.trim(adjustl(axis_2)).and.pos(cart,j).gt.o_zmin.and.pos(cart,j).lt.o_zmax) then
          pos_2(:)=pos(:,j)
          flag_2=1 ; resn_2=resnum(j); idx_2=j; sym_2=trim(adjustl(sym(j))) 
       endif
    !   ! All of them
-   !   !if (flag_1.eq.1.and.flag_2.eq.1) then
+      if (flag_1.eq.1.and.flag_2.eq.1.and.resn_1.eq.resn_2) then
    !   ! Silly hardcoded one to consider some z-region...TBF !
    !    if (flag_1.eq.1.and.flag_2.eq.1.and.pos_1(cart).lt.10.0.and.pos_2(cart).lt.10.0) then ! Gets only the bottom layer...
       !
+
+         !write(*,*) resn_1, resn_2, idx_1, idx_2, sym_1, sym_2, pos_1(3), pos_2(3)
+     
          nmol=nmol+1.0
          dm(:)=pos_2(:)-pos_1(:) 
          !!! DEBUG
@@ -151,17 +156,18 @@ else ! molecules other than water
          dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0))
 ! why abs?!         zop=zop+(acos(abs(dm(cart))))*rad2deg ! angle between the molecular axis of choice and the z-axis
          ! Distribution - TBF
-         !write(845,*) (acos(dm(cart)))*rad2deg
+         !write(*,*) (acos(dm(cart)))*rad2deg
          ! END TBF
          ! up and down !
          zop=zop+(acos(dm(cart)))*rad2deg ! angle between the molecular axis of choice and the z-axis
          flag_1=0 ; flag_2=0
-   !   endif
+      endif
 
    enddo
 
    zop=zop/nmol
    zop_AVE=zop_AVE+zop
+   !write(*,*) zop, zop_AVE, nmol
 
 endif
 
