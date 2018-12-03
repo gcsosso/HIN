@@ -1,6 +1,6 @@
 FC_LINUX=gfortran
 FFLAGS_LINUX=-ffree-line-length-0 -fbacktrace # -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
-LDLIBS_LINUX=-L/home/chem/mssnkt/LIBS/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib64 -llapack -lblas
+LDLIBS_LINUX=-L/storage/molases/maungn/analysis/HIN/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib64 -llapack -lblas
 EXE_LINUX=hin_structure_LiNuX.x
 
 SRC_DIR=../SRC

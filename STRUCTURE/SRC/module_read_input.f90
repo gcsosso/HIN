@@ -187,10 +187,10 @@ do i=1,nat
    enddo
    if (trim(adjustl(switch_rings)).eq.'yes') then
       do j=1,r_ns
-         if (trim(adjustl(r_ws(j))).ne.'OW'.and.trim(adjustl(r_ws(j))).ne.'O3'.and.trim(adjustl(r_ws(j))).ne.'OR1'.and.trim(adjustl(r_ws(j))).ne.'OR2'.and.trim(adjustl(r_ws(j))).ne.'OR3'.and.trim(adjustl(r_ws(j))).ne.'OR4') then
-            write(99,*) "You'll have to implement yet another type of HB check!"
-            stop
-         endif
+         !!if (trim(adjustl(r_ws(j))).ne.'OW'.and.trim(adjustl(r_ws(j))).ne.'O3'.and.trim(adjustl(r_ws(j))).ne.'OR1'.and.trim(adjustl(r_ws(j))).ne.'OR2'.and.trim(adjustl(r_ws(j))).ne.'OR3'.and.trim(adjustl(r_ws(j))).ne.'OR4') then
+         !!   write(99,*) "You'll have to implement yet another type of HB check!"
+         !!   stop
+         !!endif
          if (trim(adjustl(sym(i))).eq.trim(adjustl(r_ws(j)))) then
             n_r_ws(j)=n_r_ws(j)+1
             list_r_ws(j,n_r_ws(j))=i

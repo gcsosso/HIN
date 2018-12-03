@@ -1,0 +1,71 @@
+ Time (ps):           0.000000  Step: 0 Frame: 0
+ Achtung! At time    0.00000000     no            3 -membered rings were found!
+ Achtung! At time    0.00000000     no            4 -membered rings were found!
+ Achtung! At time    0.00000000     no            5 -membered rings were found!
+ Achtung! At time    0.00000000     no            6 -membered rings were found!
+ Achtung! At time    0.00000000     no            7 -membered rings were found!
+ Achtung! At time    0.00000000     no            8 -membered rings were found!
+ Achtung! At time    0.00000000     no            9 -membered rings were found!
+ Time (ps):           4.000000  Step: 2000 Frame: 1
+ Achtung! At time    4.00000000     no            3 -membered rings were found!
+ Achtung! At time    4.00000000     no            4 -membered rings were found!
+ Achtung! At time    4.00000000     no            5 -membered rings were found!
+ Achtung! At time    4.00000000     no            6 -membered rings were found!
+ Achtung! At time    4.00000000     no            7 -membered rings were found!
+ Achtung! At time    4.00000000     no            8 -membered rings were found!
+ Achtung! At time    4.00000000     no            9 -membered rings were found!
+ Time (ps):           8.000000  Step: 4000 Frame: 2
+ Achtung! At time    8.00000000     no            3 -membered rings were found!
+ Achtung! At time    8.00000000     no            4 -membered rings were found!
+ Achtung! At time    8.00000000     no            5 -membered rings were found!
+ Achtung! At time    8.00000000     no            6 -membered rings were found!
+ Achtung! At time    8.00000000     no            7 -membered rings were found!
+ Achtung! At time    8.00000000     no            8 -membered rings were found!
+ Achtung! At time    8.00000000     no            9 -membered rings were found!
+ Time (ps):          12.000000  Step: 6000 Frame: 3
+ Achtung! At time    12.0000000     no            3 -membered rings were found!
+ Achtung! At time    12.0000000     no            4 -membered rings were found!
+ Achtung! At time    12.0000000     no            5 -membered rings were found!
+ Achtung! At time    12.0000000     no            6 -membered rings were found!
+ Achtung! At time    12.0000000     no            7 -membered rings were found!
+ Achtung! At time    12.0000000     no            8 -membered rings were found!
+ Achtung! At time    12.0000000     no            9 -membered rings were found!
+ Time (ps):          16.000000  Step: 8000 Frame: 4
+ Achtung! At time    16.0000000     no            3 -membered rings were found!
+ Achtung! At time    16.0000000     no            4 -membered rings were found!
+ Achtung! At time    16.0000000     no            5 -membered rings were found!
+ Achtung! At time    16.0000000     no            6 -membered rings were found!
+ Achtung! At time    16.0000000     no            7 -membered rings were found!
+ Achtung! At time    16.0000000     no            8 -membered rings were found!
+ Achtung! At time    16.0000000     no            9 -membered rings were found!
+ Time (ps):          20.000000  Step: 10000 Frame: 5
+ Achtung! At time    20.0000000     no            3 -membered rings were found!
+ Achtung! At time    20.0000000     no            4 -membered rings were found!
+ Achtung! At time    20.0000000     no            5 -membered rings were found!
+ Achtung! At time    20.0000000     no            6 -membered rings were found!
+ Achtung! At time    20.0000000     no            7 -membered rings were found!
+ Achtung! At time    20.0000000     no            8 -membered rings were found!
+ Achtung! At time    20.0000000     no            9 -membered rings were found!
+ We have taken into account            6 frames, from frame            0  to frame            5  with stride            1
+ We have written a subset of the original .xtc trajectory. See: hin_structure.out.xtc
+ We have computed rings statistics. See: hin_structure.out.rings.stats
+ We have            2 atomic species, namely OW  HW1 
+ We have         3024 OW  
+ We have         3024 HW1 
+ Average number of            3 -membered rings =    0.00000000    
+ Average number of            4 -membered rings =    0.00000000    
+ Average number of            5 -membered rings =    0.00000000    
+ Average number of            6 -membered rings =    0.00000000    
+ Average number of            7 -membered rings =    0.00000000    
+ Average number of            8 -membered rings =    0.00000000    
+ Average number of            9 -membered rings =    0.00000000    
+ We have also computed the number or wholly hydrogen-bonded rings!!
+ See: hin_structure.out.rings.stats.HB
+ Here are the averages ** for the HB rings only **
+ Average number of            3 -membered rings =    0.00000000    
+ Average number of            4 -membered rings =    0.00000000    
+ Average number of            5 -membered rings =    0.00000000    
+ Average number of            6 -membered rings =    0.00000000    
+ Average number of            7 -membered rings =    0.00000000    
+ Average number of            8 -membered rings =    0.00000000    
+ Average number of            9 -membered rings =    0.00000000    
