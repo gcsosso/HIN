@@ -1,5 +1,3 @@
-# If using RINGS with MPI... module load GCC/7.3.0-2.30 OpenMPI/3.1.1
-
 FC_LINUX=gfortran
 FFLAGS_LINUX=-ffree-line-length-0 -fbacktrace # -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
 # Gabriele's path

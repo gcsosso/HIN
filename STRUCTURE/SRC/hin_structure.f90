@@ -218,7 +218,7 @@ if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes
    call system(command)
 endif
 command='rm -r -f rings.in tmp* rstat data bonds Walltime options log conf.pdb vmd.log rings.out plumed.xtc r*-5.dat'
-! TMP ! call system(command)
+call system(command)
 if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes') then
    command='mv idx.tempo idx.dat'
    call system(command)

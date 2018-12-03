@@ -270,8 +270,12 @@ call system(command)
 command="mv conf.xyz data ; cp options_TEMPLATE options ; rm -r -f rings.out tmp rstat bonds Walltime rings.dat"
 call system(command)
 call system(rings_exe // "rings.in > log 2>&1")
+!call system(rings_exe // "rings.in")
 
 ! DEBUG
+!write(*,*) rings_exe
+!command="touch diocane.log"
+!call system(command)
 !stop
 !
 
