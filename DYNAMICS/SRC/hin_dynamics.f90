@@ -219,7 +219,11 @@ do j=1,n_zmesh
               (chi4(i,j)/real(ntime(i)))-((r2t_sisf_chi4(i,j)/real(ntime(i)))**2.0), bound(j,1)+(dz/2.0) ! NO norm by N!
       ! end 2D
       else
-      ! 3D  
+      ! 3D 
+      ! Column 1 : Time [ps]
+      ! Column 2 : MSD [nm^2]
+      ! Column 3 : SISF [norm - 1]  
+      ! Column 4 : \Chi 2 
          write(102,'(4f20.10)')time, r2t(i,j)/real(ntime(i)), r2t_sisf(i,j)/real(ntime(i)), &
               ((chi4(i,j)/real(ntime(i)))-((r2t_sisf(i,j)/real(ntime(i)))**2.0))*normz(1)
       endif
