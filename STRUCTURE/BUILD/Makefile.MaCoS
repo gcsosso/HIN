@@ -1,5 +1,5 @@
-FC_MAC=g95
-FFLAGS_MAC=-mmacosx-version-min=10.9.5 -ftrace=full # -g -fbounds-check -Wall -ftrace=full # Debugging flags...
+FC_MAC=gfortran # export PATH=/usr/bin:$PATH needed for getting rid of the !m flag... OR # g95
+FFLAGS_MAC=-ffree-line-length-512  #-mmacosx-version-min=10.9.5 -ftrace=full # -g -fbounds-check -Wall -ftrace=full # Debugging flags...
 LDLIBS_MAC=-L/Users/wolf/Work/LIBS/LIBXDR/xdrfile-1.1.4/BIN/lib -lxdrfile
 EXE_MAC=hin_structure_MaCoS.x 
 

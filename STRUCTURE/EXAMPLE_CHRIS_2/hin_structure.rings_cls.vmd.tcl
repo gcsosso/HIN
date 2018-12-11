@@ -45,7 +45,7 @@ trace variable vmd_frame($molid) w do_charge
 animate goto start
 do_charge
 
-#set nof [molinfo top get numframes]
+set nof [molinfo top get numframes]
 #puts $nof
 #
 #set where [pwd]
@@ -54,32 +54,54 @@ do_charge
 #
 #exec rm -r -f snap*
 #
-#display projection Orthographic
-#
-#for {set i 0} {$i <= $nof} {incr i} {
-#    animate goto $i
-#    set idx [ exec echo $i | awk {{printf ("%04d\n",$1)}} ]
-#
-#    mol delrep all all
-#    mol delrep all all
-#
-#    mol representation CPK 2.000000 0.000000 50.000000 50.000000
-#    mol material BrushedMetal
-#    mol addrep 0
-#    mol modselect 0 0 user > 0
-#    mol modcolor 0 0 ColorID 7
-#
-#    mol representation DynamicBonds 3.200000 0.200000 50.000000
-#    mol material BrushedMetal
-#    mol addrep 0
-#    mol modselect 1 0 user > 0
-#    mol modcolor 1 0 ColorID 3
-#
-#    pbc wrap -center com -centersel "user > 0" 
-#    pbc wrap -center com -centersel "user > 0"
-#    pbc wrap -center com -centersel "user > 0"
-#    pbc wrap -center com -centersel "user > 0"
-#
-#    display resetview
-#
-#}
+display projection Orthographic
+
+for {set i 0} {$i <= $nof} {incr i} {
+    animate goto $i
+    set idx [ exec echo $i | awk {{printf ("%04d\n",$1)}} ]
+
+    mol delrep all all
+    mol delrep all all
+    mol delrep all all
+    mol delrep all all
+
+    mol representation CPK 2.000000 0.000000 50.000000 50.000000
+    mol material BrushedMetal
+    mol addrep 0
+    mol modselect 0 0 user > 0
+    mol modcolor 0 0 ColorID 2
+    mol modstyle 0 0 CPK 1.200000 0.000000 50.000000 50.000000
+
+    mol representation DynamicBonds 3.200000 0.200000 50.000000
+    mol material BrushedMetal
+    mol addrep 0
+    mol modselect 1 0 user > 0
+    mol modcolor 1 0 ColorID 6
+    mol modstyle 1 0 DynamicBonds 3.200000 0.100000 50.000000
+
+    mol color ColorID 6
+    mol representation DynamicBonds 3.200000 0.100000 50.000000
+    mol selection user > 0
+    mol material BrushedMetal
+    mol addrep 0
+    mol modselect 2 0 user 15
+    mol modcolor 2 0 ColorID 0
+    mol modstyle 2 0 DynamicBonds 3.200000 0.200000 50.000000
+    mol modstyle 2 0 DynamicBonds 3.200000 0.300000 50.000000
+    mol color ColorID 0
+    mol representation DynamicBonds 3.200000 0.300000 50.000000
+    mol selection user 15
+    mol material BrushedMetal
+    mol addrep 0
+    mol modselect 3 0 user 20
+    mol modcolor 3 0 ColorID 1
+
+    pbc wrap -center com -centersel "user > 0" 
+    pbc wrap -center com -centersel "user > 0"
+    pbc wrap -center com -centersel "user > 0"
+    pbc wrap -center com -centersel "user > 0"
+
+    display resetview
+    display resetview
+
+}

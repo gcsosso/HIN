@@ -272,7 +272,9 @@ command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed
 call system(command)
 command="mv tmp.dat rings.in"
 call system(command)
-command="mv conf.xyz data ; cp options_TEMPLATE options ; rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat"
+command="mv conf.xyz data ; cp options_TEMPLATE options"
+call system(command)
+command="rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat"
 call system(command)
 call system(rings_exe // "rings.in > log 2>&1")
 !call system(rings_exe // "rings.in")
@@ -505,8 +507,6 @@ endif
 !!   stop
 !!endif
 
- 
-
 if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') then
     ! Do some checks...
     if (maxr.lt.6) then
@@ -516,6 +516,11 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
    
    ! Six-rings stuff, for hexagons/cages. Keep it separate from "normal" rings statistics...
    ! if non-primitive rings, substitute -5.dat with -1.dat
+   if (stat_nr(4)==0) then ! No hexagonal rings!?
+      n_ddc=0
+      n_hc=0
+      goto 656
+   endif
    open(unit=69, file='r6-5.dat', status='old')
    nl=0
    endf=0
@@ -877,13 +882,13 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                   ! mk nn l1
                   ! DEBUG
 !                  if (kto(w_rings(l,1)).eq.0) then
-                  if (kto(w_rings(m,k)).eq.0) then
-                      !write(*,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
-                      write(99,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
-                      n_ddc=-1
-                      n_hc=-1
-                      goto 656 ! shit happened!
-                   endif 
+                  !if (kto(w_rings(m,k)).eq.0) then
+                  !    !write(*,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
+                  !    write(99,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
+                  !    n_ddc=-1
+                  !    n_hc=-1
+                  !    goto 656 ! shit happened!
+                  ! endif 
                    !  write(*,*) "DEBUG"
                    !  do i=1,nl
                    !     write(*,*) i, nl, w_rings(i,:)
@@ -1061,6 +1066,8 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
 endif ! hex/cages
 
 if (adjustl(trim(switch_ffss)).eq.'yes') then
+   write(*,*) "Currently not implemented - missing libs on MacOS..."
+   write(99,*) "Currently not implemented - missing libs on MacOS..."
    !!!! Get the asphericity (\Delta) and the shape (S) parameters for the nucleus. 
    !!!
    !!!! com
@@ -1122,7 +1129,8 @@ if (adjustl(trim(switch_ffss)).eq.'yes') then
    !
    lwork=1000
    allocate(work(lwork))
-   call dsyev('N','U',cart,mtemp,cart,eigen,work,lwork,info)
+   ! Commenting just this guy - missing libs on MacOS... TBF
+   !call dsyev('N','U',cart,mtemp,cart,eigen,work,lwork,info)
    deallocate(work)
    ! DEBUG
    !write(*,*) "EIGEN", eigen(:) 
