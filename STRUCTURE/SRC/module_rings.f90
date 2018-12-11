@@ -7,7 +7,7 @@ subroutine rings_alloc(switch_rings,switch_cages,switch_hex,outxtc, &
                        switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                        n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                        delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
-                       rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,stat_nr_HB_AVE)
+                       rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,stat_nr_HB_AVE,switch_hbck)
 
 implicit none
 
@@ -21,7 +21,7 @@ real :: n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE,ze_AVE_BULK,ze_AVE_SURF
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: stat_nr_AVE(:), stat_nr_HB_AVE(:)
-character*3 :: switch_rings, switch_cages, switch_hex, outxtc, switch_r_cls, r_cls_W
+character*3 :: switch_rings, switch_cages, switch_hex, outxtc, switch_r_cls, r_cls_W, switch_hbck
 
 ! If we're doing rings, make the tmp dir and open the output files...
 if (trim(adjustl(switch_rings)).eq.'yes') then
@@ -46,8 +46,10 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
    open(unit=104, file='hin_structure.out.rings.color', status='unknown')
    open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
    write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9))"
-   open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
-   write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
+   if (trim(adjustl(switch_hbck)).eq.'yes') then
+      open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
+      write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
+   endif
    ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
    if (trim(adjustl(switch_r_cls)).eq.'yes') then
       if (trim(adjustl(r_cls_W)).ne.'SIX') then
@@ -192,6 +194,9 @@ else ! we have already read the indexes of the atoms we are interested in - typi
       ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
       ! Store this information for visualisation purposes
       kto(nxyz)=C_idx(counter+1,i)+1
+
+      !write(*,*) kto(nxyz)-1      
+
       ! color the atoms in the cluster...
       r_color(C_idx(counter+1,i)+1)=9
       ! Check whether this is a cluster at the surface or not
@@ -267,7 +272,7 @@ command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed
 call system(command)
 command="mv tmp.dat rings.in"
 call system(command)
-command="mv conf.xyz data ; cp options_TEMPLATE options ; rm -r -f rings.out tmp rstat bonds Walltime rings.dat"
+command="mv conf.xyz data ; cp options_TEMPLATE options ; rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat"
 call system(command)
 call system(rings_exe // "rings.in > log 2>&1")
 !call system(rings_exe // "rings.in")
@@ -373,7 +378,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                   !! M-L
                   if (sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group . It can only receive HB!
                      dummy=0
-                  else ! water-water or water-OH
+                  else ! water-water or water-OH TIP4P/Ice, OW HW1 HW2 MW
                      ! H1
                      xdf=pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
                      ydf=pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
@@ -583,14 +588,21 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
 
    n_hex_AVE=n_hex_AVE+real(n_hex)
    ! Time [ps] | N. of 6-membered rings | N. of proper hexagonal rings
-   open(unit=108, file='hin_structure.out.rings.hex', status='unknown', position='append')
-   write(108,'(1E10.4,2i15)') time, nl, n_hex
-   close(108)
+   if (trim(adjustl(switch_hex)).eq.'yes') then
+      open(unit=108, file='hin_structure.out.rings.hex', status='unknown', position='append')
+      write(108,'(1E10.4,2i15)') time, nl, n_hex
+      close(108)
+   endif
 
    ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
    if (trim(adjustl(switch_r_cls)).eq.'yes') then
+      if (trim(adjustl(switch_hex)).ne.'yes') then
+         write(99,*) "You can only cluster regular hexagonal rings at the moment..."
+         stop
+      endif
       if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
+         stop
       else
       !
       allocate(cr_list(nat),lwho(nat,nat),dfs_color(nat),volume_crit(nat))
@@ -843,6 +855,15 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
       ! 3. If mk is a neighbour of l1, mk2 and mk4 must be neighbours of l3 and l5 (or l5 and l3), respectively.
       ! Adjusting the algorithm to the case of mk being a neighbor of l2 is straightforward.
       n_hc=0
+
+!! DEBUG
+!write(*,*) "DEBUG"
+!do i=1,nl
+!   write(*,*) i, nl, kto(w_rings(i,:))-1
+!enddo
+!! END DEBUG
+
+
       do l=1,nl
          do m=1,nl
             if (l.eq.m) cycle
@@ -854,6 +875,23 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                r_flag2=1
                do k=1,6 
                   ! mk nn l1
+                  ! DEBUG
+!                  if (kto(w_rings(l,1)).eq.0) then
+                  if (kto(w_rings(m,k)).eq.0) then
+                      !write(*,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
+                      write(99,*) "ACHTUNG! Some silly stuff is happening for this particular configuration..."
+                      n_ddc=-1
+                      n_hc=-1
+                      goto 656 ! shit happened!
+                   endif 
+                   !  write(*,*) "DEBUG"
+                   !  do i=1,nl
+                   !     write(*,*) i, nl, w_rings(i,:)
+                   !  enddo
+                     !write(*,*) nl, w_rings(m,k), kto(w_rings(m,k))
+                     !stop 
+                  !endif 
+                  ! END DEBUG
                   posj(:)=pos(:,kto(w_rings(l,1))) ; posi(:)=pos(:,kto(w_rings(m,k)))
                   call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
                   if (cknn) then ! mk is a neighbor of l1 | 2. is fulfilled
@@ -1017,9 +1055,8 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
       !!
 
 
-      
-      ! Time [ps] | N. of 6-membered rings | N. of DDC cages | N. of HC cages
-      write(103,'(1E10.4,3i15)') time, nl, n_ddc, n_hc
+      ! Time [ps] | N. of 6-membered rings | N. of DDC cages | N. of HC cages     
+656   write(103,'(1E10.4,3i15)') time, nl, n_ddc, n_hc
    endif ! cages
 endif ! hex/cages
 
@@ -1151,7 +1188,9 @@ write(104,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
 ! Write down rings statistics
 write(stat_format,*) maxr-2
 write(107,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr(:)
-write(307,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr_HB(:)
+if (trim(adjustl(switch_hbck)).eq.'yes') then
+   write(307,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr_HB(:)
+endif
 stat_nr_AVE(:)=stat_nr_AVE(:)+real(stat_nr(:))
 stat_nr_HB_AVE(:)=stat_nr_HB_AVE(:)+real(stat_nr_HB(:))
 deallocate(stat_nr,stat_nr_HB)

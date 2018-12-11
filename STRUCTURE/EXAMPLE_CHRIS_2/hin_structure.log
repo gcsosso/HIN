@@ -1,0 +1,555 @@
+ We have looked into DDCs and HCs as well. See hin_structure.out.rings.cages
+ Time (ps):        4000.000000  Step: 2000000 Frame: 0
+ Achtung! At time    4000.00000     no            3 -membered rings were found!
+ Time (ps):        4004.000000  Step: 2002000 Frame: 1
+ Achtung! At time    4004.00000     no            3 -membered rings were found!
+ Achtung! At time    4004.00000     no            4 -membered rings were found!
+ Time (ps):        4008.000000  Step: 2004000 Frame: 2
+ Achtung! At time    4008.00000     no            3 -membered rings were found!
+ Time (ps):        4012.000000  Step: 2006000 Frame: 3
+ Achtung! At time    4012.00000     no            3 -membered rings were found!
+ Achtung! At time    4012.00000     no            4 -membered rings were found!
+ Time (ps):        4016.000000  Step: 2008000 Frame: 4
+ Achtung! At time    4016.00000     no            3 -membered rings were found!
+ Achtung! At time    4016.00000     no            4 -membered rings were found!
+ Achtung! At time    4016.00000     no            5 -membered rings were found!
+ Time (ps):        4020.000000  Step: 2010000 Frame: 5
+ Achtung! At time    4020.00000     no            3 -membered rings were found!
+ Achtung! At time    4020.00000     no            4 -membered rings were found!
+ Achtung! At time    4020.00000     no            5 -membered rings were found!
+ Time (ps):        4024.000000  Step: 2012000 Frame: 6
+ Achtung! At time    4024.00000     no            3 -membered rings were found!
+ Time (ps):        4028.000000  Step: 2014000 Frame: 7
+ Time (ps):        4032.000000  Step: 2016000 Frame: 8
+ Achtung! At time    4032.00000     no            3 -membered rings were found!
+ Achtung! At time    4032.00000     no            4 -membered rings were found!
+ Time (ps):        4036.000000  Step: 2018000 Frame: 9
+ Achtung! At time    4036.00000     no            6 -membered rings were found!
+ ACHTUNG! Some silly stuff is happening for this particular configuration...
+ Time (ps):        4040.000000  Step: 2020000 Frame: 10
+ Achtung! At time    4040.00000     no            3 -membered rings were found!
+ Achtung! At time    4040.00000     no            4 -membered rings were found!
+ Achtung! At time    4040.00000     no            5 -membered rings were found!
+ Time (ps):        4044.000000  Step: 2022000 Frame: 11
+ Achtung! At time    4044.00000     no            3 -membered rings were found!
+ Achtung! At time    4044.00000     no            4 -membered rings were found!
+ Time (ps):        4048.000000  Step: 2024000 Frame: 12
+ Achtung! At time    4048.00000     no            3 -membered rings were found!
+ Achtung! At time    4048.00000     no            4 -membered rings were found!
+ Achtung! At time    4048.00000     no            5 -membered rings were found!
+ Time (ps):        4052.000000  Step: 2026000 Frame: 13
+ Achtung! At time    4052.00000     no            3 -membered rings were found!
+ Time (ps):        4056.000000  Step: 2028000 Frame: 14
+ Achtung! At time    4056.00000     no            5 -membered rings were found!
+ Time (ps):        4060.000000  Step: 2030000 Frame: 15
+ Achtung! At time    4060.00000     no            3 -membered rings were found!
+ Achtung! At time    4060.00000     no            5 -membered rings were found!
+ Time (ps):        4064.000000  Step: 2032000 Frame: 16
+ Achtung! At time    4064.00000     no            3 -membered rings were found!
+ Time (ps):        4068.000000  Step: 2034000 Frame: 17
+ Achtung! At time    4068.00000     no            6 -membered rings were found!
+ ACHTUNG! Some silly stuff is happening for this particular configuration...
+ Time (ps):        4072.000000  Step: 2036000 Frame: 18
+ Achtung! At time    4072.00000     no            3 -membered rings were found!
+ Achtung! At time    4072.00000     no            4 -membered rings were found!
+ Time (ps):        4076.000000  Step: 2038000 Frame: 19
+ Achtung! At time    4076.00000     no            3 -membered rings were found!
+ Achtung! At time    4076.00000     no            4 -membered rings were found!
+ Time (ps):        4080.000000  Step: 2040000 Frame: 20
+ Achtung! At time    4080.00000     no            3 -membered rings were found!
+ Achtung! At time    4080.00000     no            4 -membered rings were found!
+ Time (ps):        4084.000000  Step: 2042000 Frame: 21
+ Achtung! At time    4084.00000     no            3 -membered rings were found!
+ Achtung! At time    4084.00000     no            4 -membered rings were found!
+ Time (ps):        4088.000000  Step: 2044000 Frame: 22
+ Achtung! At time    4088.00000     no            3 -membered rings were found!
+ Achtung! At time    4088.00000     no            4 -membered rings were found!
+ Achtung! At time    4088.00000     no            5 -membered rings were found!
+ Time (ps):        4092.000000  Step: 2046000 Frame: 23
+ Achtung! At time    4092.00000     no            3 -membered rings were found!
+ Achtung! At time    4092.00000     no            6 -membered rings were found!
+ Time (ps):        4096.000000  Step: 2048000 Frame: 24
+ Time (ps):        4100.000000  Step: 2050000 Frame: 25
+ Achtung! At time    4100.00000     no            3 -membered rings were found!
+ Achtung! At time    4100.00000     no            4 -membered rings were found!
+ Time (ps):        4104.000000  Step: 2052000 Frame: 26
+ Achtung! At time    4104.00000     no            3 -membered rings were found!
+ Achtung! At time    4104.00000     no            5 -membered rings were found!
+ Time (ps):        4108.000000  Step: 2054000 Frame: 27
+ Achtung! At time    4108.00000     no            3 -membered rings were found!
+ Achtung! At time    4108.00000     no            5 -membered rings were found!
+ Achtung! At time    4108.00000     no            6 -membered rings were found!
+ Time (ps):        4112.000000  Step: 2056000 Frame: 28
+ Achtung! At time    4112.00000     no            3 -membered rings were found!
+ Achtung! At time    4112.00000     no            4 -membered rings were found!
+ Time (ps):        4116.000000  Step: 2058000 Frame: 29
+ Time (ps):        4120.000000  Step: 2060000 Frame: 30
+ Achtung! At time    4120.00000     no            4 -membered rings were found!
+ Time (ps):        4124.000000  Step: 2062000 Frame: 31
+ Achtung! At time    4124.00000     no            3 -membered rings were found!
+ Time (ps):        4128.000000  Step: 2064000 Frame: 32
+ Achtung! At time    4128.00000     no            3 -membered rings were found!
+ Achtung! At time    4128.00000     no            4 -membered rings were found!
+ Time (ps):        4132.000000  Step: 2066000 Frame: 33
+ Achtung! At time    4132.00000     no            3 -membered rings were found!
+ Time (ps):        4136.000000  Step: 2068000 Frame: 34
+ Achtung! At time    4136.00000     no            3 -membered rings were found!
+ Time (ps):        4140.000000  Step: 2070000 Frame: 35
+ Achtung! At time    4140.00000     no            3 -membered rings were found!
+ Achtung! At time    4140.00000     no            4 -membered rings were found!
+ Time (ps):        4144.000000  Step: 2072000 Frame: 36
+ Achtung! At time    4144.00000     no            3 -membered rings were found!
+ Achtung! At time    4144.00000     no            4 -membered rings were found!
+ Time (ps):        4148.000000  Step: 2074000 Frame: 37
+ Achtung! At time    4148.00000     no            4 -membered rings were found!
+ Achtung! At time    4148.00000     no            5 -membered rings were found!
+ Time (ps):        4152.000000  Step: 2076000 Frame: 38
+ Achtung! At time    4152.00000     no            3 -membered rings were found!
+ Achtung! At time    4152.00000     no            4 -membered rings were found!
+ Time (ps):        4156.000000  Step: 2078000 Frame: 39
+ Time (ps):        4160.000000  Step: 2080000 Frame: 40
+ Achtung! At time    4160.00000     no            3 -membered rings were found!
+ Achtung! At time    4160.00000     no            4 -membered rings were found!
+ Time (ps):        4164.000000  Step: 2082000 Frame: 41
+ Time (ps):        4168.000000  Step: 2084000 Frame: 42
+ Achtung! At time    4168.00000     no            3 -membered rings were found!
+ Achtung! At time    4168.00000     no            4 -membered rings were found!
+ Time (ps):        4172.000000  Step: 2086000 Frame: 43
+ Achtung! At time    4172.00000     no            3 -membered rings were found!
+ Achtung! At time    4172.00000     no            4 -membered rings were found!
+ Time (ps):        4176.000000  Step: 2088000 Frame: 44
+ Achtung! At time    4176.00000     no            3 -membered rings were found!
+ Time (ps):        4180.000000  Step: 2090000 Frame: 45
+ Achtung! At time    4180.00000     no            3 -membered rings were found!
+ Time (ps):        4184.000000  Step: 2092000 Frame: 46
+ Achtung! At time    4184.00000     no            3 -membered rings were found!
+ Time (ps):        4188.000000  Step: 2094000 Frame: 47
+ Achtung! At time    4188.00000     no            3 -membered rings were found!
+ Time (ps):        4192.000000  Step: 2096000 Frame: 48
+ Achtung! At time    4192.00000     no            3 -membered rings were found!
+ Achtung! At time    4192.00000     no            4 -membered rings were found!
+ Time (ps):        4196.000000  Step: 2098000 Frame: 49
+ Achtung! At time    4196.00000     no            3 -membered rings were found!
+ Achtung! At time    4196.00000     no            4 -membered rings were found!
+ Time (ps):        4200.000000  Step: 2100000 Frame: 50
+ Achtung! At time    4200.00000     no            3 -membered rings were found!
+ Achtung! At time    4200.00000     no            4 -membered rings were found!
+ Time (ps):        4204.000000  Step: 2102000 Frame: 51
+ Achtung! At time    4204.00000     no            3 -membered rings were found!
+ Time (ps):        4208.000000  Step: 2104000 Frame: 52
+ Time (ps):        4212.000000  Step: 2106000 Frame: 53
+ Achtung! At time    4212.00000     no            3 -membered rings were found!
+ Achtung! At time    4212.00000     no            4 -membered rings were found!
+ Time (ps):        4216.000000  Step: 2108000 Frame: 54
+ Achtung! At time    4216.00000     no            3 -membered rings were found!
+ Time (ps):        4220.000000  Step: 2110000 Frame: 55
+ Time (ps):        4224.000000  Step: 2112000 Frame: 56
+ Time (ps):        4228.000000  Step: 2114000 Frame: 57
+ Achtung! At time    4228.00000     no            3 -membered rings were found!
+ Time (ps):        4232.000000  Step: 2116000 Frame: 58
+ Achtung! At time    4232.00000     no            3 -membered rings were found!
+ Time (ps):        4236.000000  Step: 2118000 Frame: 59
+ Achtung! At time    4236.00000     no            3 -membered rings were found!
+ Achtung! At time    4236.00000     no            4 -membered rings were found!
+ Achtung! At time    4236.00000     no            6 -membered rings were found!
+ Time (ps):        4240.000000  Step: 2120000 Frame: 60
+ Time (ps):        4244.000000  Step: 2122000 Frame: 61
+ Achtung! At time    4244.00000     no            3 -membered rings were found!
+ Achtung! At time    4244.00000     no            6 -membered rings were found!
+ Time (ps):        4248.000000  Step: 2124000 Frame: 62
+ Achtung! At time    4248.00000     no            3 -membered rings were found!
+ Achtung! At time    4248.00000     no            4 -membered rings were found!
+ Time (ps):        4252.000000  Step: 2126000 Frame: 63
+ Achtung! At time    4252.00000     no            3 -membered rings were found!
+ Achtung! At time    4252.00000     no            4 -membered rings were found!
+ Time (ps):        4256.000000  Step: 2128000 Frame: 64
+ Achtung! At time    4256.00000     no            3 -membered rings were found!
+ Time (ps):        4260.000000  Step: 2130000 Frame: 65
+ Achtung! At time    4260.00000     no            3 -membered rings were found!
+ Time (ps):        4264.000000  Step: 2132000 Frame: 66
+ Achtung! At time    4264.00000     no            3 -membered rings were found!
+ Time (ps):        4268.000000  Step: 2134000 Frame: 67
+ Achtung! At time    4268.00000     no            3 -membered rings were found!
+ Achtung! At time    4268.00000     no            5 -membered rings were found!
+ Time (ps):        4272.000000  Step: 2136000 Frame: 68
+ Achtung! At time    4272.00000     no            3 -membered rings were found!
+ Achtung! At time    4272.00000     no            4 -membered rings were found!
+ Achtung! At time    4272.00000     no            5 -membered rings were found!
+ Time (ps):        4276.000000  Step: 2138000 Frame: 69
+ Achtung! At time    4276.00000     no            3 -membered rings were found!
+ Time (ps):        4280.000000  Step: 2140000 Frame: 70
+ Time (ps):        4284.000000  Step: 2142000 Frame: 71
+ Achtung! At time    4284.00000     no            4 -membered rings were found!
+ Achtung! At time    4284.00000     no            5 -membered rings were found!
+ Time (ps):        4288.000000  Step: 2144000 Frame: 72
+ Achtung! At time    4288.00000     no            4 -membered rings were found!
+ Time (ps):        4292.000000  Step: 2146000 Frame: 73
+ Achtung! At time    4292.00000     no            5 -membered rings were found!
+ Time (ps):        4296.000000  Step: 2148000 Frame: 74
+ Achtung! At time    4296.00000     no            3 -membered rings were found!
+ Time (ps):        4300.000000  Step: 2150000 Frame: 75
+ Achtung! At time    4300.00000     no            3 -membered rings were found!
+ Achtung! At time    4300.00000     no            4 -membered rings were found!
+ Achtung! At time    4300.00000     no            5 -membered rings were found!
+ Time (ps):        4304.000000  Step: 2152000 Frame: 76
+ Achtung! At time    4304.00000     no            3 -membered rings were found!
+ Achtung! At time    4304.00000     no            6 -membered rings were found!
+ ACHTUNG! Some silly stuff is happening for this particular configuration...
+ Time (ps):        4308.000000  Step: 2154000 Frame: 77
+ Achtung! At time    4308.00000     no            3 -membered rings were found!
+ Achtung! At time    4308.00000     no            4 -membered rings were found!
+ Time (ps):        4312.000000  Step: 2156000 Frame: 78
+ Achtung! At time    4312.00000     no            3 -membered rings were found!
+ Time (ps):        4316.000000  Step: 2158000 Frame: 79
+ Achtung! At time    4316.00000     no            3 -membered rings were found!
+ Achtung! At time    4316.00000     no            4 -membered rings were found!
+ Time (ps):        4320.000000  Step: 2160000 Frame: 80
+ Achtung! At time    4320.00000     no            3 -membered rings were found!
+ Achtung! At time    4320.00000     no            5 -membered rings were found!
+ Time (ps):        4324.000000  Step: 2162000 Frame: 81
+ Time (ps):        4328.000000  Step: 2164000 Frame: 82
+ Achtung! At time    4328.00000     no            3 -membered rings were found!
+ Achtung! At time    4328.00000     no            4 -membered rings were found!
+ Achtung! At time    4328.00000     no            5 -membered rings were found!
+ Achtung! At time    4328.00000     no            6 -membered rings were found!
+ Time (ps):        4332.000000  Step: 2166000 Frame: 83
+ Achtung! At time    4332.00000     no            3 -membered rings were found!
+ Achtung! At time    4332.00000     no            4 -membered rings were found!
+ Achtung! At time    4332.00000     no            5 -membered rings were found!
+ Time (ps):        4336.000000  Step: 2168000 Frame: 84
+ Achtung! At time    4336.00000     no            5 -membered rings were found!
+ Time (ps):        4340.000000  Step: 2170000 Frame: 85
+ Achtung! At time    4340.00000     no            3 -membered rings were found!
+ Achtung! At time    4340.00000     no            6 -membered rings were found!
+ Time (ps):        4344.000000  Step: 2172000 Frame: 86
+ Achtung! At time    4344.00000     no            4 -membered rings were found!
+ Time (ps):        4348.000000  Step: 2174000 Frame: 87
+ Achtung! At time    4348.00000     no            5 -membered rings were found!
+ Time (ps):        4352.000000  Step: 2176000 Frame: 88
+ Achtung! At time    4352.00000     no            3 -membered rings were found!
+ Achtung! At time    4352.00000     no            5 -membered rings were found!
+ Achtung! At time    4352.00000     no            6 -membered rings were found!
+ Time (ps):        4356.000000  Step: 2178000 Frame: 89
+ Achtung! At time    4356.00000     no            3 -membered rings were found!
+ Time (ps):        4360.000000  Step: 2180000 Frame: 90
+ Achtung! At time    4360.00000     no            3 -membered rings were found!
+ Achtung! At time    4360.00000     no            5 -membered rings were found!
+ Time (ps):        4364.000000  Step: 2182000 Frame: 91
+ Achtung! At time    4364.00000     no            3 -membered rings were found!
+ Achtung! At time    4364.00000     no            4 -membered rings were found!
+ Achtung! At time    4364.00000     no            5 -membered rings were found!
+ Time (ps):        4368.000000  Step: 2184000 Frame: 92
+ Achtung! At time    4368.00000     no            3 -membered rings were found!
+ Time (ps):        4372.000000  Step: 2186000 Frame: 93
+ Achtung! At time    4372.00000     no            3 -membered rings were found!
+ Achtung! At time    4372.00000     no            5 -membered rings were found!
+ Time (ps):        4376.000000  Step: 2188000 Frame: 94
+ Achtung! At time    4376.00000     no            4 -membered rings were found!
+ Achtung! At time    4376.00000     no            6 -membered rings were found!
+ Time (ps):        4380.000000  Step: 2190000 Frame: 95
+ Achtung! At time    4380.00000     no            3 -membered rings were found!
+ Achtung! At time    4380.00000     no            4 -membered rings were found!
+ Achtung! At time    4380.00000     no            5 -membered rings were found!
+ Achtung! At time    4380.00000     no            6 -membered rings were found!
+ Time (ps):        4384.000000  Step: 2192000 Frame: 96
+ Achtung! At time    4384.00000     no            3 -membered rings were found!
+ Achtung! At time    4384.00000     no            4 -membered rings were found!
+ Time (ps):        4388.000000  Step: 2194000 Frame: 97
+ Achtung! At time    4388.00000     no            3 -membered rings were found!
+ Achtung! At time    4388.00000     no            4 -membered rings were found!
+ Time (ps):        4392.000000  Step: 2196000 Frame: 98
+ Achtung! At time    4392.00000     no            3 -membered rings were found!
+ Achtung! At time    4392.00000     no            4 -membered rings were found!
+ Time (ps):        4396.000000  Step: 2198000 Frame: 99
+ Achtung! At time    4396.00000     no            3 -membered rings were found!
+ Achtung! At time    4396.00000     no            5 -membered rings were found!
+ Time (ps):        4400.000000  Step: 2200000 Frame: 100
+ Achtung! At time    4400.00000     no            3 -membered rings were found!
+ Time (ps):        4404.000000  Step: 2202000 Frame: 101
+ Achtung! At time    4404.00000     no            3 -membered rings were found!
+ Achtung! At time    4404.00000     no            5 -membered rings were found!
+ Time (ps):        4408.000000  Step: 2204000 Frame: 102
+ Time (ps):        4412.000000  Step: 2206000 Frame: 103
+ Time (ps):        4416.000000  Step: 2208000 Frame: 104
+ Achtung! At time    4416.00000     no            5 -membered rings were found!
+ Time (ps):        4420.000000  Step: 2210000 Frame: 105
+ Achtung! At time    4420.00000     no            3 -membered rings were found!
+ Time (ps):        4424.000000  Step: 2212000 Frame: 106
+ Achtung! At time    4424.00000     no            3 -membered rings were found!
+ Achtung! At time    4424.00000     no            4 -membered rings were found!
+ Achtung! At time    4424.00000     no            5 -membered rings were found!
+ Time (ps):        4428.000000  Step: 2214000 Frame: 107
+ Achtung! At time    4428.00000     no            3 -membered rings were found!
+ Achtung! At time    4428.00000     no            4 -membered rings were found!
+ Time (ps):        4432.000000  Step: 2216000 Frame: 108
+ Achtung! At time    4432.00000     no            3 -membered rings were found!
+ Achtung! At time    4432.00000     no            4 -membered rings were found!
+ Time (ps):        4436.000000  Step: 2218000 Frame: 109
+ Time (ps):        4440.000000  Step: 2220000 Frame: 110
+ Achtung! At time    4440.00000     no            3 -membered rings were found!
+ Achtung! At time    4440.00000     no            4 -membered rings were found!
+ Time (ps):        4444.000000  Step: 2222000 Frame: 111
+ Achtung! At time    4444.00000     no            3 -membered rings were found!
+ Time (ps):        4448.000000  Step: 2224000 Frame: 112
+ Achtung! At time    4448.00000     no            3 -membered rings were found!
+ Achtung! At time    4448.00000     no            4 -membered rings were found!
+ Achtung! At time    4448.00000     no            5 -membered rings were found!
+ Time (ps):        4452.000000  Step: 2226000 Frame: 113
+ Achtung! At time    4452.00000     no            3 -membered rings were found!
+ Achtung! At time    4452.00000     no            4 -membered rings were found!
+ Time (ps):        4456.000000  Step: 2228000 Frame: 114
+ Achtung! At time    4456.00000     no            3 -membered rings were found!
+ Achtung! At time    4456.00000     no            4 -membered rings were found!
+ Time (ps):        4460.000000  Step: 2230000 Frame: 115
+ Achtung! At time    4460.00000     no            3 -membered rings were found!
+ Achtung! At time    4460.00000     no            5 -membered rings were found!
+ Time (ps):        4464.000000  Step: 2232000 Frame: 116
+ Achtung! At time    4464.00000     no            3 -membered rings were found!
+ Time (ps):        4468.000000  Step: 2234000 Frame: 117
+ Achtung! At time    4468.00000     no            3 -membered rings were found!
+ Achtung! At time    4468.00000     no            4 -membered rings were found!
+ Time (ps):        4472.000000  Step: 2236000 Frame: 118
+ Achtung! At time    4472.00000     no            3 -membered rings were found!
+ Achtung! At time    4472.00000     no            4 -membered rings were found!
+ Time (ps):        4476.000000  Step: 2238000 Frame: 119
+ Achtung! At time    4476.00000     no            3 -membered rings were found!
+ Achtung! At time    4476.00000     no            4 -membered rings were found!
+ Time (ps):        4480.000000  Step: 2240000 Frame: 120
+ Achtung! At time    4480.00000     no            3 -membered rings were found!
+ Achtung! At time    4480.00000     no            4 -membered rings were found!
+ Time (ps):        4484.000000  Step: 2242000 Frame: 121
+ Time (ps):        4488.000000  Step: 2244000 Frame: 122
+ Achtung! At time    4488.00000     no            3 -membered rings were found!
+ Achtung! At time    4488.00000     no            5 -membered rings were found!
+ Time (ps):        4492.000000  Step: 2246000 Frame: 123
+ Achtung! At time    4492.00000     no            3 -membered rings were found!
+ Achtung! At time    4492.00000     no            4 -membered rings were found!
+ Time (ps):        4496.000000  Step: 2248000 Frame: 124
+ Achtung! At time    4496.00000     no            3 -membered rings were found!
+ Time (ps):        4500.000000  Step: 2250000 Frame: 125
+ Achtung! At time    4500.00000     no            3 -membered rings were found!
+ Achtung! At time    4500.00000     no            4 -membered rings were found!
+ Time (ps):        4504.000000  Step: 2252000 Frame: 126
+ Achtung! At time    4504.00000     no            3 -membered rings were found!
+ Achtung! At time    4504.00000     no            5 -membered rings were found!
+ Time (ps):        4508.000000  Step: 2254000 Frame: 127
+ Achtung! At time    4508.00000     no            3 -membered rings were found!
+ Achtung! At time    4508.00000     no            4 -membered rings were found!
+ Time (ps):        4512.000000  Step: 2256000 Frame: 128
+ Achtung! At time    4512.00000     no            3 -membered rings were found!
+ Achtung! At time    4512.00000     no            4 -membered rings were found!
+ Achtung! At time    4512.00000     no            5 -membered rings were found!
+ Time (ps):        4516.000000  Step: 2258000 Frame: 129
+ Achtung! At time    4516.00000     no            3 -membered rings were found!
+ Achtung! At time    4516.00000     no            4 -membered rings were found!
+ Time (ps):        4520.000000  Step: 2260000 Frame: 130
+ Achtung! At time    4520.00000     no            3 -membered rings were found!
+ Time (ps):        4524.000000  Step: 2262000 Frame: 131
+ Achtung! At time    4524.00000     no            3 -membered rings were found!
+ Achtung! At time    4524.00000     no            5 -membered rings were found!
+ Time (ps):        4528.000000  Step: 2264000 Frame: 132
+ Time (ps):        4532.000000  Step: 2266000 Frame: 133
+ Achtung! At time    4532.00000     no            3 -membered rings were found!
+ Achtung! At time    4532.00000     no            4 -membered rings were found!
+ Achtung! At time    4532.00000     no            5 -membered rings were found!
+ Time (ps):        4536.000000  Step: 2268000 Frame: 134
+ Achtung! At time    4536.00000     no            3 -membered rings were found!
+ Achtung! At time    4536.00000     no            4 -membered rings were found!
+ Time (ps):        4540.000000  Step: 2270000 Frame: 135
+ Achtung! At time    4540.00000     no            3 -membered rings were found!
+ Achtung! At time    4540.00000     no            5 -membered rings were found!
+ Time (ps):        4544.000000  Step: 2272000 Frame: 136
+ Achtung! At time    4544.00000     no            3 -membered rings were found!
+ Time (ps):        4548.000000  Step: 2274000 Frame: 137
+ Achtung! At time    4548.00000     no            3 -membered rings were found!
+ Achtung! At time    4548.00000     no            4 -membered rings were found!
+ Achtung! At time    4548.00000     no            5 -membered rings were found!
+ Time (ps):        4552.000000  Step: 2276000 Frame: 138
+ Achtung! At time    4552.00000     no            3 -membered rings were found!
+ Achtung! At time    4552.00000     no            4 -membered rings were found!
+ Time (ps):        4556.000000  Step: 2278000 Frame: 139
+ Achtung! At time    4556.00000     no            5 -membered rings were found!
+ Time (ps):        4560.000000  Step: 2280000 Frame: 140
+ Achtung! At time    4560.00000     no            3 -membered rings were found!
+ Achtung! At time    4560.00000     no            4 -membered rings were found!
+ Achtung! At time    4560.00000     no            5 -membered rings were found!
+ Time (ps):        4564.000000  Step: 2282000 Frame: 141
+ Achtung! At time    4564.00000     no            3 -membered rings were found!
+ Achtung! At time    4564.00000     no            5 -membered rings were found!
+ Time (ps):        4568.000000  Step: 2284000 Frame: 142
+ Achtung! At time    4568.00000     no            3 -membered rings were found!
+ Time (ps):        4572.000000  Step: 2286000 Frame: 143
+ Achtung! At time    4572.00000     no            3 -membered rings were found!
+ Achtung! At time    4572.00000     no            4 -membered rings were found!
+ Time (ps):        4576.000000  Step: 2288000 Frame: 144
+ Achtung! At time    4576.00000     no            3 -membered rings were found!
+ Time (ps):        4580.000000  Step: 2290000 Frame: 145
+ Achtung! At time    4580.00000     no            3 -membered rings were found!
+ Achtung! At time    4580.00000     no            4 -membered rings were found!
+ Time (ps):        4584.000000  Step: 2292000 Frame: 146
+ Achtung! At time    4584.00000     no            3 -membered rings were found!
+ Achtung! At time    4584.00000     no            4 -membered rings were found!
+ Time (ps):        4588.000000  Step: 2294000 Frame: 147
+ Achtung! At time    4588.00000     no            3 -membered rings were found!
+ Achtung! At time    4588.00000     no            4 -membered rings were found!
+ Time (ps):        4592.000000  Step: 2296000 Frame: 148
+ Achtung! At time    4592.00000     no            6 -membered rings were found!
+ Time (ps):        4596.000000  Step: 2298000 Frame: 149
+ Achtung! At time    4596.00000     no            3 -membered rings were found!
+ Achtung! At time    4596.00000     no            4 -membered rings were found!
+ Achtung! At time    4596.00000     no            6 -membered rings were found!
+ ACHTUNG! Some silly stuff is happening for this particular configuration...
+ Time (ps):        4600.000000  Step: 2300000 Frame: 150
+ Achtung! At time    4600.00000     no            3 -membered rings were found!
+ Achtung! At time    4600.00000     no            4 -membered rings were found!
+ Time (ps):        4604.000000  Step: 2302000 Frame: 151
+ Achtung! At time    4604.00000     no            3 -membered rings were found!
+ Achtung! At time    4604.00000     no            5 -membered rings were found!
+ Time (ps):        4608.000000  Step: 2304000 Frame: 152
+ Achtung! At time    4608.00000     no            3 -membered rings were found!
+ Time (ps):        4612.000000  Step: 2306000 Frame: 153
+ Achtung! At time    4612.00000     no            4 -membered rings were found!
+ Time (ps):        4616.000000  Step: 2308000 Frame: 154
+ Achtung! At time    4616.00000     no            3 -membered rings were found!
+ Achtung! At time    4616.00000     no            4 -membered rings were found!
+ Time (ps):        4620.000000  Step: 2310000 Frame: 155
+ Achtung! At time    4620.00000     no            3 -membered rings were found!
+ Achtung! At time    4620.00000     no            4 -membered rings were found!
+ Achtung! At time    4620.00000     no            5 -membered rings were found!
+ Time (ps):        4624.000000  Step: 2312000 Frame: 156
+ Achtung! At time    4624.00000     no            3 -membered rings were found!
+ Achtung! At time    4624.00000     no            4 -membered rings were found!
+ Time (ps):        4628.000000  Step: 2314000 Frame: 157
+ Achtung! At time    4628.00000     no            3 -membered rings were found!
+ Time (ps):        4632.000000  Step: 2316000 Frame: 158
+ Time (ps):        4636.000000  Step: 2318000 Frame: 159
+ Achtung! At time    4636.00000     no            3 -membered rings were found!
+ Achtung! At time    4636.00000     no            4 -membered rings were found!
+ Achtung! At time    4636.00000     no            5 -membered rings were found!
+ Time (ps):        4640.000000  Step: 2320000 Frame: 160
+ Time (ps):        4644.000000  Step: 2322000 Frame: 161
+ Achtung! At time    4644.00000     no            3 -membered rings were found!
+ Achtung! At time    4644.00000     no            4 -membered rings were found!
+ Achtung! At time    4644.00000     no            5 -membered rings were found!
+ Time (ps):        4648.000000  Step: 2324000 Frame: 162
+ Achtung! At time    4648.00000     no            3 -membered rings were found!
+ Achtung! At time    4648.00000     no            4 -membered rings were found!
+ Achtung! At time    4648.00000     no            5 -membered rings were found!
+ Time (ps):        4652.000000  Step: 2326000 Frame: 163
+ Achtung! At time    4652.00000     no            3 -membered rings were found!
+ Achtung! At time    4652.00000     no            4 -membered rings were found!
+ Time (ps):        4656.000000  Step: 2328000 Frame: 164
+ Achtung! At time    4656.00000     no            3 -membered rings were found!
+ Achtung! At time    4656.00000     no            4 -membered rings were found!
+ Achtung! At time    4656.00000     no            6 -membered rings were found!
+ Time (ps):        4660.000000  Step: 2330000 Frame: 165
+ Achtung! At time    4660.00000     no            3 -membered rings were found!
+ Achtung! At time    4660.00000     no            6 -membered rings were found!
+ Time (ps):        4664.000000  Step: 2332000 Frame: 166
+ Achtung! At time    4664.00000     no            3 -membered rings were found!
+ Time (ps):        4668.000000  Step: 2334000 Frame: 167
+ Time (ps):        4672.000000  Step: 2336000 Frame: 168
+ Achtung! At time    4672.00000     no            3 -membered rings were found!
+ Time (ps):        4676.000000  Step: 2338000 Frame: 169
+ Achtung! At time    4676.00000     no            3 -membered rings were found!
+ Time (ps):        4680.000000  Step: 2340000 Frame: 170
+ Achtung! At time    4680.00000     no            3 -membered rings were found!
+ Achtung! At time    4680.00000     no            4 -membered rings were found!
+ Achtung! At time    4680.00000     no            5 -membered rings were found!
+ Time (ps):        4684.000000  Step: 2342000 Frame: 171
+ Achtung! At time    4684.00000     no            3 -membered rings were found!
+ Achtung! At time    4684.00000     no            4 -membered rings were found!
+ Time (ps):        4688.000000  Step: 2344000 Frame: 172
+ Achtung! At time    4688.00000     no            3 -membered rings were found!
+ Achtung! At time    4688.00000     no            6 -membered rings were found!
+ ACHTUNG! Some silly stuff is happening for this particular configuration...
+ Time (ps):        4692.000000  Step: 2346000 Frame: 173
+ Achtung! At time    4692.00000     no            3 -membered rings were found!
+ Time (ps):        4696.000000  Step: 2348000 Frame: 174
+ Achtung! At time    4696.00000     no            3 -membered rings were found!
+ Achtung! At time    4696.00000     no            4 -membered rings were found!
+ Time (ps):        4700.000000  Step: 2350000 Frame: 175
+ Achtung! At time    4700.00000     no            3 -membered rings were found!
+ Time (ps):        4704.000000  Step: 2352000 Frame: 176
+ Achtung! At time    4704.00000     no            3 -membered rings were found!
+ Time (ps):        4708.000000  Step: 2354000 Frame: 177
+ Achtung! At time    4708.00000     no            3 -membered rings were found!
+ Achtung! At time    4708.00000     no            4 -membered rings were found!
+ Achtung! At time    4708.00000     no            5 -membered rings were found!
+ Time (ps):        4712.000000  Step: 2356000 Frame: 178
+ Achtung! At time    4712.00000     no            3 -membered rings were found!
+ Achtung! At time    4712.00000     no            5 -membered rings were found!
+ Time (ps):        4716.000000  Step: 2358000 Frame: 179
+ Time (ps):        4720.000000  Step: 2360000 Frame: 180
+ Achtung! At time    4720.00000     no            3 -membered rings were found!
+ Achtung! At time    4720.00000     no            4 -membered rings were found!
+ Achtung! At time    4720.00000     no            5 -membered rings were found!
+ Time (ps):        4724.000000  Step: 2362000 Frame: 181
+ Achtung! At time    4724.00000     no            3 -membered rings were found!
+ Achtung! At time    4724.00000     no            5 -membered rings were found!
+ Achtung! At time    4724.00000     no            6 -membered rings were found!
+ Time (ps):        4728.000000  Step: 2364000 Frame: 182
+ Achtung! At time    4728.00000     no            3 -membered rings were found!
+ Achtung! At time    4728.00000     no            6 -membered rings were found!
+ Time (ps):        4732.000000  Step: 2366000 Frame: 183
+ Achtung! At time    4732.00000     no            3 -membered rings were found!
+ Achtung! At time    4732.00000     no            4 -membered rings were found!
+ Achtung! At time    4732.00000     no            5 -membered rings were found!
+ Time (ps):        4736.000000  Step: 2368000 Frame: 184
+ Achtung! At time    4736.00000     no            3 -membered rings were found!
+ Time (ps):        4740.000000  Step: 2370000 Frame: 185
+ Achtung! At time    4740.00000     no            3 -membered rings were found!
+ Achtung! At time    4740.00000     no            4 -membered rings were found!
+ Achtung! At time    4740.00000     no            5 -membered rings were found!
+ Time (ps):        4744.000000  Step: 2372000 Frame: 186
+ Achtung! At time    4744.00000     no            3 -membered rings were found!
+ Achtung! At time    4744.00000     no            4 -membered rings were found!
+ Achtung! At time    4744.00000     no            5 -membered rings were found!
+ Time (ps):        4748.000000  Step: 2374000 Frame: 187
+ Time (ps):        4752.000000  Step: 2376000 Frame: 188
+ Time (ps):        4756.000000  Step: 2378000 Frame: 189
+ Achtung! At time    4756.00000     no            3 -membered rings were found!
+ Achtung! At time    4756.00000     no            4 -membered rings were found!
+ Achtung! At time    4756.00000     no            5 -membered rings were found!
+ Time (ps):        4760.000000  Step: 2380000 Frame: 190
+ Achtung! At time    4760.00000     no            6 -membered rings were found!
+ Time (ps):        4764.000000  Step: 2382000 Frame: 191
+ Achtung! At time    4764.00000     no            3 -membered rings were found!
+ Achtung! At time    4764.00000     no            4 -membered rings were found!
+ Time (ps):        4768.000000  Step: 2384000 Frame: 192
+ Achtung! At time    4768.00000     no            3 -membered rings were found!
+ Achtung! At time    4768.00000     no            4 -membered rings were found!
+ Achtung! At time    4768.00000     no            5 -membered rings were found!
+ Time (ps):        4772.000000  Step: 2386000 Frame: 193
+ Achtung! At time    4772.00000     no            3 -membered rings were found!
+ Achtung! At time    4772.00000     no            4 -membered rings were found!
+ Achtung! At time    4772.00000     no            5 -membered rings were found!
+ Time (ps):        4776.000000  Step: 2388000 Frame: 194
+ Achtung! At time    4776.00000     no            3 -membered rings were found!
+ Achtung! At time    4776.00000     no            4 -membered rings were found!
+ Time (ps):        4780.000000  Step: 2390000 Frame: 195
+ Time (ps):        4784.000000  Step: 2392000 Frame: 196
+ Achtung! At time    4784.00000     no            3 -membered rings were found!
+ Achtung! At time    4784.00000     no            5 -membered rings were found!
+ Achtung! At time    4784.00000     no            6 -membered rings were found!
+ Time (ps):        4788.000000  Step: 2394000 Frame: 197
+ Achtung! At time    4788.00000     no            4 -membered rings were found!
+ Time (ps):        4792.000000  Step: 2396000 Frame: 198
+ Achtung! At time    4792.00000     no            3 -membered rings were found!
+ Achtung! At time    4792.00000     no            4 -membered rings were found!
+ Achtung! At time    4792.00000     no            5 -membered rings were found!
+ Time (ps):        4796.000000  Step: 2398000 Frame: 199
+ Achtung! At time    4796.00000     no            4 -membered rings were found!
+ Achtung! At time    4796.00000     no            5 -membered rings were found!
+ Achtung! At time    4796.00000     no            6 -membered rings were found!
+ We have taken into account          200 frames, from frame            0  to frame          199  with stride            1
+ We have written a subset of the original .xtc trajectory. See: hin_structure.out.xtc
+ We have computed rings statistics. See: hin_structure.out.rings.stats
+ We have            1 atomic species, namely OW  
+ We have         3024 OW  
+ Average number of            3 -membered rings =   0.319999993    
+ Average number of            4 -membered rings =   0.954999983    
+ Average number of            5 -membered rings =    1.50999999    
+ Average number of            6 -membered rings =    3.63000011    
+ Average number of DDCcages:    7.00000003E-02
+ Average number of HCcages:    5.99999987E-02

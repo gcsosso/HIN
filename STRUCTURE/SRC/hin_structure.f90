@@ -102,7 +102,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
                  switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                  n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,delta_AVE,delta_AVE_BULK, &
                  delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF,rog_AVE,rog_AVE_BULK,rog_AVE_SURF, &
-                 ze_AVE,ze_AVE_BULK,ze_AVE_SURF,stat_nr_HB_AVE)
+                 ze_AVE,ze_AVE_BULK,ze_AVE_SURF,stat_nr_HB_AVE,switch_hbck)
 endif
 
 if (trim(adjustl(switch_cls)).eq.'yes') then
@@ -217,7 +217,7 @@ if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes
    command='mv idx.dat idx.tempo'
    call system(command)
 endif
-command='rm -r -f rings.in tmp* rstat data bonds Walltime options log conf.pdb vmd.log rings.out plumed.xtc r*-5.dat'
+command='rm -r -f rings.in tmp* rstat data bonds Walltime options log conf.pdb vmd.log rings.out plumed.xtc r3-5.dat r4-5.dat r5-5.dat r6-5.dat'
 call system(command)
 if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes') then
    command='mv idx.tempo idx.dat'
