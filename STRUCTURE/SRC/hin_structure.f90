@@ -7,6 +7,7 @@ use MOD_zdens
 use MOD_xyfes
 use MOD_rings
 use MOD_clusters
+use MOD_clathrates
 use MOD_bonds
 use MOD_electro
 use MOD_output
