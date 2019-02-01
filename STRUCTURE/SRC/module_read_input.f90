@@ -17,12 +17,14 @@ integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy
 integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
-real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, f_zmin, f_zmax, f_cut
+real :: o_zmin, o_zmax, o_dz, hbdist, hbangle
+real :: f_zmin, f_zmax, f_cut
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
-character*3 :: switch_water, switch_hbck, switch_f3, switch_f4
+character*3 :: switch_water, switch_hbck
+character*3 :: switch_f3, switch_f4
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
