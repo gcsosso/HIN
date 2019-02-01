@@ -2,7 +2,7 @@ module MOD_clathrates
 
 contains
 
-! Creates output directories and files for F3 and/or F4 calculations
+! Creates output directories and files for F3 and/or F4 calculations 
 subroutine clathrates_alloc(switch_f3,switch_f4)
 
 implicit none
