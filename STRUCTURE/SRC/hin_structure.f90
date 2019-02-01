@@ -28,6 +28,7 @@ real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xym
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
+real :: f_zmin, f_zmax, f_cut
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
@@ -36,6 +37,7 @@ character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
 character*3 :: switch_electro, switch_order, switch_water, switch_hbck
+character*3 :: switch_f3, switch_f4
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -55,7 +57,8 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
-                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS)
+                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
+                switch_f3,switch_f4,f_zmin,f_zmax,f_cut)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -108,7 +111,11 @@ endif
 
 if (trim(adjustl(switch_cls)).eq.'yes') then
    call clusters_alloc(switch_cls,outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
-   endif
+endif
+
+if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
+   call clathrates_alloc(switch_f3,switch_f4)
+endif
 
 if (trim(adjustl(switch_bonds)).eq.'yes') then
    call bonds_alloc(nz_bAVE,b_zmax,b_zmin,b_dz,pdbon_AVE,npairs,b_bins,cn_AVE,npairs_cn)
