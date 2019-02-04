@@ -26,4 +26,51 @@ open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
 
 end subroutine clathrates_alloc
 
+subroutine clathrates_f3(f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws,list_f_ws, &
+                        counter,kto,icell,box_trans)
+
+implicit none
+
+real :: f_zmin, f_zmax, f_cut, icell(cart*cart), box_trans(cart,cart)
+integer :: f_ns, counter, nxyz
+integer, allocatable :: n_f_ws(:), kto(:)
+character*4, allocatable :: f_ws(:)
+
+! Getting the - variable - box...
+icell(1)=box_trans(1,1) ; icell(2)=box_trans(1,2) ; icell(3)=box_trans(1,3)
+icell(4)=box_trans(2,1) ; icell(5)=box_trans(2,2) ; icell(6)=box_trans(2,3)
+icell(7)=box_trans(3,1) ; icell(8)=box_trans(3,2) ; icell(9)=box_trans(3,3)
+
+! Write down an .xyz with the region we have selected
+open(unit=69, file='conf.xyz', status='unknown')
+open(unit=70, file='tmp.dat', status='unknown')
+nxyz=0
+kto(:)=0
+do i=1,f_ns
+  do j=1,n_f_ws(i)
+     if (pos(cart,list_f_ws(i,j)).ge.f_zmin.and.pos(cart,list_r_ws(i,j)).le.f_zmax) then
+        nxyz=nxyz+1
+        ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
+        ! Store this information for visualisation purposes
+        kto(nxyz)=list_f_ws(i,j)
+     endif
+  enddo 
+enddo 
+write(70,*) nxyz
+write(70,'(4f20.10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, f_cut*10.0
+do i=1,f_ns
+  do j=1,n_f_ws(i)
+     if (pos(cart,list_f_ws(i,j)).ge.f_zmin.and.pos(cart,list_f_ws(i,j)).le.f_zmax) then
+        !write(69,'(1a5,3f20.10)') sym(list_r_ws(i,j)), pos(:,list_r_ws(i,j))*10.0
+        ! We write down everything as oxygen atoms!! 
+        write(69,'(1a5,3f20.10)') "O", pos(:,list_f_ws(i,j))*10.0
+     endif
+  enddo
+enddo
+close(69)
+close(70)
+
+
+end subroutine clathrates_f3
+
 end module MOD_rings
