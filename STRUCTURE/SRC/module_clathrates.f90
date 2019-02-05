@@ -26,45 +26,81 @@ open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
 
 end subroutine clathrates_alloc
 
-subroutine clathrates_f3(f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws,list_f_ws,counter)
+subroutine clathrates_f3(f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws,list_f_ws,counter, &
+                         cart,icell)
 
 implicit none
 
 real :: f_zmin, f_zmax, f_cut
 integer :: f_ns, counter                ! Number of species of interest, frame
 integer, allocatable :: n_f_ws(:)       ! Number of each species of interest (probably only OW)
-integer, allocatable :: list_f_ws(:,:)  ! Atom numbers of species of interest
+integer, allocatable :: list_f_ws(:,:)  ! Atom indices of species of interest
+integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
 character*4, allocatable :: f_ws(:)     ! List of species of interest
-integer :: first_coord_shell(10)        ! First coordination shell of the current atom
+integer :: first_coord_shell(10,2)      ! First coordination shell of the current atom: (index , squared dist)
 integer :: size_first_coord_shell       ! Size of first coordination shell
 real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
+real :: dsq                             ! Square distance between two atoms
+real :: F3_part, F3_atom                ! F3 parameter for triples, atoms
+real, allocatable :: F3_avg(:)          ! F3 parameter for frame-wide avg
+real :: cos_num, cos2_den               ! cos numerator, cos squared denominator
+
+allocate(tot_atoms(f_ns),F3_avg(f_ns))
+tot_atoms(:) = 0
+F3_avg(:) = 0
 
 do i=1,f_ns ! Iterate through species of interest (probably just OW)
     do j=1,n_f_ws(i) ! Iterate through atoms of that species
         if (pos(cart,list_f_ws(i,j)).ge.f_zmin.and.pos(cart,list_f_ws(i,j)).le.f_zmax) then
+            ! Count how many atoms of interest are in the Z-range
+            tot_atoms(i) = tot_atoms(i) + 1
             ! If atom is in Z-region of interest, calculate it's first coordination shell
-            first_coord_shell(:) = 0
+            first_coord_shell(:,:) = 0
             size_first_coord_shell = 0
             do k=1,n_f_ws(i) ! Iterate through other atoms of species
-                ! if (pos(cart,list_f_ws(i,k)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ws(i,k)).le.(f_zmax+f_cut) then
-                if (j/=k) then
+                if (j/=k.and.pos(cart,list_f_ws(i,k)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ws(i,k)).le.(f_zmax+f_cut) then
                     dx = pos(1,list_f_ws(i,k))-pos(1,list_f_ws(i,j))
                     dy = pos(2,list_f_ws(i,k))-pos(2,list_f_ws(i,j))
                     dz = pos(3,list_f_ws(i,k))-pos(3,list_f_ws(i,j))
-                    ! use images
-                    if (dx*dx + dy*dy + dz*dz <= f_cut*f_cut) then
+                    call images(cart,0,1,1,icell,dx,dy,dz)
+                    dsq = dx*dx + dy*dy + dz*dz
+                    if (dsq <= f_cut*f_cut) then
                         size_first_coord_shell = size_first_coord_shell + 1
                         ! if size_first_coord_shell > 10, or whatever allocated size, warn & stop
-                        first_coord_shell(size_first_coord_shell) = list_f_ws(i,k)
+                        if (size_first_coord_shell > 10) then
+                            write(99,*) "WARNING: (F3) first coordination shell for atom ", list_f_ws(i,j), &
+                                        ", at frame ", count, " exceeds 10 atoms!"
+                            EXIT
+                        first_coord_shell(size_first_coord_shell,1) = list_f_ws(i,k)
+                        first_coord_shell(size_first_coord_shell,2) = dsq
                     endif
                 endif
             enddo
+            F3_atom = 0
+            do k=1,size_first_coord_shell-1
+                do l=k+1,size_first_coord_shell
+                    ! Calculate k-l square distance
+                    dx = pos(1,first_coord_shell(k,1))-pos(1,first_coord_shell(l,1))
+                    dy = pos(2,first_coord_shell(k,1))-pos(2,first_coord_shell(l,1))
+                    dz = pos(3,first_coord_shell(k,1))-pos(3,first_coord_shell(l,1))
+                    call images(cart,0,1,1,icell,dx,dy,dz)
+                    dsq = dx*dx + dy*dy + dz*dz
+                    ! Calculate F3 for k-j-l
+                    cos_num = first_coord_shell(k,2) + first_coord_shell(l,2) - dsq
+                    cos2_den = 4*first_coord_shell(k,2)*first_coord_shell(l,2)
+                    F3_part = ((cos_num*abs(cos_num))/cos2_den + 0.1111)**2
+                    ! Add F3/#combinations to total F3
+                    F3_atom = F3_atom + 2*F3_part/(size_first_coord_shell**2 - size_first_coord_shell)
+                enddo
+            enddo
             ! f3 with a double loop on size_first_coord_shell
             ! this is where you color
-            ! this is where you average as well. For now, one frame = 1 average value of f3
+            ! Calculate average F3 for the frame (per species)
+            F3_avg(i) = F3_avg(i) + F3_atom
             ! later on - clustering
         endif
     enddo
+    F3_avg(i) = F3_avg(i)/tot_atoms
 enddo
 
 ! color by f3 value
