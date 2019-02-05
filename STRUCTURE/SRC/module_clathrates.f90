@@ -46,19 +46,28 @@ do i=1,f_ns ! Iterate through species of interest (probably just OW)
             first_coord_shell(:) = 0
             size_first_coord_shell = 0
             do k=1,n_f_ws(i) ! Iterate through other atoms of species
+                ! if (pos(cart,list_f_ws(i,k)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ws(i,k)).le.(f_zmax+f_cut) then
                 if (j/=k) then
                     dx = pos(1,list_f_ws(i,k))-pos(1,list_f_ws(i,j))
                     dy = pos(2,list_f_ws(i,k))-pos(2,list_f_ws(i,j))
                     dz = pos(3,list_f_ws(i,k))-pos(3,list_f_ws(i,j))
+                    ! use images
                     if (dx*dx + dy*dy + dz*dz <= f_cut*f_cut) then
                         size_first_coord_shell = size_first_coord_shell + 1
+                        ! if size_first_coord_shell > 10, or whatever allocated size, warn & stop
                         first_coord_shell(size_first_coord_shell) = list_f_ws(i,k)
                     endif
                 endif
             enddo
+            ! f3 with a double loop on size_first_coord_shell
+            ! this is where you color
+            ! this is where you average as well. For now, one frame = 1 average value of f3
+            ! later on - clustering
         endif
     enddo
 enddo
+
+! color by f3 value
             
 
 end subroutine clathrates_f3
