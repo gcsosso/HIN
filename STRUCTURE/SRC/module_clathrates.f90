@@ -37,13 +37,13 @@ integer, allocatable :: n_f_ws(:)       ! Number of each species of interest (pr
 integer, allocatable :: list_f_ws(:,:)  ! Atom indices of species of interest
 integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
 character*4, allocatable :: f_ws(:)     ! List of species of interest
-integer :: first_coord_shell(10,2)      ! First coordination shell of the current atom: (index , squared dist)
+integer :: first_coord_shell(10,5)      ! First coordination shell of the current atom: (index, dx, dy, dz, dsq)
 integer :: size_first_coord_shell       ! Size of first coordination shell
 real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
 real :: dsq                             ! Square distance between two atoms
 real :: F3_part, F3_atom                ! F3 parameter for triples, atoms
 real, allocatable :: F3_avg(:)          ! F3 parameter for frame-wide avg
-real :: cos_num, cos2_den               ! cos numerator, cos squared denominator
+real :: kdotl, cos2_num, cos2_den       ! k.l, |cos|cos numerator, |cos|cos denominator
 
 allocate(tot_atoms(f_ns),F3_avg(f_ns))
 tot_atoms(:) = 0
@@ -72,23 +72,23 @@ do i=1,f_ns ! Iterate through species of interest (probably just OW)
                                         ", at frame ", count, " exceeds 10 atoms!"
                             EXIT
                         first_coord_shell(size_first_coord_shell,1) = list_f_ws(i,k)
-                        first_coord_shell(size_first_coord_shell,2) = dsq
+                        first_coord_shell(size_first_coord_shell,2) = dx
+                        first_coord_shell(size_first_coord_shell,3) = dy
+                        first_coord_shell(size_first_coord_shell,4) = dz
+                        first_coord_shell(size_first_coord_shell,5) = dsq
                     endif
                 endif
             enddo
             F3_atom = 0
             do k=1,size_first_coord_shell-1
                 do l=k+1,size_first_coord_shell
-                    ! Calculate k-l square distance
-                    dx = pos(1,first_coord_shell(k,1))-pos(1,first_coord_shell(l,1))
-                    dy = pos(2,first_coord_shell(k,1))-pos(2,first_coord_shell(l,1))
-                    dz = pos(3,first_coord_shell(k,1))-pos(3,first_coord_shell(l,1))
-                    call images(cart,0,1,1,icell,dx,dy,dz)
-                    dsq = dx*dx + dy*dy + dz*dz
                     ! Calculate F3 for k-j-l
-                    cos_num = first_coord_shell(k,2) + first_coord_shell(l,2) - dsq
-                    cos2_den = 4*first_coord_shell(k,2)*first_coord_shell(l,2)
-                    F3_part = ((cos_num*abs(cos_num))/cos2_den + 0.1111)**2
+                    kdotl = first_coord_shell(k,2)*first_coord_shell(l,2) + &
+                            first_coord_shell(k,3)*first_coord_shell(l,3) + &
+                            first_coord_shell(k,4)*first_coord_shell(l,4)
+                    cos2_num = kdotl*abs(kdotl)
+                    cos2_den = first_coord_shell(k,5)*first_coord_shell(l,5)
+                    F3_part = (cos2_num/cos2_den + 0.1111)**2
                     ! Add F3/#combinations to total F3
                     F3_atom = F3_atom + 2*F3_part/(size_first_coord_shell**2 - size_first_coord_shell)
                 enddo
