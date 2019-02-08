@@ -150,4 +150,4 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
 
 end subroutine compute_f3
 
-end module MOD_rings
+end module MOD_clathrates
