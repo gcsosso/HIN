@@ -63,7 +63,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
-              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow)
+              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4)
 
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying

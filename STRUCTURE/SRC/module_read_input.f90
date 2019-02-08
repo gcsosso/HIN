@@ -158,7 +158,7 @@ return
 end subroutine read_input
 
 subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
-                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow)
+                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4)
 
 implicit none
 
@@ -166,7 +166,7 @@ integer :: r_ns, nat, ns, i, j, idx, n_f_ow
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), list_f_ow(:)
 integer, allocatable :: kto(:), w_rings(:,:), r_color(:), resnum(:)
 real :: dummyp
-character*3 :: hw_ex, switch_zdens, switch_rings
+character*3 :: hw_ex, switch_zdens, switch_rings, switch_f3, switch_f4
 character*5,allocatable :: resname(:)
 character*100 :: sfile, natformat
 character*4, allocatable :: sym(:), ws(:), r_ws(:)
