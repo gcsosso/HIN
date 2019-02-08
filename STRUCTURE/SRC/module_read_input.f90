@@ -9,13 +9,12 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws)
+                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow)
 
 implicit none
                    
 integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy
 integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
-integer :: f_ns
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
 real :: o_zmin, o_zmax, o_dz, hbdist, hbangle
@@ -27,9 +26,10 @@ character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
 character*3 :: switch_water, switch_hbck
 character*3 :: switch_f3, switch_f4
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
-integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:), n_f_ws(:)
+integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
+integer :: n_f_ow
 character*4 :: wmol, axis_1, axis_2
-character*4, allocatable, intent(out) :: ws(:), r_ws(:), f_ws(:)
+character*4, allocatable, intent(out) :: ws(:), r_ws(:)
 
 ! Read input file...
 open(unit=100, file='hin_structure.in', status='old')
@@ -106,9 +106,6 @@ read(100,*) buffer, switch_f4               ; if (trim(adjustl(buffer)).ne.'F4')
 read(100,*) buffer, f_zmin                  ; if (trim(adjustl(buffer)).ne.'F_ZMIN') eflag=1
 read(100,*) buffer, f_zmax                  ; if (trim(adjustl(buffer)).ne.'F_ZMAX') eflag=1
 read(100,*) buffer, f_cut                   ; if (trim(adjustl(buffer)).ne.'F_CUT') eflag=1
-read(100,*) buffer, f_ns                    ; if (trim(adjustl(buffer)).ne.'F_NS')   eflag=1
-allocate(f_ws(f_ns),n_f_ws(f_ns)) ; n_f_ws(:)=0
-read(100,*) buffer, (f_ws(i), i=1,f_ns)     ; if (trim(adjustl(buffer)).ne.'F_WS')   eflag=1
 ! Bonds section
 read(100,*) buffer, switch_bonds            ; if (trim(adjustl(buffer)).ne.'BON')    eflag=1 
 read(100,*) buffer, b_zmin                  ; if (trim(adjustl(buffer)).ne.'B_ZMIN') eflag=1
@@ -161,18 +158,18 @@ return
 end subroutine read_input
 
 subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
-                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ws,f_ns,f_ws,n_f_ws)
+                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow)
 
 implicit none
 
-integer :: r_ns, nat, ns, i, j, idx, f_ns
-integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), list_f_ws(:)
-integer, allocatable :: kto(:), w_rings(:,:), r_color(:), resnum(:), n_f_ws(:)
+integer :: r_ns, nat, ns, i, j, idx, n_f_ow
+integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), list_f_ow(:)
+integer, allocatable :: kto(:), w_rings(:,:), r_color(:), resnum(:)
 real :: dummyp
 character*3 :: hw_ex, switch_zdens, switch_rings
 character*5,allocatable :: resname(:)
 character*100 :: sfile, natformat
-character*4, allocatable :: sym(:), ws(:), r_ws(:), f_ws(:)
+character*4, allocatable :: sym(:), ws(:), r_ws(:)
 
 ! Read structure file...
 open(unit=101, file=trim(adjustl(sfile)), status='old')
@@ -211,12 +208,10 @@ do i=1,nat
       enddo 
    endif  
    if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
-      do j=1,f_ns
-         if (trim(adjustl(sym(i))).eq.trim(adjustl(f_ws(j)))) then
-            n_f_ws(j)=n_f_ws(j)+1
-            list_f_ws(j,n_f_ws(j))=i
-         endif
-      enddo 
+     if (trim(adjustl(sym(i))).eq.'OW') then
+        n_f_ow=n_f_ow+1
+        list_f_ow(n_f_ow)=i
+     endif
    endif  
 enddo
 

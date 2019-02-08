@@ -58,9 +58,7 @@ F3      yes                                 # Whether to calculate F3 order para
 F4      no                                  # Whether to calculate F4 order parameter
 F_ZMIN  0.0                                 # Min Z-value for water molecules [nm]
 F_ZMAX  30.0                                # Max Z-value for water molecules [nm]
-F_CUT   0.5                                 # Adjacency cutoff for water molecules [nm]
-F_NS    1                                   # n. of species for which we want to get the clathrates [1]
-F_WS    OW                                  # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+F_CUT   0.5                                 # Adjacency cutoff for OW from water molecules [nm]
 
 # Bonds statistics						       
 BON    no 							       # calculate (or not) bonds statistics 	

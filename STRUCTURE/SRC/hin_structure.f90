@@ -21,10 +21,10 @@ integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck,
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
-integer :: f_ns
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
-integer, allocatable :: n_f_ws(:), list_f_ws(:,:)
+integer :: n_f_ow
+integer, allocatable :: list_f_ow(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
@@ -43,7 +43,6 @@ character*3 :: switch_f3, switch_f4
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
-character*4, allocatable :: f_ws(:)
 character*4, allocatable :: atq(:)
 character*100 :: sfile, tfile, xtcOfile, wformat, natformat, rings_exe, command, plumed_exe
 character*100 :: pstring, pstring_C, command1, command2, fcommand, vmd_exe, buffer
@@ -61,10 +60,10 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws)
+                switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
-              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ws,f_ns,f_ws,n_f_ws)
+              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow)
 
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
@@ -117,7 +116,7 @@ if (trim(adjustl(switch_cls)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
-   call clathrates_alloc(switch_f3,switch_f4,f_ns,f_ws,n_f_ws)
+   call clathrates_alloc(switch_f3,switch_f4)
 endif
 
 if (trim(adjustl(switch_bonds)).eq.'yes') then
@@ -181,8 +180,8 @@ do while ( STAT==0 )
       endif
       
       ! Clathrates...
-      if (trim(adjustl(switch_f3)).eq.'yes') then
-        call clathrates_f3(f_zmin,f_zmax,f_cut,f_ns,f_ws,n_f_ws,list_f_ws,counter, &
+      if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
+        call clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
                            cart,icell)
       
       ! Bonds statistics...
