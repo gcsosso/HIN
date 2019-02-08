@@ -48,7 +48,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     integer :: n_f_ow                       ! Number of OW atoms
     real :: icell(cart*cart)
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
-    integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
+    integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
     integer :: first_coord_shell(10,5)      ! First coordination shell of the current atom: (index, dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F3_atom                         ! F3 parameter for triples, atoms
@@ -58,14 +58,14 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     tot_atoms = 0
     F3_avg = 0
 
-    do i=1,n_f_ow(i) ! Iterate through OW atoms
+    do i=1,n_f_ow ! Iterate through OW atoms
         if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
             ! Count how many atoms of interest are in the Z-range
             tot_atoms = tot_atoms + 1
             
             ! If atom is in Z-region of interest, calculate it's first coordination shell
             call compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
-                                           f_min,f_max,f_cut,cart,icell,count)
+                                           f_zmin,f_zmax,f_cut,cart,icell,counter,pos)
             
             ! Compute the F3 parameter for the atom
             call compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
@@ -76,7 +76,9 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             ! later on - clustering
         endif
     enddo
-    F3_avg = F3_avg/tot_atoms
+    if (tot_atoms>0) then
+        F3_avg = F3_avg/tot_atoms
+    endif
 
     ! color by f3 value
             
@@ -86,11 +88,11 @@ end subroutine clathrates
 
 ! Computes first coordination shell
 subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
-                                     f_min,f_max,f_cut,cart,icell,count)
+                                     f_zmin,f_zmax,f_cut,cart,icell,counter,pos)
 
     implicit none
     
-    integer :: i, j, cart, count            ! Atom numbers for central OW, other OW atoms
+    integer :: i, j, cart, counter            ! Atom numbers for central OW, other OW atoms
     integer :: n_f_ow                       ! Number of OW atoms
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
@@ -99,11 +101,12 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,
     real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
     real :: dsq                             ! Square distance between two atoms
     real :: icell(cart*cart)
-    real :: f_min, f_max, f_cut
+    real :: f_zmin, f_zmax, f_cut
+    real, allocatable :: pos(:,:)
     
     first_coord_shell(:,:) = 0
     size_first_coord_shell = 0
-    do j=1,n_f_ow(i) ! Iterate through other atoms of species
+    do j=1,n_f_ow ! Iterate through other atoms of species
         if (i/=j.and.pos(cart,list_f_ow(j)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ow(j)).le.(f_zmax+f_cut)) then
             dx = pos(1,list_f_ow(j))-pos(1,list_f_ow(i))
             dy = pos(2,list_f_ow(j))-pos(2,list_f_ow(i))
@@ -115,8 +118,9 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,
                 ! if size_first_coord_shell > 10, or whatever allocated size, warn & stop
                 if (size_first_coord_shell > 10) then
                     write(99,*) "WARNING: (F3) first coordination shell for atom ", list_f_ow(i), &
-                                ", at frame ", count, " exceeds 10 atoms!"
+                                ", at frame ", counter, " exceeds 10 atoms!"
                     EXIT
+                endif
                 first_coord_shell(size_first_coord_shell,1) = list_f_ow(j)
                 first_coord_shell(size_first_coord_shell,2) = dx
                 first_coord_shell(size_first_coord_shell,3) = dy

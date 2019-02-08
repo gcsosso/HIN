@@ -60,7 +60,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow)
+                switch_f3,switch_f4,f_zmin,f_zmax,f_cut)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4)
@@ -183,6 +183,7 @@ do while ( STAT==0 )
       if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
         call clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
                         cart,icell,pos)
+      endif
       
       ! Bonds statistics...
       if (trim(adjustl(switch_bonds)).eq.'yes') then 
