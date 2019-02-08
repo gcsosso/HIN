@@ -9,7 +9,7 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow)
+                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut)
 
 implicit none
                    
@@ -27,7 +27,6 @@ character*3 :: switch_water, switch_hbck
 character*3 :: switch_f3, switch_f4
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
-integer :: n_f_ow
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable, intent(out) :: ws(:), r_ws(:)
 
@@ -178,6 +177,7 @@ read(101,*) nat
 write(natformat,*) nat
 allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat))
 n_ws(:)=0
+n_f_ow = 0
 
 do i=1,nat
    read(101,'(i5,2a5,i5,3f8.3,3f8.4)') resnum(i), resname(i), sym(i), idx, dummyp, dummyp, dummyp
