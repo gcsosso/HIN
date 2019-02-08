@@ -43,9 +43,10 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
 
     character*3 :: switch_f3, switch_f4
     real :: f_zmin, f_zmax, f_cut
-    integer :: i
+    integer :: i, cart
     integer :: counter                      ! Frame
     integer :: n_f_ow                       ! Number of OW atoms
+    real :: icell(cart*cart)
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
     integer :: first_coord_shell(10,5)      ! First coordination shell of the current atom: (index, dx, dy, dz, dsq)
@@ -62,7 +63,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             tot_atoms = tot_atoms + 1
             
             ! If atom is in Z-region of interest, calculate it's first coordination shell
-            call compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow,cart,icell)
+            call compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
+                                           f_min,f_max,f_cut,cart,icell,count)
             
             ! Compute the F3 parameter for the atom
             call compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
@@ -82,11 +84,12 @@ end subroutine clathrates
 
 
 ! Computes first coordination shell
-subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow,cart,icell)
+subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
+                                     f_min,f_max,f_cut,cart,icell,count)
 
     implicit none
     
-    integer :: i, j                         ! Atom numbers for central OW, other OW atoms
+    integer :: i, j, cart, count            ! Atom numbers for central OW, other OW atoms
     integer :: n_f_ow                       ! Number of OW atoms
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
@@ -94,11 +97,13 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
     real :: dsq                             ! Square distance between two atoms
+    real :: icell(cart*cart)
+    real :: f_min, f_max, f_cut
     
     first_coord_shell(:,:) = 0
     size_first_coord_shell = 0
     do j=1,n_f_ow(i) ! Iterate through other atoms of species
-        if (i/=j.and.pos(cart,list_f_ow(j)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ow(j)).le.(f_zmax+f_cut) then
+        if (i/=j.and.pos(cart,list_f_ow(j)).ge.(f_zmin-f_cut).and.pos(cart,list_f_ow(j)).le.(f_zmax+f_cut)) then
             dx = pos(1,list_f_ow(j))-pos(1,list_f_ow(i))
             dy = pos(2,list_f_ow(j))-pos(2,list_f_ow(i))
             dz = pos(3,list_f_ow(j))-pos(3,list_f_ow(i))
