@@ -182,7 +182,7 @@ do while ( STAT==0 )
       ! Clathrates...
       if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
         call clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                           cart,icell)
+                        cart,icell,pos)
       
       ! Bonds statistics...
       if (trim(adjustl(switch_bonds)).eq.'yes') then 

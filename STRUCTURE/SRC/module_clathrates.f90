@@ -37,7 +37,7 @@ end subroutine clathrates_alloc
 
 
 subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                         cart,icell)
+                      cart,icell,pos)
 
     implicit none
 
@@ -53,6 +53,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F3_atom                         ! F3 parameter for triples, atoms
     real :: F3_avg                          ! F3 parameter for frame-wide avg
+    real, allocatable :: pos(:,:)
 
     tot_atoms = 0
     F3_avg = 0
