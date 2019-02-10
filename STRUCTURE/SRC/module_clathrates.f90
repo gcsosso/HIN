@@ -186,7 +186,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
     real :: dx1, dy1, dz1, dx2, dy2, dz2    ! Tmp holders for component distance vectors
     real :: h1x, h1y, h1z, h2x, h2y, h2z    ! Positional vector components for H1 and H2 (H1-O1..O2-H2, O1 is origin)
     real :: ux, uy, uz, vx, vy, vz          ! Vectors in (H1-O1..O2), (O1..O2,H2) planes, perp to intersection
-    real :: lambda, mu,                     ! u = (1,lambda), v=(1,mu) under bases: {h1, o2} and {h2, o2}, resp.
+    real :: lambda, mu                      ! u = (1,lambda), v=(1,mu) under bases: {h1, o2} and {h2, o2}, resp.
     real :: h1_dot_o2, h2_dot_o2, u_dot_v
     real :: cos_phi                         ! phi is the torsional angle (H1-O1..O2-H2)
 
@@ -257,6 +257,6 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
         F4_atom = F4_atom + F4_part/size_first_coord_shell
     enddo
 
-end subroutine compute_f3
+end subroutine compute_f4
 
 end module MOD_clathrates
