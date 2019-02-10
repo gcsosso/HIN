@@ -162,7 +162,8 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switc
 implicit none
 
 integer :: r_ns, nat, ns, i, j, idx, n_f_ow
-integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), list_f_ow(:)
+integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:)
+integer, allocatable :: list_f_ow(:)
 integer, allocatable :: kto(:), w_rings(:,:), r_color(:), resnum(:)
 real :: dummyp
 character*3 :: hw_ex, switch_zdens, switch_rings, switch_f3, switch_f4
@@ -176,6 +177,7 @@ read(101,*)
 read(101,*) nat
 write(natformat,*) nat
 allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat))
+allocate(list_f_ow(nat))
 n_ws(:)=0
 n_f_ow = 0
 
