@@ -79,7 +79,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             endif
             if (trim(adjustl(switch_f4)).eq.'yes') then
                 ! Compute the F4 parameter for the atom
-                call compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,icell,pos)
+                call compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,icell,pos,list_f_ow)
                 
                 ! Calculate average F4 for the frame (per species)
                 F4_avg = F4_avg + F4_atom
@@ -173,7 +173,7 @@ end subroutine compute_f3
 
 
 ! Computes F4 order parameter for an atom
-subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,icell,pos)
+subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,icell,pos,list_f_ow)
 
     implicit none
     
@@ -182,6 +182,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F4_part, F4_atom                ! F3 parameter for triples, atoms
     real, allocatable :: pos(:,:)
+    integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     real :: icell(cart*cart)
     real :: dx1, dy1, dz1, dx2, dy2, dz2    ! Tmp holders for component distance vectors
     real :: h1x, h1y, h1z, h2x, h2y, h2z    ! Positional vector components for H1 and H2 (H1-O1..O2-H2, O1 is origin)
@@ -190,7 +191,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
     real :: h1_dot_o2, h2_dot_o2, u_dot_v
     real :: cos_phi                         ! phi is the torsional angle (H1-O1..O2-H2)
 
-    F3_atom = 0
+    F4_atom = 0
     do j=1,size_first_coord_shell
         ! Choose Hydrogen from O1. I.e. furthest from O2.
         dx1 = pos(1,list_f_ow(i)+1)-pos(1,list_f_ow(first_coord_shell(j,1)))
