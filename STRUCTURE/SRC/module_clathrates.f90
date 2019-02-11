@@ -206,13 +206,13 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
     F4_atom = 0
     do j=1,size_first_coord_shell
         ! Choose Hydrogen from O1. I.e. furthest from O2.
-        dx1 = pos(1,list_f_ow(i)+1)-pos(1,list_f_ow(first_coord_shell(j,1)))
-        dy1 = pos(2,list_f_ow(i)+1)-pos(2,list_f_ow(first_coord_shell(j,1)))
-        dz1 = pos(3,list_f_ow(i)+1)-pos(3,list_f_ow(first_coord_shell(j,1)))
+        dx1 = pos(1,list_f_ow(i)+1)-pos(1,first_coord_shell(j,1))
+        dy1 = pos(2,list_f_ow(i)+1)-pos(2,first_coord_shell(j,1))
+        dz1 = pos(3,list_f_ow(i)+1)-pos(3,first_coord_shell(j,1))
         call images(cart,0,1,1,icell,dx1,dy1,dz1)
-        dx2 = pos(1,list_f_ow(i)+2)-pos(1,list_f_ow(first_coord_shell(j,1)))
-        dy2 = pos(2,list_f_ow(i)+2)-pos(2,list_f_ow(first_coord_shell(j,1)))
-        dz2 = pos(3,list_f_ow(i)+2)-pos(3,list_f_ow(first_coord_shell(j,1)))
+        dx2 = pos(1,list_f_ow(i)+2)-pos(1,first_coord_shell(j,1))
+        dy2 = pos(2,list_f_ow(i)+2)-pos(2,first_coord_shell(j,1))
+        dz2 = pos(3,list_f_ow(i)+2)-pos(3,first_coord_shell(j,1))
         call images(cart,0,1,1,icell,dx2,dy2,dz2)
         if (dx1*dx1+dy1*dy1+dz1*dz1>dx2*dx2+dy2*dy2+dz2*dz2) then
             ! Calculate h1-o1
@@ -229,13 +229,13 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
         endif
         
         ! Choose Hydrogen from O2. I.e. furthest from O1.
-        dx1 = pos(1,list_f_ow(first_coord_shell(j,1))+1)-pos(1,list_f_ow(i))
-        dy1 = pos(2,list_f_ow(first_coord_shell(j,1))+1)-pos(2,list_f_ow(i))
-        dz1 = pos(3,list_f_ow(first_coord_shell(j,1))+1)-pos(3,list_f_ow(i))
+        dx1 = pos(1,first_coord_shell(j,1)+1)-pos(1,list_f_ow(i))
+        dy1 = pos(2,first_coord_shell(j,1)+1)-pos(2,list_f_ow(i))
+        dz1 = pos(3,first_coord_shell(j,1)+1)-pos(3,list_f_ow(i))
         call images(cart,0,1,1,icell,dx1,dy1,dz1)
-        dx2 = pos(1,list_f_ow(first_coord_shell(j,1))+2)-pos(1,list_f_ow(i))
-        dy2 = pos(2,list_f_ow(first_coord_shell(j,1))+2)-pos(2,list_f_ow(i))
-        dz2 = pos(3,list_f_ow(first_coord_shell(j,1))+2)-pos(3,list_f_ow(i))
+        dx2 = pos(1,first_coord_shell(j,1)+2)-pos(1,list_f_ow(i))
+        dy2 = pos(2,first_coord_shell(j,1)+2)-pos(2,list_f_ow(i))
+        dz2 = pos(3,first_coord_shell(j,1)+2)-pos(3,list_f_ow(i))
         call images(cart,0,1,1,icell,dx2,dy2,dz2)
         if (dx1*dx1+dy1*dy1+dz1*dz1>dx2*dx2+dy2*dy2+dz2*dz2) then
             h2x = dx1
