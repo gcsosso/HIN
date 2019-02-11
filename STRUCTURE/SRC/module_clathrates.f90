@@ -25,24 +25,25 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
     open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
     if (trim(adjustl(switch_f3)).eq.'yes') then
         if (trim(adjustl(switch_f4)).eq.'yes') then
-            write(206,*) "# Time [ps] | Average F3 | Average F4"
+            write(206,*) "# Time [ps] | Average F3 | Average F4 "
         else
-            write(206,*) "# Time [ps] | Average F3"
+            write(206,*) "# Time [ps] | Average F3 "
         endif
     else
-        write(206,*) "# Time [ps] | Average F4"
+        write(206,*) "# Time [ps] | Average F4 "
     endif
 
 end subroutine clathrates_alloc
 
 
 subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                      cart,icell,pos)
+                      time,cart,icell,pos)
 
     implicit none
 
     character*3 :: switch_f3, switch_f4
     real :: f_zmin, f_zmax, f_cut
+    real :: time
     integer :: i, cart
     integer :: counter                      ! Frame
     integer :: n_f_ow                       ! Number of OW atoms
@@ -89,6 +90,18 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     if (tot_atoms>0) then
         F3_avg = F3_avg/tot_atoms
         F4_avg = F4_avg/tot_atoms
+    endif
+    
+    if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
+        ! If we are calculating both order parameters, write to output file
+        write(206,'(1E10.7,2(X,F12.7))') time, F3_avg, F4_avg
+    else if (trim(adjustl(switch_f3)).eq.'yes') then
+        ! If we are calculating only F3, write to output file
+        write(206,'(1E10.7,X,F12.7)') time, F3_avg
+    else
+        ! If we are calculating only F4, write to output file
+        write(206,'(1E10.7,X,F12.7)') time, F4_avg
+    
     endif
 
     ! color by f3 value
@@ -239,7 +252,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
         h1_dot_o2 = h1x*first_coord_shell(j,2) + h1y*first_coord_shell(j,3) + h1z*first_coord_shell(j,4)
         h2_dot_o2 = h2x*first_coord_shell(j,2) + h2y*first_coord_shell(j,3) + h2z*first_coord_shell(j,4)
         lambda = -h1_dot_o2/first_coord_shell(j,5)
-        lambda = -h2_dot_o2/first_coord_shell(j,5)
+        mu = -h2_dot_o2/first_coord_shell(j,5)
         
         ! Calculate u, v
         ux = h1x + lambda*first_coord_shell(j,2)
@@ -251,7 +264,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,size_first_coord_shell,cart,ic
         
         ! Calculate F4 contribution
         u_dot_v = ux*vx + uy*vy + uz*vz
-        cos_phi = u_dot_v/(uz*ux+uy*uy+uz*uz)*(vz*vx+vy*vy+vz*vz)
+        cos_phi = u_dot_v/(ux*ux+uy*uy+uz*uz)*(vx*vx+vy*vy+vz*vz)
         F4_part = 4*cos_phi**3 - 3*cos_phi
 
         ! Add F4/#combinations to total F4
