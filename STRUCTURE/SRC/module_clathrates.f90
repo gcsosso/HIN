@@ -18,7 +18,7 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
     endif
     if (trim(adjustl(switch_f4)).eq.'yes') then
         write(99,*) "We are calculating the clathrate F4 order parameter. See hin_structure.out.clathrates.stats"
-        open(unit=204, file='hin_structure.out.clathrates.f4', status='unknown')
+        open(unit=204, file='hin_structure.out.clathrates.f4.color', status='unknown')
         write(204,*) "Some sort of F4 order parameter statistics will be written here."
     endif
     open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
@@ -66,7 +66,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             
             ! If atom is in Z-region of interest, calculate it's first coordination shell
             call compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
-                                           f_zmin,f_zmax,f_cut,cart,icell,counter,pos)
+                                           f_zmin,f_zmax,f_cut,cart,icell,counter,pos,list_f_ow)
             
             if (trim(adjustl(switch_f3)).eq.'yes') then
                 ! Compute the F3 parameter for the atom
@@ -111,7 +111,7 @@ end subroutine clathrates
 
 ! Computes first coordination shell
 subroutine compute_clath_coord_shell(i,first_coord_shell,size_first_coord_shell,n_f_ow, &
-                                     f_zmin,f_zmax,f_cut,cart,icell,counter,pos)
+                                     f_zmin,f_zmax,f_cut,cart,icell,counter,pos,list_f_ow)
 
     implicit none
     
