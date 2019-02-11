@@ -105,6 +105,7 @@ read(100,*) buffer, switch_f4               ; if (trim(adjustl(buffer)).ne.'F4')
 read(100,*) buffer, f_zmin                  ; if (trim(adjustl(buffer)).ne.'F_ZMIN') eflag=1
 read(100,*) buffer, f_zmax                  ; if (trim(adjustl(buffer)).ne.'F_ZMAX') eflag=1
 read(100,*) buffer, f_cut                   ; if (trim(adjustl(buffer)).ne.'F_CUT') eflag=1
+read(100,*) ; read(100,*)
 ! Bonds section
 read(100,*) buffer, switch_bonds            ; if (trim(adjustl(buffer)).ne.'BON')    eflag=1 
 read(100,*) buffer, b_zmin                  ; if (trim(adjustl(buffer)).ne.'B_ZMIN') eflag=1
