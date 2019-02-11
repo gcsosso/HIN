@@ -10,12 +10,12 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
     character*3 :: switch_f3, switch_f4
 
     ! Make the tmp dir and open output files
-    call system("rm -r -f data-c ; mkdir data-c")
+    !call system("rm -r -f data-c ; mkdir data-c")
     if (trim(adjustl(switch_f3)).eq.'yes') then
-        write(99,*) "We are calculating the clathrate F3 order parameter. See hin_structure.out.clathrates.f3"
+        write(99,*) "We are calculating the clathrate F3 order parameter."
     endif
     if (trim(adjustl(switch_f4)).eq.'yes') then
-        write(99,*) "We are calculating the clathrate F4 order parameter. See hin_structure.out.clathrates.f4"
+        write(99,*) "We are calculating the clathrate F4 order parameter."
     endif
     !open(unit=205, file='hin_structure.out.clathrates.color', status='unknown')
     open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
