@@ -100,18 +100,18 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
         ! If we are calculating both order parameters, write to output file
         write(206,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
         ! Write line to color files
-        write(203,'('//adjustl(natformat)//'E10.3)') (F3_col(i), i=1,nat)
-        write(204,'('//adjustl(natformat)//'E10.3)') (F4_col(i), i=1,nat)
+        write(203,'('//adjustl(natformat)//'E11.3)') (F3_col(i), i=1,nat)
+        write(204,'('//adjustl(natformat)//'E11.3)') (F4_col(i), i=1,nat)
     else if (trim(adjustl(switch_f3)).eq.'yes') then
         ! If we are calculating only F3, write to output file
         write(206,'(1E12.6,X,F12.7)') time, F3_avg
         ! Write line to color file
-        write(203,'('//adjustl(natformat)//'E10.3)') (F3_col(i), i=1,nat)
+        write(203,'('//adjustl(natformat)//'E11.3)') (F3_col(i), i=1,nat)
     else
         ! If we are calculating only F4, write to output file
         write(206,'(1E12.6,X,F12.7)') time, F4_avg
         ! Write line to color file
-        write(204,'('//adjustl(natformat)//'E10.3)') (F4_col(i), i=1,nat)
+        write(204,'('//adjustl(natformat)//'E11.3)') (F4_col(i), i=1,nat)
     
     endif
 
