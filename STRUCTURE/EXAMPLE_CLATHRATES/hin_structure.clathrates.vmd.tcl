@@ -2,9 +2,9 @@ set sfile md.gro
 set tfile hin_structure.out.xtc
 
 # F3
-#set cfile hin_structure.out.clathrates.f3.color
+set cfile hin_structure.out.clathrates.f3.color
 # F4
-set cfile hin_structure.out.clathrates.f4.color
+#set cfile hin_structure.out.clathrates.f4.color
 
 
 package require topotools 
@@ -53,7 +53,7 @@ do_charge
 #exec rm -r -f snap*
 #
 display projection Orthographic
-mol representation CPK 2.000000 0.000000 50.000000 50.000000
-mol material BrushedMetal
-mol modselect 0 0 user < 5
+mol modstyle 0 0 CPK
+mol modmaterial 0 0 BrushedMetal
+mol modselect 0 0 "name OW"
 mol modcolor 0 0 User
