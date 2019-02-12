@@ -35,14 +35,14 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
 end subroutine clathrates_alloc
 
 subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                      time,cart,icell,pos)
+                      time,cart,icell,pos,nat,natformat)
 
     implicit none
 
     character*3 :: switch_f3, switch_f4
     real :: f_zmin, f_zmax, f_cut
     real :: time
-    integer :: i, cart
+    integer :: i, cart, nat
     integer :: counter                      ! Frame
     integer :: n_f_ow                       ! Number of OW atoms
     real :: icell(cart*cart)
@@ -54,10 +54,14 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     real :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
     real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
     real, allocatable :: pos(:,:)
+    real :: F3_col(nat), F4_col(nat)
+    character*100 :: natformat
 
     tot_atoms = 0
     F3_avg = 0
     F4_avg = 0
+    F3_col(:) = 0
+    F4_col(:) = 0
 
     do i=1,n_f_ow ! Iterate through OW atoms
         if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
@@ -75,6 +79,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 ! this is where you color
                 ! Calculate average F3 for the frame (per species)
                 F3_avg = F3_avg + F3_atom
+                F3_col(list_f_ow(i)) = F3_atom
                 ! later on - clustering
             endif
             if (trim(adjustl(switch_f4)).eq.'yes') then
@@ -84,6 +89,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 
                 ! Calculate average F4 for the frame (per species)
                 F4_avg = F4_avg + F4_atom
+                F4_col(list_f_ow(i)) = F4_atom
             endif
         endif
     enddo
@@ -95,12 +101,19 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
         ! If we are calculating both order parameters, write to output file
         write(206,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
+        ! Write line to color files
+        write(203,'('//adjustl(natformat)//'E10.3)') (F3_col(i), i=1,nat)
+        write(204,'('//adjustl(natformat)//'E10.3)') (F4_col(i), i=1,nat)
     else if (trim(adjustl(switch_f3)).eq.'yes') then
         ! If we are calculating only F3, write to output file
         write(206,'(1E12.6,X,F12.7)') time, F3_avg
+        ! Write line to color file
+        write(203,'('//adjustl(natformat)//'E10.3)') (F3_col(i), i=1,nat)
     else
         ! If we are calculating only F4, write to output file
         write(206,'(1E12.6,X,F12.7)') time, F4_avg
+        ! Write line to color file
+        write(204,'('//adjustl(natformat)//'E10.3)') (F4_col(i), i=1,nat)
     
     endif
 
