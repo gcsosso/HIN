@@ -266,7 +266,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
         
         ! Calculate F4 contribution
         u_dot_v = ux*vx + uy*vy + uz*vz
-        cos_phi = u_dot_v/(ux*ux+uy*uy+uz*uz)*(vx*vx+vy*vy+vz*vz)
+        cos_phi = u_dot_v/sqrt((ux*ux+uy*uy+uz*uz)*(vx*vx+vy*vy+vz*vz))
         F4_part = 4*cos_phi**3 - 3*cos_phi
 
         ! Add F4/#combinations to total F4
