@@ -14,12 +14,10 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
     if (trim(adjustl(switch_f3)).eq.'yes') then
         write(99,*) "We are calculating the clathrate F3 order parameter. See hin_structure.out.clathrates.stats"
         open(unit=203, file='hin_structure.out.clathrates.f3.color', status='unknown')
-        write(203,*) "Some sort of F3 order parameter statistics will be written here."
     endif
     if (trim(adjustl(switch_f4)).eq.'yes') then
         write(99,*) "We are calculating the clathrate F4 order parameter. See hin_structure.out.clathrates.stats"
         open(unit=204, file='hin_structure.out.clathrates.f4.color', status='unknown')
-        write(204,*) "Some sort of F4 order parameter statistics will be written here."
     endif
     open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
     if (trim(adjustl(switch_f3)).eq.'yes') then
@@ -60,8 +58,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     tot_atoms = 0
     F3_avg = 0
     F4_avg = 0
-    F3_col(:) = 0
-    F4_col(:) = 0
+    F3_col(:) = 10.0
+    F4_col(:) = 10.0
 
     do i=1,n_f_ow ! Iterate through OW atoms
         if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
