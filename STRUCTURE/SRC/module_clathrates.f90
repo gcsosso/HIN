@@ -46,8 +46,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     real :: icell(cart*cart)
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(10,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(10)    ! First coordination shell atom indices
+    real :: first_coord_shell(20,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
     real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
@@ -131,8 +131,8 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,s
     integer :: n_f_ow                       ! Number of OW atoms
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(10,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(10)    ! First coordination shell atom indices
+    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
     real :: dsq                             ! Square distance between two atoms
@@ -150,10 +150,10 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,s
             dsq = dx*dx + dy*dy + dz*dz
             if (dsq <= f_cut*f_cut) then
                 size_first_coord_shell = size_first_coord_shell + 1
-                ! if size_first_coord_shell > 10, or whatever allocated size, warn & stop
-                if (size_first_coord_shell > 10) then
+                ! if size_first_coord_shell > 20, or whatever allocated size, warn & stop
+                if (size_first_coord_shell >= 20) then
                     write(99,*) "WARNING: (F3) first coordination shell for atom ", list_f_ow(i), &
-                                ", at frame ", counter, " exceeds 10 atoms!"
+                                ", at frame ", counter, " exceeds 20 atoms!"
                     EXIT
                 endif
                 first_coord_shell_ndx(size_first_coord_shell) = list_f_ow(j)
@@ -174,7 +174,7 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
     implicit none
     
     integer :: j, k
-    real :: first_coord_shell(10,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F3_part, F3_atom                ! F3 parameter for triples, atoms
     real :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
@@ -203,8 +203,8 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
     implicit none
     
     integer :: i, j, cart
-    real :: first_coord_shell(10,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(10)    ! First coordination shell indices
+    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(20)    ! First coordination shell indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F4_part, F4_atom                ! F3 parameter for triples, atoms
     real, allocatable :: pos(:,:)
