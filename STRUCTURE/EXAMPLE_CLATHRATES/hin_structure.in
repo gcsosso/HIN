@@ -5,7 +5,7 @@ SFILE  md.gro              # structure file -> .gro file
 TFILE  traj.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
-LFRAME 4                   # last frame to be taken into account -> n.
+LFRAME 3                   # last frame to be taken into account -> n.
 OUTXTC yes                 # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     1                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW                  # which species -> e.g. 'OW', 'HW', as specified in the .gro file
@@ -56,8 +56,8 @@ CLS_STAT no								# Get asphericity, z-plot, and more... - TO BE IMPLEMENTED
 # Clathrates section
 F3      yes                                 # Whether to calculate F3 order parameter
 F4      yes                                 # Whether to calculate F4 order parameter
-F_ZMIN  10.0                                 # Min Z-value for water molecules [nm]
-F_ZMAX  17.0                                # Max Z-value for water molecules [nm]
+F_ZMIN  0.0                                 # Min Z-value for water molecules [nm]
+F_ZMAX  30.0                                # Max Z-value for water molecules [nm]
 F_CUT   0.35                                # Adjacency cutoff for OW from water molecules [nm]
 
 # Bonds statistics						       

@@ -189,9 +189,11 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
             cos2_den = first_coord_shell(j,4)*first_coord_shell(k,4)
             F3_part = (cos2_num/cos2_den + 0.1111)**2
             ! Add F3/#combinations to total F3
-            F3_atom = F3_atom + 2*F3_part/(size_first_coord_shell**2 - size_first_coord_shell)
+            F3_atom = F3_atom + F3_part
         enddo
     enddo
+    
+#    F3_atom = 2*F3_atom/(size_first_coord_shell**2 - size_first_coord_shell)
 
 end subroutine compute_f3
 
