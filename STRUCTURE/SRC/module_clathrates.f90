@@ -14,10 +14,12 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
     if (trim(adjustl(switch_f3)).eq.'yes') then
         write(99,*) "We are calculating the clathrate F3 order parameter. See hin_structure.out.clathrates.stats"
         open(unit=203, file='hin_structure.out.clathrates.f3.color', status='unknown')
+        open(unit=207, file='hin_structure.out.clathrates.f3', status='unknown')
     endif
     if (trim(adjustl(switch_f4)).eq.'yes') then
         write(99,*) "We are calculating the clathrate F4 order parameter. See hin_structure.out.clathrates.stats"
         open(unit=204, file='hin_structure.out.clathrates.f4.color', status='unknown')
+        open(unit=208, file='hin_structure.out.clathrates.f4', status='unknown')
     endif
     open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
     if (trim(adjustl(switch_f3)).eq.'yes') then
@@ -33,14 +35,14 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
 end subroutine clathrates_alloc
 
 subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                      time,cart,icell,pos,nat,natformat)
+                      time,cart,icell,pos,nat,natformat,f_zbins)
 
     implicit none
 
     character*3 :: switch_f3, switch_f4
     real :: f_zmin, f_zmax, f_cut
     real :: time
-    integer :: i, cart, nat
+    integer :: i, j, cart, nat
     integer :: counter                      ! Frame
     integer :: n_f_ow                       ! Number of OW atoms
     real :: icell(cart*cart)
@@ -54,12 +56,17 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     real, allocatable :: pos(:,:)
     real :: F3_col(nat), F4_col(nat)
     character*100 :: natformat
+    integer :: f_zbins
+    integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
+    real :: F3_hist(f_zbins,nat), F4_hist(f_zbins,nat)
 
     tot_atoms = 0
     F3_avg = 0
     F4_avg = 0
     F3_col(:) = 0.0
     F4_col(:) = 0.0
+    F3_zbin_len(:) = 0
+    F4_zbin_len(:) = 0
 
     do i=1,n_f_ow ! Iterate through OW atoms
         if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
@@ -78,6 +85,12 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 ! Calculate average F3 for the frame (per species)
                 F3_avg = F3_avg + F3_atom
                 F3_col(list_f_ow(i)) = F3_atom
+                do j=1,f_zbins
+                    if ((pos(cart,list_f_ow(i))<=f_zmax*(j-1)/f_zbins) and (pos(cart,list_f_ow(i))<=f_zmax*j/f_zbins)) then
+                        F3_zbin_len(j) = F3_zbin_len(j) + 1
+                        F3_zbin(j,F3_zbin_len(j)) = F3_atom
+                    endif
+                enddo
                 ! later on - clustering
             endif
             if (trim(adjustl(switch_f4)).eq.'yes') then
@@ -88,6 +101,12 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 ! Calculate average F4 for the frame (per species)
                 F4_avg = F4_avg + F4_atom
                 F4_col(list_f_ow(i)) = F4_atom
+                do j=1,f_zbins
+                    if ((pos(cart,list_f_ow(i))<=f_zmax*(j-1)/f_zbins) and (pos(cart,list_f_ow(i))<=f_zmax*j/f_zbins)) then
+                        F4_zbin_len(j) = F4_zbin_len(j) + 1
+                        F4_zbin(j,F4_zbin_len(j)) = F4_atom
+                    endif
+                enddo
             endif
         endif
     enddo
@@ -97,21 +116,34 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     endif
     
     if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
-        ! If we are calculating both order parameters, write to output file
+        ! If we are calculating both order parameters, write to output files
         write(206,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
         ! Write line to color files
         write(203,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
         write(204,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+        ! Write lines to binned output files
+        do j=1,f_zbins
+            write(207,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+            write(208,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+        enddo
     else if (trim(adjustl(switch_f3)).eq.'yes') then
-        ! If we are calculating only F3, write to output file
+        ! If we are calculating only F3, write to output files
         write(206,'(1E12.6,X,F12.7)') time, F3_avg
         ! Write line to color file
         write(203,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
+        ! Write lines to binned output files
+        do j=1,f_zbins
+            write(207,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+        enddo
     else
-        ! If we are calculating only F4, write to output file
+        ! If we are calculating only F4, write to output files
         write(206,'(1E12.6,X,F12.7)') time, F4_avg
         ! Write line to color file
         write(204,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+        ! Write lines to binned output files
+        do j=1,f_zbins
+            write(208,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+        enddo
     
     endif
 

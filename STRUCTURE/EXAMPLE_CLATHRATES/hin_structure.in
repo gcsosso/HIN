@@ -59,6 +59,7 @@ F4      yes                                 # Whether to calculate F4 order para
 F_ZMIN  0.0                                 # Min Z-value for water molecules [nm]
 F_ZMAX  30.0                                # Max Z-value for water molecules [nm]
 F_CUT   0.35                                # Adjacency cutoff for OW from water molecules [nm]
+F_ZBINS 100                                 # Number of bins for output data
 
 # Bonds statistics						       
 BON    no 							       # calculate (or not) bonds statistics 	
