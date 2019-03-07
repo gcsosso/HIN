@@ -58,7 +58,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     character*100 :: natformat
     integer :: f_zbins
     integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
-    real :: F3_hist(f_zbins,nat), F4_hist(f_zbins,nat)
+    real :: F3_zbin(f_zbins,nat), F4_zbim(f_zbins,nat)
 
     tot_atoms = 0
     F3_avg = 0
