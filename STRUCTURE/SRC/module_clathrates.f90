@@ -86,7 +86,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 F3_avg = F3_avg + F3_atom
                 F3_col(list_f_ow(i)) = F3_atom
                 do j=1,f_zbins
-                    if ((pos(cart,list_f_ow(i))>=((f_zmax-f_zmin)*(j-1)/f_zbins+f_zmin)) .and. (pos(cart,list_f_ow(i))<=((f_zmax-f_zmin)*j/f_zbins+f_zmin))) then
+                    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
+                        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
                         F3_zbin_len(j) = F3_zbin_len(j) + 1
                         F3_zbin(j,F3_zbin_len(j)) = F3_atom
                         exit
@@ -103,7 +104,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 F4_avg = F4_avg + F4_atom
                 F4_col(list_f_ow(i)) = F4_atom
                 do j=1,f_zbins
-                    if ((pos(cart,list_f_ow(i))>=f_zmax*(j-1)/f_zbins) .and. (pos(cart,list_f_ow(i))<=f_zmax*j/f_zbins)) then
+                    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
+                        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
                         F4_zbin_len(j) = F4_zbin_len(j) + 1
                         F4_zbin(j,F4_zbin_len(j)) = F4_atom
                         exit
