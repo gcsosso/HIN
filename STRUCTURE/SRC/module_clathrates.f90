@@ -89,6 +89,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                     if ((pos(cart,list_f_ow(i))>=f_zmax*(j-1)/f_zbins) .and. (pos(cart,list_f_ow(i))<=f_zmax*j/f_zbins)) then
                         F3_zbin_len(j) = F3_zbin_len(j) + 1
                         F3_zbin(j,F3_zbin_len(j)) = F3_atom
+                        exit
                     endif
                 enddo
                 ! later on - clustering
@@ -105,6 +106,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                     if ((pos(cart,list_f_ow(i))>=f_zmax*(j-1)/f_zbins) .and. (pos(cart,list_f_ow(i))<=f_zmax*j/f_zbins)) then
                         F4_zbin_len(j) = F4_zbin_len(j) + 1
                         F4_zbin(j,F4_zbin_len(j)) = F4_atom
+                        exit
                     endif
                 enddo
             endif
