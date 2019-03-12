@@ -54,12 +54,17 @@ PMPI   4						                # N. of MPI tasks for the plumed driver
 CLS_STAT no								# Get asphericity, z-plot, and more... - TO BE IMPLEMENTED
 
 # Clathrates section
-F3      yes                                 # Whether to calculate F3 order parameter
-F4      yes                                 # Whether to calculate F4 order parameter
-F_ZMIN  0.0                                 # Min Z-value for water molecules [nm]
-F_ZMAX  30.0                                # Max Z-value for water molecules [nm]
-F_CUT   0.35                                # Adjacency cutoff for OW from water molecules [nm]
-F_ZBINS 100                                 # Number of bins for output data
+F3          yes                                 # Whether to calculate F3 order parameter
+F4          yes                                 # Whether to calculate F4 order parameter
+F_ZMIN      0.0                                 # Min Z-value for water molecules [nm]
+F_ZMAX      30.0                                # Max Z-value for water molecules [nm]
+F_CUT       0.35                                # Adjacency cutoff for OW from water molecules [nm]
+F_ZBINS     100                                 # Number of bins for output data
+F_CLS       yes                                 # Whether to cluster ice and clathrate by F3/4
+F3_I_MAX    0.1                                 # Max F3 value for ice
+F3_C_MAX    0.1                                 # Max F3 value for clathrate
+F4_I_MAX    -0.4                                # Max F4 value for ice
+F4_C_MIN    0.75                                # Min F3 value for clathrate
 
 # Bonds statistics						       
 BON    no 							       # calculate (or not) bonds statistics 	

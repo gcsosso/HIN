@@ -9,7 +9,7 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins)
+                      switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
 
 implicit none
                    
@@ -18,17 +18,17 @@ integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
 real :: o_zmin, o_zmax, o_dz, hbdist, hbangle
-real :: f_zmin, f_zmax, f_cut
+real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
 character*3 :: switch_water, switch_hbck
-character*3 :: switch_f3, switch_f4
+character*3 :: switch_f3, switch_f4, switch_f_cls
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
-character*4, allocatable, intent(out) :: ws(:), r_ws(:)
+character*4, allocatable, intent(out) :: ws(:), r_ws(:) 
 
 ! Read input file...
 open(unit=100, file='hin_structure.in', status='old')
@@ -106,6 +106,11 @@ read(100,*) buffer, f_zmin                  ; if (trim(adjustl(buffer)).ne.'F_ZM
 read(100,*) buffer, f_zmax                  ; if (trim(adjustl(buffer)).ne.'F_ZMAX') eflag=1
 read(100,*) buffer, f_cut                   ; if (trim(adjustl(buffer)).ne.'F_CUT') eflag=1
 read(100,*) buffer, f_zbins                 ; if (trim(adjustl(buffer)).ne.'F_ZBINS') eflag=1
+read(100,*) buffer, switch_f_cls            ; if (trim(adjustl(buffer)).ne.'F_CLS') eflag=1
+read(100,*) buffer, f3_imax                 ; if (trim(adjustl(buffer)).ne.'F3_I_MAX') eflag=1
+read(100,*) buffer, f3_cmax                 ; if (trim(adjustl(buffer)).ne.'F3_C_MAX') eflag=1
+read(100,*) buffer, f4_imax                 ; if (trim(adjustl(buffer)).ne.'F4_I_MAX') eflag=1
+read(100,*) buffer, f4_cmin                 ; if (trim(adjustl(buffer)).ne.'F4_C_MIN') eflag=1
 read(100,*) ; read(100,*)
 ! Bonds section
 read(100,*) buffer, switch_bonds            ; if (trim(adjustl(buffer)).ne.'BON')    eflag=1 
