@@ -104,8 +104,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 F4_avg = F4_avg + F4_atom
                 F4_col(list_f_ow(i)) = F4_atom
                 do j=1,f_zbins
-                    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
-                        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
+                    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
                         F4_zbin_len(j) = F4_zbin_len(j) + 1
                         F4_zbin(j,F4_zbin_len(j)) = F4_atom
                         exit
