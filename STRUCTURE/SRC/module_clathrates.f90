@@ -482,7 +482,7 @@ recursive function f_explore(index) result(fat)
     ! who's who?
     lwho(count_cls,black)=cr_list(index)
 
-end function explore
+end function f_explore
 
 subroutine f_sort2(dati, n) ! Insertion sort
 
@@ -504,6 +504,6 @@ subroutine f_sort2(dati, n) ! Insertion sort
         dati(pos) = tmp
     end do
 
-end subroutine sort2
+end subroutine f_sort2
 
 end module MOD_clathrates
