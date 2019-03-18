@@ -116,7 +116,7 @@ if (trim(adjustl(switch_cls)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
-   call clathrates_alloc(switch_f3,switch_f4)
+   call clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
 endif
 
 if (trim(adjustl(switch_bonds)).eq.'yes') then
@@ -182,7 +182,7 @@ do while ( STAT==0 )
       ! Clathrates...
       if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
         call clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                        time,cart,icell,pos,nat,natformat,f_zbins)
+                        time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
       endif
       
       ! Bonds statistics...

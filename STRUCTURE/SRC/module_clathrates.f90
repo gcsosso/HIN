@@ -3,7 +3,7 @@ module MOD_clathrates
 contains
 
 ! Creates output directories and files for F3 and/or F4 calculations 
-subroutine clathrates_alloc(switch_f3,switch_f4)
+subroutine clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
 
     implicit none
 
@@ -11,36 +11,45 @@ subroutine clathrates_alloc(switch_f3,switch_f4)
 
     ! Make the tmp dir and open output files
     !call system("rm -r -f data-c ; mkdir data-c")
+    open(unit=200, file='hin_structure.out.f.stats', status='unknown')
     if (trim(adjustl(switch_f3)).eq.'yes') then
-        write(99,*) "We are calculating the clathrate F3 order parameter. See hin_structure.out.clathrates.stats"
-        open(unit=203, file='hin_structure.out.clathrates.f3.color', status='unknown')
-        open(unit=207, file='hin_structure.out.clathrates.f3', status='unknown')
-    endif
-    if (trim(adjustl(switch_f4)).eq.'yes') then
-        write(99,*) "We are calculating the clathrate F4 order parameter. See hin_structure.out.clathrates.stats"
-        open(unit=204, file='hin_structure.out.clathrates.f4.color', status='unknown')
-        open(unit=208, file='hin_structure.out.clathrates.f4', status='unknown')
-    endif
-    open(unit=206, file='hin_structure.out.clathrates.stats', status='unknown')
-    if (trim(adjustl(switch_f3)).eq.'yes') then
+        write(99,*) "We are calculating the clathrate F3 order parameter."
+        open(unit=231, file='hin_structure.out.f.f3.color', status='unknown')
+        open(unit=230, file='hin_structure.out.f.f3', status='unknown')
+        
         if (trim(adjustl(switch_f4)).eq.'yes') then
-            write(206,*) "# Time [ps] | Average F3 | Average F4 "
+            write(99,*) "We are also calculating the clathrate F4 order parameter."
+            open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
+            open(unit=240, file='hin_structure.out.f.f4', status='unknown')
+            if (trim(adjustl(switch_f_cls)).eq.'yes') then
+                write(99,*) "We are also calculating clustering of ice and clathrate."
+                open(unit=201, file='hin_structure.out.f.ice.patch', status='unknown')
+                open(unit=202, file='hin_structure.out.f.ice.patch.color', status='unknown')
+                open(unit=203, file='hin_structure.out.f.clathrate.patch', status='unknown')
+                open(unit=204, file='hin_structure.out.f.clathrate.patch.color', status='unknown')
+            endif
+            
+            write(200,*) "# Time [ps] | Average F3 | Average F4 "
         else
-            write(206,*) "# Time [ps] | Average F3 "
+            write(200,*) "# Time [ps] | Average F3 "
         endif
     else
-        write(206,*) "# Time [ps] | Average F4 "
+        write(99,*) "We are calculating the clathrate F4 order parameter."
+        open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
+        open(unit=240, file='hin_structure.out.f.f4', status='unknown')
+        
+        write(200,*) "# Time [ps] | Average F4 "
     endif
 
 end subroutine clathrates_alloc
 
 subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
-                      time,cart,icell,pos,nat,natformat,f_zbins)
+                      time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
 
     implicit none
 
-    character*3 :: switch_f3, switch_f4
-    real :: f_zmin, f_zmax, f_cut
+    character*3 :: switch_f3, switch_f4, switch_f_cls
+    real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
     real :: time
     integer :: i, j, cart, nat
     integer :: counter                      ! Frame
@@ -120,37 +129,51 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     
     if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
         ! If we are calculating both order parameters, write to output files
-        write(206,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
+        write(200,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
         ! Write line to color files
-        write(203,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
-        write(204,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+        write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
+        write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
         ! Write lines to binned output files
         do j=1,f_zbins
-            write(207,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
-            write(208,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+            write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+            write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
         enddo
     else if (trim(adjustl(switch_f3)).eq.'yes') then
         ! If we are calculating only F3, write to output files
-        write(206,'(1E12.6,X,F12.7)') time, F3_avg
+        write(200,'(1E12.6,X,F12.7)') time, F3_avg
         ! Write line to color file
-        write(203,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
+        write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
         ! Write lines to binned output files
         do j=1,f_zbins
-            write(207,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+            write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
         enddo
     else
         ! If we are calculating only F4, write to output files
-        write(206,'(1E12.6,X,F12.7)') time, F4_avg
+        write(200,'(1E12.6,X,F12.7)') time, F4_avg
         ! Write line to color file
-        write(204,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+        write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
         ! Write lines to binned output files
         do j=1,f_zbins
-            write(208,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+            write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
         enddo
     
     endif
 
-    ! color by f3 value
+    ! Clustering
+    
+    if (trim(adjustl(switch_f_cls)).eq.'yes') then
+        
+        if (trim(adjust(switch_f3)).ne.'yes'.or.trim(adjust(switch_f4)).ne.'yes') then
+            write(99,*) "Clathrate clustering requires both F3 and F4!"
+        else
+            call f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,0,f3_imax,-1,f4_imax,f_cut, &
+                              pos,icell,6,201,202) ! Cluster icy molecules
+            call f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,0,f3_cmax,f4_cmin,1,f_cut, &
+                              pos,icell,6,203,204) ! Cluster clathrate-like molecules
+        endif
+        
+    endif
+    
             
 
 end subroutine clathrates
@@ -322,5 +345,165 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
     enddo
 
 end subroutine compute_f4
+
+! Computes F4 order parameter for an atom
+subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,f4_max,f_cut, &
+                            pos,icell,crit,patch_file,col_file)
+    
+    use dfs
+    
+    implicit none
+    
+    integer :: nat, n_f_ow, i, j
+    integer, allocatable :: list_f_ow(:)
+    real :: F3_col(nat), F4_col(nat)
+    real :: f3_min, f3_max, f4_min, f4_max, f_cut
+    real, allocatable :: pos(:,:)
+    real :: posi(3), posj(3), icell(9), xdf, ydf, zdf, dist
+    logical :: cknn
+    
+    ! DFS stuff
+    integer :: ncr, iat, jat, nnf, voltot, crit, ncrit, vol_count, patch
+    integer, allocatable :: dfs_color(:), volume_crit(:)
+    
+    allocate(cr_list(n_f_ow),lwho(n_f_ow,n_f_ow),dfs_color(nat),volume_crit(n_f_ow))
+    ncr = 0
+    cr_list(:) = 0
+    
+    do i=1,n_f_ow
+        if (F3_color(list_f_ow(i)).ge.f3_min.and.F3_color(list_f_ow(i)).le.f3_max&
+            &.and.F4_color(list_f_ow(i)).ge.f4_min.and.F4_color(list_f_ow(i)).le.f4_max) then
+            ncr = ncr + 1
+            cr_list(ncr) = list_f_ow(i)
+        endif
+    enddo
+    
+    allocate(graph_solid_connect(ncr,20),followgraph(ncr),volume(ncr))
+    allocate(neigh(ncr),predecessor(ncr))
+    ! Fill the adjacency list
+    neigh(:)=0
+    lwho(:,:)=0
+    graph_solid_connect(:,:)=0
+    predecessor(:)=0
+    
+    do i=1,ncr
+        do j=1,ncr
+            if (i.ne.j) then
+                iat = cr_list(i)
+                jat = cr_list(j)
+                posi(:)=pos(:,iat)
+                posj(:)=pos(:,jat)
+                call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                if (cknn) then 
+                    neigh(i) = neigh(i)+1
+                    graph_solid_connect(i,neigh(i)) = j
+                endif
+            endif
+        enddo
+    enddo
+    
+    count_cls=0
+    volume(:)=0
+    vol_count=0
+    followgraph(:)=0
+    
+    do i=1,ncr
+        black = 0
+        if (followgraph(i).eq.0) then
+            count_cls = count_cls + 1
+            followgraph(i) = f_explore(i)
+            volume(count_cls) = black
+        end if
+    end do
+    
+    nnf=count_cls
+    
+    ! number of clusters (not yet filtered by crit) = nnf  
+    ! volume of each cluster = volume(j) up to count
+    ! list of atoms indexes that constitute the clusters = lwho
+    
+    count_cls=0
+    dfs_color(:)=0
+    voltot=0
+    volume_crit(:)=0
+    
+    do i=1,nnf
+        if (volume(i).gt.crit) then
+            do j=1,volume(i)
+                dfs_color(lwho(i,j)) = i
+            enddo
+            count_cls = count_cls + 1
+            voltot = voltot + volume(i)
+            volume_crit(count_cls) = volume(i)
+        endif
+    enddo
+
+    ncrit = count_cls
+
+    ! number of clusters greater than crit = ncrit
+
+    ! sort the volumes: the biggest is the surface itself
+    call f_sort2(volume_crit,count_cls)
+
+    ! Here is the number of atoms within the largest hexagonal patch
+    patch = volume_crit(1)
+    ! Write down patch statistics: time, n. of atoms in the biggest patch, n. of atoms involved in hex rings as a whole
+    write(patch_file,"(1E10.4,2i10)") time, patch, ncr
+
+    ! Write down the colors for VMD
+    write(col_file,"("//adjustl(natformat)//"i10)") (dfs_color(k), k=1,nat)
+
+    deallocate(graph_solid_connect,followgraph,volume,neigh,predecessor,lwho,cr_list,dfs_color,volume_crit)
+
+end subroutine f_clustering
+
+recursive function f_explore(index) result(fat)
+
+    use dfs
+    
+    implicit none
+    
+    integer, intent(in) :: index
+    integer :: j, iat
+    integer :: fat
+
+
+    followgraph(index) = 1
+    do j=1,neigh(index)
+        iat = graph_solid_connect(index, j)
+        if (followgraph(iat).eq.0) then
+            predecessor(iat) = index
+            followgraph(iat) = f_explore(iat)
+        end if
+    end do
+    black = black + 1
+    fat=2
+
+    ! who's who?
+    lwho(count_cls,black)=cr_list(index)
+
+end function explore
+
+subroutine f_sort2(dati, n) ! Insertion sort
+
+    integer :: n
+    integer, dimension(n) :: dati
+    integer :: i, j, tmp, min, pos
+
+    do i=1,n-1
+        min = dati(i)
+        pos = i
+        do j=i+1,n
+            if (dati(j)>min) then
+                min = dati(j) 
+                pos = j
+            end if
+        end do
+        tmp = dati(i) 
+        dati(i) = dati(pos)
+        dati(pos) = tmp
+    end do
+
+end subroutine sort2
 
 end module MOD_clathrates
