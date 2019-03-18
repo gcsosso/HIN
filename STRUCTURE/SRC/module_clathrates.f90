@@ -169,7 +169,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_imax,-1.0,f4_imax,f_cut, &
                               pos,icell,6,201,202,natformat,time) ! Cluster icy molecules
             call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_cmax,f4_cmin,1.0,f_cut, &
-                              pos,icell,6,203,204,natformat,time) ! Cluster clathrate-like molecules
+                              pos,icell,5,203,204,natformat,time) ! Cluster clathrate-like molecules
         endif
         
     endif
@@ -450,7 +450,7 @@ subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,
 
     ! Here is the number of atoms within the largest hexagonal patch
     patch = volume_crit(1)
-    ! Write down patch statistics: time, n. of atoms in the biggest patch, n. of atoms involved in hex rings as a whole
+    ! Write down patch statistics: time, n. of atoms in the biggest patch, n. of atoms which meet the parameter
     write(patch_file,"(1E10.4,2i10)") time, patch, ncr
 
     ! Write down the colors for VMD
