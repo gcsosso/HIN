@@ -163,12 +163,12 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     
     if (trim(adjustl(switch_f_cls)).eq.'yes') then
         
-        if (trim(adjust(switch_f3)).ne.'yes'.or.trim(adjust(switch_f4)).ne.'yes') then
+        if (trim(adjustl(switch_f3)).ne.'yes'.or.trim(adjustl(switch_f4)).ne.'yes') then
             write(99,*) "Clathrate clustering requires both F3 and F4!"
         else
-            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0,f3_imax,-1,f4_imax,f_cut, &
+            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_imax,-1.0,f4_imax,f_cut, &
                               pos,icell,6,201,202,natformat,time) ! Cluster icy molecules
-            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0,f3_cmax,f4_cmin,1,f_cut, &
+            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_cmax,f4_cmin,1.0,f_cut, &
                               pos,icell,6,203,204,natformat,time) ! Cluster clathrate-like molecules
         endif
         
