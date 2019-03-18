@@ -7,7 +7,7 @@ subroutine clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
 
     implicit none
 
-    character*3 :: switch_f3, switch_f4
+    character*3 :: switch_f3, switch_f4, switch_f_cls
 
     ! Make the tmp dir and open output files
     !call system("rm -r -f data-c ; mkdir data-c")
@@ -166,10 +166,10 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
         if (trim(adjust(switch_f3)).ne.'yes'.or.trim(adjust(switch_f4)).ne.'yes') then
             write(99,*) "Clathrate clustering requires both F3 and F4!"
         else
-            call f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,0,f3_imax,-1,f4_imax,f_cut, &
-                              pos,icell,6,201,202) ! Cluster icy molecules
-            call f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,0,f3_cmax,f4_cmin,1,f_cut, &
-                              pos,icell,6,203,204) ! Cluster clathrate-like molecules
+            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0,f3_imax,-1,f4_imax,f_cut, &
+                              pos,icell,6,201,202,natformat,time) ! Cluster icy molecules
+            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0,f3_cmax,f4_cmin,1,f_cut, &
+                              pos,icell,6,203,204,natformat,time) ! Cluster clathrate-like molecules
         endif
         
     endif
@@ -347,8 +347,8 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
 end subroutine compute_f4
 
 ! Computes F4 order parameter for an atom
-subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,f4_max,f_cut, &
-                            pos,icell,crit,patch_file,col_file)
+subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,f4_max,f_cut, &
+                        pos,icell,crit,patch_file,col_file,natformat,time)
     
     use dfs
     
@@ -361,6 +361,9 @@ subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_
     real, allocatable :: pos(:,:)
     real :: posi(3), posj(3), icell(9), xdf, ydf, zdf, dist
     logical :: cknn
+    integer :: patch_file, col_file
+    character*100 :: natformat
+    real :: time
     
     ! DFS stuff
     integer :: ncr, iat, jat, nnf, voltot, crit, ncrit, vol_count, patch
@@ -371,8 +374,8 @@ subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_
     cr_list(:) = 0
     
     do i=1,n_f_ow
-        if (F3_color(list_f_ow(i)).ge.f3_min.and.F3_color(list_f_ow(i)).le.f3_max&
-            &.and.F4_color(list_f_ow(i)).ge.f4_min.and.F4_color(list_f_ow(i)).le.f4_max) then
+        if (F3_col(list_f_ow(i)).ge.f3_min.and.F3_col(list_f_ow(i)).le.f3_max&
+            &.and.F4_col(list_f_ow(i)).ge.f4_min.and.F4_col(list_f_ow(i)).le.f4_max) then
             ncr = ncr + 1
             cr_list(ncr) = list_f_ow(i)
         endif
@@ -393,7 +396,7 @@ subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_
                 jat = cr_list(j)
                 posi(:)=pos(:,iat)
                 posj(:)=pos(:,jat)
-                call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                call nn (posj,posi,icell,f_cut,cknn,xdf,ydf,zdf,dist)
                 if (cknn) then 
                     neigh(i) = neigh(i)+1
                     graph_solid_connect(i,neigh(i)) = j
@@ -451,7 +454,7 @@ subroutine f_clustering(F3_color,F4_color,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_
     write(patch_file,"(1E10.4,2i10)") time, patch, ncr
 
     ! Write down the colors for VMD
-    write(col_file,"("//adjustl(natformat)//"i10)") (dfs_color(k), k=1,nat)
+    write(col_file,"("//adjustl(natformat)//"i10)") (dfs_color(i), i=1,nat)
 
     deallocate(graph_solid_connect,followgraph,volume,neigh,predecessor,lwho,cr_list,dfs_color,volume_crit)
 
