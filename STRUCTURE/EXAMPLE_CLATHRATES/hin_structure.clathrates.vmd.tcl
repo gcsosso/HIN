@@ -2,9 +2,13 @@ set sfile md.gro
 set tfile hin_structure.out.xtc
 
 # F3
-set cfile hin_structure.out.clathrates.f3.color
+set cfile hin_structure.out.f.f3.color
 # F4
-#set cfile hin_structure.out.clathrates.f4.color
+#set cfile hin_structure.out.f.f4.color
+# Icy clusters
+#set cfile hin_structure.out.f.ice.patch.color
+# Clathrate clusters
+#set cfile hin_structure.out.f.clathrate.patch.color
 
 
 package require topotools 
