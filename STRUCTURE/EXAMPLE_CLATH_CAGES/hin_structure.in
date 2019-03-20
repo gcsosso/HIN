@@ -25,9 +25,9 @@ NXY     200                 # 2D grid - n. of bins
 
 # Rings Section - You must have the R.I.N.G.S. code ready at hand together with:
 # rings.in_TEMPLATE and options_TEMPLATE. Some stuff must be hardcoded beforehand (e.g. atomic species g(r) cutoffs)
-RINGS      no             						       # calculate (or not) rings statistics
+RINGS      yes             						       # calculate (or not) rings statistics
 R_EXE      '/home/molases/maungn/rings-code-v1.3.3/BIN/bin/rings'              # R.I.N.G.S. executable
-R_CLS_ONLY yes 				                                       # Consider the atoms in the largest cluster only, reading indexes from an external file (idx.dat) - TBF
+R_CLS_ONLY no 				                                       # Consider the atoms in the largest cluster only, reading indexes from an external file (idx.dat) - TBF
 R_ZMIN     13.0	           			           	               # lower bound of the region for which we'll get the rings
 R_ZMAX     17.0            					               # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
 R_NS       1							               # n. of species for which we want to get the rings [1]
@@ -37,10 +37,10 @@ HBCK       no                                                                  #
 HB_DIST    0.3 								       # O-H distance criteria for HB [nm]	   
 HB_ANGLE   30.0								       # O-H-O angle criteria for HB [deg] (deviation from pi)
 MAXR       6              						       # Will get up to MAXR-membered rings [min=6, max=9]
-HEX        no   							       # Get regular hexagonal rings
+HEX        yes   							       # Get regular hexagonal rings
 ATHR       30.0                                                                # Angular threshold [deg]
-R_CLS      no  CLA		# Cluster N-membered rings (e.g. SIX), clathrate cages (CLA) or cages (CAG) [not yet implemented]
-CAGES      yes 		        				               # get (or) not DDC and HC cages 
+R_CLS      yes  CLA		# Cluster N-membered rings (e.g. SIX), clathrate cages (CLA) or cages (CAG) [not yet implemented]
+CAGES      no 		        				               # get (or) not DDC and HC cages 
 FFS_SURF   no  1.5 1.7                                                         # distinguish between surf ans non surf clusters. gets asphericity and more as well... 
 WCOL       1   							               # Which atoms we color for VMD. See Documentation
 
@@ -54,13 +54,13 @@ PMPI   4						                # N. of MPI tasks for the plumed driver
 CLS_STAT no								# Get asphericity, z-plot, and more... - TO BE IMPLEMENTED
 
 # Clathrates section
-F3          yes                                 # Whether to calculate F3 order parameter
-F4          yes                                 # Whether to calculate F4 order parameter
+F3          no                                 # Whether to calculate F3 order parameter
+F4          no                                 # Whether to calculate F4 order parameter
 F_ZMIN      0.0                                 # Min Z-value for water molecules [nm]
 F_ZMAX      30.0                                # Max Z-value for water molecules [nm]
 F_CUT       0.35                                # Adjacency cutoff for OW from water molecules [nm]
 F_ZBINS     100                                 # Number of bins for output data
-F_CLS       yes                                 # Whether to cluster ice and clathrate by F3/4
+F_CLS       no                                 # Whether to cluster ice and clathrate by F3/4
 F3_I_MAX    0.1                                 # Max F3 value for ice
 F3_C_MAX    0.1                                 # Max F3 value for clathrate
 F4_I_MAX    -0.4                                # Max F4 value for ice

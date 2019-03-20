@@ -605,7 +605,9 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          write(99,*) "You can only cluster regular hexagonal rings at the moment..."
          stop
       endif
-      if (trim(adjustl(r_cls_W)).ne.'SIX') then
+      if (trim(adjustl(r_cls_W)).eq.'CLA') then
+         call clath_cages(stat_wr,stat_nr)
+      else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
          stop
       else
@@ -1253,6 +1255,56 @@ subroutine sort2(dati, n) ! Insertion sort
   end do
 
 end subroutine sort2
+
+! Find partcages 5^3 and 5^2 6
+subroutine clath_cages(stat_wr,stat_nr)
+
+    implicit none
+    
+    type :: vector
+        integer, dimension(:,:), allocatable :: mrings
+    end type vector
+    type :: ragged_array
+        type(vector), dimension(:), allocatable :: stat_wr_size
+    end type ragged_array
+    type(ragged_array) :: stat_wr
+    integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
+    
+    ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
+    ! The array is indexed by #members in ring, from 3 to max_rings (3->5, 4->6)
+    ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
+    
+    call partcage53(stat_wr%stat_wr_size(3)%mrings,stat_nr(3))
+
+end subroutine clath_cages
+
+! Find partcages 5^3
+subroutine partcage53(rings5,nrings5)
+
+    implicit none
+    
+    integer, dimension(:,:), allocatable :: rings5
+    integer :: nrings5, r1, r2, o1, o2, n_matches
+    type :: vector4
+        integer :: atom_match(4)
+    end type vector4
+    type(vector4) :: atom_matches(25*nrings5*(nrings-1)/2)
+    
+    n_matches = 0
+    do r1=1,nrings5-1
+        do r2=r1+1,nrings5
+            do o1=1,5
+                do o2=1,5
+                    if (rings5(o1).eq.rings5(o2)) then
+                        n_matches = n_matches + 1
+                        atom_matches(n_matches)%atom_match = (/ r1, r2, o1, o2 /)
+                    endif
+                enddo
+            enddo
+        enddo
+    enddo
+
+end subroutine cage53
 
 
 end module MOD_rings
