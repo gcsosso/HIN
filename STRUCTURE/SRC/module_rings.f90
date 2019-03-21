@@ -1270,41 +1270,157 @@ subroutine clath_cages(stat_wr,stat_nr)
     type(ragged_array) :: stat_wr
     integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
     
+    type :: vector3
+        integer :: rings(3)
+    end type vector3
+    type(vector3) :: rings_555(stat_nr(3)*(stat_nr(3)-1)*(stat_nr(3)-2)/6)
+    type(vector3) :: rings_655(stat_nr(4)*stat_nr(3)*(stat_nr(3)-1)/2)
+    integer :: n_rings_555, n_rings_655
+    
     ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
     ! The array is indexed by #members in ring, from 3 to max_rings (3->5, 4->6)
     ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
     
-    call partcage53(stat_wr%stat_wr_size(3)%mrings,stat_nr(3))
+    call partcage555(stat_wr%stat_wr_size(3)%mrings,stat_nr(3),n_rings_555,rings_555)
+    call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(4),stat_nr(3), &
+                     n_rings_655,rings_655)
 
 end subroutine clath_cages
 
-! Find partcages 5^3
-subroutine partcage53(rings5,nrings5)
+! Find partcages 555
+subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
 
     implicit none
     
     integer, dimension(:,:), allocatable :: rings5
-    integer :: nrings5, r1, r2, o1, o2, n_matches
-    type :: vector4
-        integer :: atom_match(4)
-    end type vector4
-    type(vector4) :: atom_matches(25*nrings5*(nrings-1)/2)
+    integer :: nrings5, r1, r2, r3, o1, o2, i, j
+    integer :: n_cnx(nrings5,nrings5), t_n_cnx(nrings5)
+    type :: vector2
+        integer :: atom_match(2)
+    end type vector2
+    type :: cnx
+        type(vector2) :: matches(2)
+    end type cnx
+    type :: cnx_graph
+        type(cnx) :: ring_cnx(nrings5)
+    end type cnx_graph
+    type(cnx_graph) :: ring_cnxs(nrings5)
     
-    n_matches = 0
-    do r1=1,nrings5-1
-        do r2=r1+1,nrings5
-            do o1=1,5
-                do o2=1,5
-                    if (rings5(o1).eq.rings5(o2)) then
-                        n_matches = n_matches + 1
-                        atom_matches(n_matches)%atom_match = (/ r1, r2, o1, o2 /)
-                    endif
-                enddo
-            enddo
-        enddo
-    enddo
+    type :: vector3
+        integer :: rings(3)
+    end type vector3
+    type(vector3) :: rings_555(nrings5*(nrings5-1)*(nrings5-2)/6)
+    integer :: n_rings_555
+    
+    n_cnx(:,:) = 0
+    t_n_cnx(:) = 0
+    do r1=1,nrings5-1 ; do r2=r1+1,nrings5 ; do o1=1,5 ; do o2=1,5
+        if (rings5(r1,o1).eq.rings5(r2,o2)) then
+            n_cnx(r1,r2) = n_cnx(r1,r2) + 1
+            t_n_cnx(r1) = t_n_cnx(r1) + 1
+            t_n_cnx(r2) = t_n_cnx(r2) + 1
+            ring_cnxs(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
+        end if
+    end do ; end do ; end do ; end do
+    
+    ! We are looking for three rings with one common element,
+    ! and one additional common element between each pair of rings
+    
+    do r1=1,nrings5-2
+        ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
+        if (t_n_cnx(r1).ge.4) then ; do r2=r1+1,nrings5-1
+            if ((t_n_cnx(r2).ge.4).and.(n_cnx(r1,r2)=2)) then ; do r3=r2+1,nrings5
+                if ((n_cnx(r1,r3)=2).and.(n_cnx(r2,r3)=2)) then
+                    ! Now have three rings with two connections each. Must check one is common.
+                    outer: do i=1,2 ; do j=1,2
+                        if (ring_cnxs(r1)%ring_cnx(r2)(1)%matches(i).eq.ring_cnxs(r1)%ring_cnx(r3)%matches(j)(1)) then
+                            n_rings_555 = n_rings_555 + 1
+                            rings_555(n_rings_555) = (/ r1, r2, r3 /)
+                            exit outer
+                        end if
+                    end do ; end do outer
+                endif
+            end do ; end if
+        end do ; end if
+    end do
 
-end subroutine cage53
+end subroutine partcage555
+
+
+! Find partcages 655
+subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
+
+    implicit none
+    
+    integer, dimension(:,:), allocatable :: rings5, rings6
+    integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
+    integer :: n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5)
+    integer :: t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6)
+    type :: vector2
+        integer :: atom_match(2)
+    end type vector2
+    type :: cnx
+        type(vector2) :: matches(2)
+    end type cnx
+    type :: cnx_graph
+        type(cnx) :: ring_cnx(nrings5)
+    end type cnx_graph
+    type(cnx_graph) :: ring_cnxs_55(nrings5), ring_cnxs_65(nrings6)
+    
+    type :: vector3
+        integer :: rings(3)
+    end type vector3
+    type(vector3) :: rings_655(nrings6*nrings5*(nrings5-1)/2)
+    integer :: n_rings_655
+    
+    n_cnx_55(:,:) = 0
+    n_cnx_65(:,:) = 0
+    t_n_cnx_55(:) = 0
+    t_n_cnx_56(:) = 0
+    t_n_cnx_6(:) = 0
+    
+    do r1=1,nrings5
+        if (r1.ne.nrings5) then ; do r2=r1,nrings5 ; do o1=1,5 ; do o2=1,5
+            if (rings5(r1,o1).eq.rings5(r2,o2)) then
+                n_cnx_55(r1,r2) = n_cnx_55(r1,r2) + 1
+                t_n_cnx_55(r1) = t_n_cnx_55(r1) + 1
+                t_n_cnx_55(r2) = t_n_cnx_55(r2) + 1
+                ring_cnxs_55(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
+            end if
+        end do ; end do ; end do ; end if
+        
+        do r2=1,nrings6; do o1=1,5 ; do o2=1,6
+            if (rings5(r1,o1).eq.rings6(r2,o2)) then
+                n_cnx_65(r2,r1) = n_cnx_65(r2,r1) + 1
+                t_n_cnx_56(r1) = t_n_cnx_56(r1) + 1
+                t_n_cnx_6(r2) = t_n_cnx_6(r2) + 1
+                ring_cnxs_65(r2)%ring_cnx(r1)%matches(n_matches(r2,r1)) = (/ o2, o1 /)
+            end if
+        end do ; end do ; end do
+    end do
+    
+    ! We are looking for three rings (2x5 & 1x6) with one common element,
+    ! and one additional common element between each pair of rings
+    
+    do r1=1,nrings6
+        ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
+        if (t_n_cnx_5(r1).ge.4) then ; do r2=1,nrings5-1
+            if ((t_n_cnx_55(r2).ge.2).and.(t_n_cnx_56(r2).ge.2).and.(n_cnx_65(r1,r2)=2)) then ; do r3=r2+1,nrings5
+                if ((n_cnx_65(r1,r3)=2).and.(n_cnx_55(r2,r3)=2)) then
+                    ! Now have three rings with two connections each. Must check one is common.
+                    outer: do i=1,2 ; do j=1,2
+                        if (ring_cnxs_65(r1)%ring_cnx(r2)(1)%matches(i).eq.ring_cnxs_65(r1)%ring_cnx(r3)%matches(j)(1)) then
+                            n_rings_655 = n_rings_655 + 1
+                            rings_655(n_rings_655) = (/ r1, r2, r3 /)
+                            exit outer
+                        end if
+                    end do ; end do outer
+                endif
+            end do ; end if
+        end do ; end if
+    end do
+
+end subroutine partcage655
 
 
 end module MOD_rings
