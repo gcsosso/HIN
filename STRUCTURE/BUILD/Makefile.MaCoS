@@ -7,8 +7,8 @@ SRC_DIR=../SRC
 XTC_INTERFACE_DIR=../../XTC_INTERFACE
 BIN_DIR=../BIN
 
-mac: xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_output.o hin_structure.o nn.o images.o
-	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_output.o hin_structure.o nn.o images.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
+mac: xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_output.o hin_structure.o nn.o images.o
+	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_output.o hin_structure.o nn.o images.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
 xtc-interface.mod: $(XTC_INTERFACE_DIR)/xtc-interface.o $(XTC_INTERFACE_DIR)/xtc-interface.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(XTC_INTERFACE_DIR)/xtc-interface.f90	
 xtc-interface.o: $(XTC_INTERFACE_DIR)/xtc-interface.f90
@@ -29,6 +29,10 @@ module_dfs.mod: $(SRC_DIR)/module_dfs.o $(SRC_DIR)/module_dfs.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_dfs.f90
 module_dfs.o: $(SRC_DIR)/module_dfs.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_dfs.f90    
+module_vector3.mod: $(SRC_DIR)/module_vector3.o $(SRC_DIR)/module_vector3.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_vector3.f90
+module_vector3.o: $(SRC_DIR)/module_vector3.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_vector3.f90    
 module_rings.mod: $(SRC_DIR)/module_rings.o $(SRC_DIR)/module_rings.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_rings.f90
 module_rings.o: $(SRC_DIR)/module_rings.f90
