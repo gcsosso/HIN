@@ -1333,7 +1333,8 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
                 if ((n_cnx(r1,r3).eq.2).and.(n_cnx(r2,r3).eq.2)) then
                     ! Now have three rings with two connections each. Must check one is common.
                     outer: do i=1,2 ; do j=1,2
-                        if (ring_cnxs(r1)%ring_cnx(r2)%matches(i)(1).eq.ring_cnxs(r1)%ring_cnx(r3)%matches(j)(1)) then
+                        if (ring_cnxs(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
+                            &ring_cnxs(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
                             n_rings_555 = n_rings_555 + 1
                             rings_555(n_rings_555) = (/ r1, r2, r3 /)
                             exit outer
@@ -1409,7 +1410,8 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                 if ((n_cnx_65(r1,r3).eq.2).and.(n_cnx_55(r2,r3).eq.2)) then
                     ! Now have three rings with two connections each. Must check one is common.
                     outer: do i=1,2 ; do j=1,2
-                        if (ring_cnxs_65(r1)%ring_cnx(r2)%matches(i)(1).eq.ring_cnxs_65(r1)%ring_cnx(r3)%matches(j)(1)) then
+                        if (ring_cnxs_65(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
+                            &ring_cnxs_65(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
                             n_rings_655 = n_rings_655 + 1
                             rings_655(n_rings_655) = (/ r1, r2, r3 /)
                             exit outer
