@@ -1273,8 +1273,8 @@ subroutine clath_cages(stat_wr,stat_nr)
     type :: vector3
         integer :: rings(3)
     end type vector3
-    type(vector3) :: rings_555(stat_nr(3)*(stat_nr(3)-1)*(stat_nr(3)-2)/6)
-    type(vector3) :: rings_655(stat_nr(4)*stat_nr(3)*(stat_nr(3)-1)/2)
+    type(vector3), allocatable :: rings_555(:)
+    type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_555, n_rings_655
     
     ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
@@ -1294,7 +1294,7 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
     
     integer, dimension(:,:), allocatable :: rings5
     integer :: nrings5, r1, r2, r3, o1, o2, i, j
-    integer :: n_cnx(nrings5,nrings5), t_n_cnx(nrings5)
+    integer, allocatable :: n_cnx(:,:), t_n_cnx(:)
     type :: vector2
         integer :: atom_match(2)
     end type vector2
@@ -1302,15 +1302,19 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
         type(vector2) :: matches(2)
     end type cnx
     type :: cnx_graph
-        type(cnx) :: ring_cnx(nrings5)
+        type(cnx), dimension(:), allocatable :: ring_cnx
     end type cnx_graph
-    type(cnx_graph) :: ring_cnxs(nrings5)
+    type(cnx_graph), dimension(:), allocatable :: ring_cnxs
     
     type :: vector3
         integer :: rings(3)
     end type vector3
-    type(vector3) :: rings_555(nrings5*(nrings5-1)*(nrings5-2)/6)
+    type(vector3), allocatable :: rings_555(:)
     integer :: n_rings_555
+    
+    allocate(n_cnx(nrings5,nrings5), t_n_cnx(nrings5), ring_cnxs(nrings5))
+    allocate(ring_cnxs(:)%r_cnx(nrings5))
+    allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
     
     n_cnx(:,:) = 0
     t_n_cnx(:) = 0
@@ -1344,6 +1348,8 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
             end do ; end if
         end do ; end if
     end do
+    
+    deallocate(n_cnx, t_n_cnx, ring_cnxs)
 
 end subroutine partcage555
 
@@ -1355,8 +1361,8 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
     
     integer, dimension(:,:), allocatable :: rings5, rings6
     integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
-    integer :: n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5)
-    integer :: t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6)
+    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
+    integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     type :: vector2
         integer :: atom_match(2)
     end type vector2
@@ -1364,15 +1370,21 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
         type(vector2) :: matches(2)
     end type cnx
     type :: cnx_graph
-        type(cnx) :: ring_cnx(nrings5)
+        type(cnx), dimension(:), allocatable :: ring_cnx
     end type cnx_graph
-    type(cnx_graph) :: ring_cnxs_55(nrings5), ring_cnxs_65(nrings6)
+    type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
     type :: vector3
         integer :: rings(3)
     end type vector3
-    type(vector3) :: rings_655(nrings6*nrings5*(nrings5-1)/2)
+    type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_655
+    
+    allocate(n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5))
+    allocate(t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6))
+    allocate(ring_cnxs_55(nrings5), ring_cnxs_65(nrings6))
+    allocate(ring_cnxs_55(:)%r_cnx(nrings5), ring_cnxs_65(:)%r_cnx(nrings5))
+    allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
     
     n_cnx_55(:,:) = 0
     n_cnx_65(:,:) = 0
@@ -1421,6 +1433,10 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
             end do ; end if
         end do ; end if
     end do
+    
+    deallocate(n_cnx_55, n_cnx_65)
+    deallocate(t_n_cnx_55, t_n_cnx_56, t_n_cnx_6)
+    deallocate(ring_cnxs_55, ring_cnxs_65)
 
 end subroutine partcage655
 
