@@ -1320,7 +1320,6 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
     
     n_cnx(:,:) = 0
     t_n_cnx(:) = 0
-    ring_cnxs(:)%ring_cnx(:)
     do r1=1,nrings5-1 ; do r2=r1+1,nrings5 ; do o1=1,5 ; do o2=1,5
         if (rings5(r1,o1).eq.rings5(r2,o2)) then
             n_cnx(r1,r2) = n_cnx(r1,r2) + 1
