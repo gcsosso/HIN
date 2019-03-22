@@ -1259,7 +1259,7 @@ end subroutine sort2
 ! Find partcages 5^3 and 5^2 6
 subroutine clath_cages(stat_wr,stat_nr)
     
-    include MOD_vector3
+    use MOD_vector3
     implicit none
     
     type :: vector
@@ -1288,7 +1288,7 @@ end subroutine clath_cages
 ! Find partcages 555
 subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
     
-    include MOD_vector3
+    use MOD_vector3
     implicit none
     
     integer, dimension(:,:), allocatable :: rings5
@@ -1355,7 +1355,7 @@ end subroutine partcage555
 ! Find partcages 655
 subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
     
-    include MOD_vector3
+    use MOD_vector3
     implicit none
     
     integer, dimension(:,:), allocatable :: rings5, rings6
