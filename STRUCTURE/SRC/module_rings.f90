@@ -1313,7 +1313,7 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
     integer :: n_rings_555
     
     allocate(n_cnx(nrings5,nrings5), t_n_cnx(nrings5), ring_cnxs(nrings5))
-    allocate(ring_cnxs(:)%r_cnx(nrings5))
+    allocate(ring_cnxs(:)%ring_cnx(nrings5))
     allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
     
     n_cnx(:,:) = 0
@@ -1383,7 +1383,7 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
     allocate(n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5))
     allocate(t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6))
     allocate(ring_cnxs_55(nrings5), ring_cnxs_65(nrings6))
-    allocate(ring_cnxs_55(:)%r_cnx(nrings5), ring_cnxs_65(:)%r_cnx(nrings5))
+    allocate(ring_cnxs_55(:)%ring_cnx(nrings5), ring_cnxs_65(:)%ring_cnx(nrings5))
     allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
     
     n_cnx_55(:,:) = 0
