@@ -90,6 +90,7 @@ subroutine rings(kto,r_ns,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  hbdist,hbangle,stat_nr_HB_AVE,thrSS)
 
 use dfs
+use MOD_vector3
 
 implicit none
 
@@ -113,12 +114,6 @@ double precision, allocatable :: work(:)
 double precision :: mtemp(cart,cart), eigen(cart), delta, esse, rog, trt, trt2, lambda, delta1
 character*100 :: command, command2, rst, rst2, fcommand, stat_format, arname
 logical :: cknn, exist
-type :: vector
-    integer, dimension(:,:), allocatable :: mrings
-end type vector
-type :: ragged_array
-    type(vector), dimension(:), allocatable :: stat_wr_size
-end type ragged_array
 type(ragged_array) :: stat_wr
 
 ! Arguments
@@ -1262,12 +1257,6 @@ subroutine clath_cages(stat_wr,stat_nr)
     use MOD_vector3
     implicit none
     
-    type :: vector
-        integer, dimension(:,:), allocatable :: mrings
-    end type vector
-    type :: ragged_array
-        type(vector), dimension(:), allocatable :: stat_wr_size
-    end type ragged_array
     type(ragged_array) :: stat_wr
     integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
     
