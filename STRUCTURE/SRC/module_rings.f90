@@ -1258,7 +1258,8 @@ end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
 subroutine clath_cages(stat_wr,stat_nr)
-
+    
+    use MOD_vector3
     implicit none
     
     type :: vector
@@ -1270,9 +1271,6 @@ subroutine clath_cages(stat_wr,stat_nr)
     type(ragged_array) :: stat_wr
     integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
     
-    type :: vector3
-        integer :: rings(3)
-    end type vector3
     type(vector3), allocatable :: rings_555(:)
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_555, n_rings_655
@@ -1289,7 +1287,8 @@ end subroutine clath_cages
 
 ! Find partcages 555
 subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
-
+    
+    use MOD_vector3
     implicit none
     
     integer, dimension(:,:), allocatable :: rings5
@@ -1306,9 +1305,6 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
     end type cnx_graph
     type(cnx_graph), dimension(:), allocatable :: ring_cnxs
     
-    type :: vector3
-        integer :: rings(3)
-    end type vector3
     type(vector3), allocatable :: rings_555(:)
     integer :: n_rings_555
     
@@ -1358,7 +1354,8 @@ end subroutine partcage555
 
 ! Find partcages 655
 subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
-
+    
+    use MOD_vector3
     implicit none
     
     integer, dimension(:,:), allocatable :: rings5, rings6
@@ -1376,9 +1373,6 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
     end type cnx_graph
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
-    type :: vector3
-        integer :: rings(3)
-    end type vector3
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_655
     
@@ -1449,3 +1443,10 @@ end subroutine partcage655
 
 
 end module MOD_rings
+
+
+module MOD_vector3
+    type :: vector3
+        integer :: rings(3)
+    end type vector3
+end module
