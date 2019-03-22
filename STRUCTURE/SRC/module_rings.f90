@@ -1264,85 +1264,37 @@ subroutine clath_cages(stat_wr,stat_nr)
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_555, n_rings_655
     
+    integer, dimension(:,:), allocatable :: rings5, rings6
+    integer :: nrings5, nrings6
+    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
+    integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
+    
+    type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
+    
     ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
     ! The array is indexed by #members in ring, from 3 to max_rings (3->5, 4->6)
     ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
     
-    call partcage555(stat_wr%stat_wr_size(3)%mrings,stat_nr(3),n_rings_555,rings_555)
-    !call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(3),stat_nr(4), &
-    !                 n_rings_655,rings_655)
+    rings5 = stat_wr%stat_wr_size(3)%mrings
+    rings6 = stat_wr%stat_wr_size(4)%mrings
+    nrings5 = stat_nr(3)
+    nrings6 = stat_nr(4)
+    
+    call ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnx_65,n_cnx_55,n_cnx_65, &
+                   t_n_cnx_55,t_n_cnx_56,t_n_cnx_6)
+    
+    call partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_555,rings_555)
+    
+    !call partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
+    !                 t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
+    
+    deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
 
 end subroutine clath_cages
 
-! Find partcages 555
-subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
-    
-    use MOD_vector3
-    implicit none
-    
-    integer, dimension(:,:), allocatable :: rings5
-    integer :: nrings5, r1, r2, r3, o1, o2, i, j
-    integer, allocatable :: n_cnx(:,:), t_n_cnx(:)
-    type :: vector2
-        integer :: atom_match(2)
-    end type vector2
-    type :: cnx
-        type(vector2) :: matches(5)
-    end type cnx
-    type :: cnx_graph
-        type(cnx), dimension(:), allocatable :: ring_cnx
-    end type cnx_graph
-    type(cnx_graph), dimension(:), allocatable :: ring_cnxs
-    
-    type(vector3), allocatable :: rings_555(:)
-    integer :: n_rings_555
-    
-    allocate(n_cnx(nrings5,nrings5), t_n_cnx(nrings5), ring_cnxs(nrings5))
-    do i=1,nrings5
-        allocate(ring_cnxs(i)%ring_cnx(nrings5))
-    end do
-    allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
-    
-    n_cnx(:,:) = 0
-    t_n_cnx(:) = 0
-    do r1=1,nrings5-1 ; do r2=r1+1,nrings5 ; do o1=1,5 ; do o2=1,5
-        if (rings5(r1,o1).eq.rings5(r2,o2)) then
-            n_cnx(r1,r2) = n_cnx(r1,r2) + 1
-            t_n_cnx(r1) = t_n_cnx(r1) + 1
-            t_n_cnx(r2) = t_n_cnx(r2) + 1
-            ring_cnxs(r1)%ring_cnx(r2)%matches(n_cnx(r1,r2))%atom_match = (/ o1, o2 /)
-        end if
-    end do ; end do ; end do ; end do
-    
-    ! We are looking for three rings with one common element,
-    ! and one additional common element between each pair of rings
-    
-    do r1=1,nrings5-2
-        ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
-        if (t_n_cnx(r1).ge.4) then ; do r2=r1+1,nrings5-1
-            if ((t_n_cnx(r2).ge.4).and.(n_cnx(r1,r2).eq.2)) then ; do r3=r2+1,nrings5
-                if ((n_cnx(r1,r3).eq.2).and.(n_cnx(r2,r3).eq.2)) then
-                    ! Now have three rings with two connections each. Must check one is common.
-                    outer: do i=1,2 ; do j=1,2
-                        if (ring_cnxs(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
-                            &ring_cnxs(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
-                            n_rings_555 = n_rings_555 + 1
-                            rings_555(n_rings_555)%rings = (/ r1, r2, r3 /)
-                            exit outer
-                        end if
-                    end do ; end do outer
-                end if
-            end do ; end if
-        end do ; end if
-    end do
-    
-    deallocate(n_cnx, t_n_cnx, ring_cnxs)
-
-end subroutine partcage555
-
-
-! Find partcages 655
-subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
+! Find 55 and 65 ring pairs
+subroutine ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnx_65,n_cnx_55,n_cnx_65, &
+                     t_n_cnx_55,t_n_cnx_56,t_n_cnx_6)
     
     use MOD_vector3
     implicit none
@@ -1351,19 +1303,6 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
     integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
-    type :: vector2
-        integer :: atom_match(2)
-    end type vector2
-    type :: cnx
-        type(vector2) :: matches(5)
-    end type cnx
-    type :: cnx_graph
-        type(cnx), dimension(:), allocatable :: ring_cnx
-    end type cnx_graph
-    type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
-    
-    type(vector3), allocatable :: rings_655(:)
-    integer :: n_rings_655
     
     allocate(n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5))
     allocate(t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6))
@@ -1374,7 +1313,6 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
     do i=1,nrings6
         allocate(ring_cnxs_65(i)%ring_cnx(nrings5))
     end do
-    allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
     
     n_cnx_55(:,:) = 0
     n_cnx_65(:,:) = 0
@@ -1402,6 +1340,66 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
         end do ; end do ; end do
     end do
     
+end subroutine ringpairs
+
+! Find partcages 555
+subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_555,rings_555)
+    
+    use MOD_vector3
+    implicit none
+    
+    integer, dimension(:,:), allocatable :: rings5
+    integer :: nrings5, r1, r2, r3, o1, o2, i, j
+    integer, allocatable :: n_cnx_55(:,:), t_n_cnx_55(:)
+    type(cnx_graph), dimension(:), allocatable :: ring_cnxs_55
+    
+    type(vector3), allocatable :: rings_555(:)
+    integer :: n_rings_555
+    
+    allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
+    
+    ! We are looking for three rings with one common element,
+    ! and one additional common element between each pair of rings
+    
+    do r1=1,nrings5-2
+        ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
+        if (t_n_cnx_55(r1).ge.4) then ; do r2=r1+1,nrings5-1
+            if ((t_n_cnx_55(r2).ge.4).and.(n_cnx_55(r1,r2).eq.2)) then ; do r3=r2+1,nrings5
+                if ((n_cnx_55(r1,r3).eq.2).and.(n_cnx_55(r2,r3).eq.2)) then
+                    ! Now have three rings with two connections each. Must check one is common.
+                    outer: do i=1,2 ; do j=1,2
+                        if (ring_cnxs_55(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
+                            &ring_cnxs_55(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
+                            n_rings_555 = n_rings_555 + 1
+                            rings_555(n_rings_555)%rings = (/ r1, r2, r3 /)
+                            exit outer
+                        end if
+                    end do ; end do outer
+                end if
+            end do ; end if
+        end do ; end if
+    end do
+
+end subroutine partcage555
+
+
+! Find partcages 655
+subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
+                       t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
+    
+    use MOD_vector3
+    implicit none
+    
+    integer, dimension(:,:), allocatable :: rings5, rings6
+    integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
+    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
+    integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
+    
+    type(vector3), allocatable :: rings_655(:)
+    integer :: n_rings_655
+    
+    allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
+    
     ! We are looking for three rings (2x5 & 1x6) with one common element,
     ! and one additional common element between each pair of rings
     
@@ -1423,10 +1421,6 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
             end do ; end if
         end do ; end if
     end do
-    
-    deallocate(n_cnx_55, n_cnx_65)
-    deallocate(t_n_cnx_55, t_n_cnx_56, t_n_cnx_6)
-    deallocate(ring_cnxs_55, ring_cnxs_65)
 
 end subroutine partcage655
 
