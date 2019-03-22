@@ -1269,7 +1269,7 @@ subroutine clath_cages(stat_wr,stat_nr)
     ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
     
     call partcage555(stat_wr%stat_wr_size(3)%mrings,stat_nr(3),n_rings_555,rings_555)
-    call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(3),stat_nr(4), &
+    !call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(3),stat_nr(4), &
                      n_rings_655,rings_655)
 
 end subroutine clath_cages
