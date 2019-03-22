@@ -1280,7 +1280,7 @@ subroutine clath_cages(stat_wr,stat_nr)
     ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
     
     call partcage555(stat_wr%stat_wr_size(3)%mrings,stat_nr(3),n_rings_555,rings_555)
-    call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(4),stat_nr(3), &
+    call partcage655(stat_wr%stat_wr_size(3)%mrings,stat_wr%stat_wr_size(4)%mrings,stat_nr(3),stat_nr(4), &
                      n_rings_655,rings_655)
 
 end subroutine clath_cages
@@ -1353,7 +1353,7 @@ end subroutine partcage555
 
 
 ! Find partcages 655
-subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
+subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
     
     use MOD_vector3
     implicit none
