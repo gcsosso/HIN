@@ -658,8 +658,8 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
             count_cls=count_cls+1
             followgraph(j)=explore(j)
             volume(count_cls)=black
-         end if
-      end do
+         endif
+      enddo
 
       nnf=count_cls
 
@@ -1224,8 +1224,8 @@ use dfs
      if(followgraph(iat).eq.0)then
         predecessor(iat)=index
         followgraph(iat)=explore(iat)
-     end if
-  end do
+     endif
+  enddo
   black=black+1
   fat=2
 
@@ -1247,12 +1247,12 @@ subroutine sort2(dati, n) ! Insertion sort
         if (dati(j)>min) then
            min=dati(j) 
            pos=j
-        end if
-     end do
+        endif
+     enddo
      tmp=dati(i) 
      dati(i)=dati(pos)
      dati(pos)=tmp
-  end do
+  enddo
 
 end subroutine sort2
 
@@ -1320,8 +1320,8 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
             t_n_cnx(r1) = t_n_cnx(r1) + 1
             t_n_cnx(r2) = t_n_cnx(r2) + 1
             ring_cnxs(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
-        end if
-    end do ; end do ; end do ; end do
+        endif
+    enddo ; enddo ; enddo ; enddo
     
     ! We are looking for three rings with one common element,
     ! and one additional common element between each pair of rings
@@ -1337,12 +1337,12 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
                             n_rings_555 = n_rings_555 + 1
                             rings_555(n_rings_555) = (/ r1, r2, r3 /)
                             exit outer
-                        end if
-                    end do ; end do outer
+                        endif
+                    enddo ; enddo outer
                 endif
-            end do ; end if
-        end do ; end if
-    end do
+            enddo ; endif
+        enddo ; endif
+    enddo
 
 end subroutine partcage555
 
@@ -1386,8 +1386,8 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                 t_n_cnx_55(r1) = t_n_cnx_55(r1) + 1
                 t_n_cnx_55(r2) = t_n_cnx_55(r2) + 1
                 ring_cnxs_55(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
-            end if
-        end do ; end do ; end do ; end if
+            endif
+        enddo ; enddo ; enddo ; endif
         
         do r2=1,nrings6; do o1=1,5 ; do o2=1,6
             if (rings5(r1,o1).eq.rings6(r2,o2)) then
@@ -1395,9 +1395,9 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                 t_n_cnx_56(r1) = t_n_cnx_56(r1) + 1
                 t_n_cnx_6(r2) = t_n_cnx_6(r2) + 1
                 ring_cnxs_65(r2)%ring_cnx(r1)%matches(n_matches(r2,r1)) = (/ o2, o1 /)
-            end if
-        end do ; end do ; end do
-    end do
+            endif
+        enddo ; enddo ; enddo
+    enddo
     
     ! We are looking for three rings (2x5 & 1x6) with one common element,
     ! and one additional common element between each pair of rings
@@ -1413,12 +1413,12 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                             n_rings_655 = n_rings_655 + 1
                             rings_655(n_rings_655) = (/ r1, r2, r3 /)
                             exit outer
-                        end if
-                    end do ; end do outer
+                        endif
+                    enddo ; enddo outer
                 endif
-            end do ; end if
-        end do ; end if
-    end do
+            enddo ; endif
+        enddo ; endif
+    enddo
 
 end subroutine partcage655
 
