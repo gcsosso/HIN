@@ -1287,7 +1287,7 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
         integer :: atom_match(2)
     end type vector2
     type :: cnx
-        type(vector2) :: matches(2)
+        type(vector2) :: matches(5)
     end type cnx
     type :: cnx_graph
         type(cnx), dimension(:), allocatable :: ring_cnx
@@ -1355,7 +1355,7 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,n_rings_655,rings_655)
         integer :: atom_match(2)
     end type vector2
     type :: cnx
-        type(vector2) :: matches(2)
+        type(vector2) :: matches(5)
     end type cnx
     type :: cnx_graph
         type(cnx), dimension(:), allocatable :: ring_cnx
