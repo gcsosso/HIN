@@ -1325,7 +1325,7 @@ subroutine partcage555(rings5,nrings5,n_rings_555,rings_555)
             n_cnx(r1,r2) = n_cnx(r1,r2) + 1
             t_n_cnx(r1) = t_n_cnx(r1) + 1
             t_n_cnx(r2) = t_n_cnx(r2) + 1
-            ring_cnxs(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
+            ring_cnxs(r1)%ring_cnx(r2)%matches(n_cnx(r1,r2)) = (/ o1, o2 /)
         end if
     end do ; end do ; end do ; end do
     
@@ -1405,7 +1405,7 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                 n_cnx_55(r1,r2) = n_cnx_55(r1,r2) + 1
                 t_n_cnx_55(r1) = t_n_cnx_55(r1) + 1
                 t_n_cnx_55(r2) = t_n_cnx_55(r2) + 1
-                ring_cnxs_55(r1)%ring_cnx(r2)%matches(n_matches(r1,r2)) = (/ o1, o2 /)
+                ring_cnxs_55(r1)%ring_cnx(r2)%matches(n_cnx_55(r1,r2)) = (/ o1, o2 /)
             end if
         end do ; end do ; end do ; end if
         
@@ -1414,7 +1414,7 @@ subroutine partcage655(rings5,nrings5,rings6,nrings6,n_rings_655,rings_655)
                 n_cnx_65(r2,r1) = n_cnx_65(r2,r1) + 1
                 t_n_cnx_56(r1) = t_n_cnx_56(r1) + 1
                 t_n_cnx_6(r2) = t_n_cnx_6(r2) + 1
-                ring_cnxs_65(r2)%ring_cnx(r1)%matches(n_matches(r2,r1)) = (/ o2, o1 /)
+                ring_cnxs_65(r2)%ring_cnx(r1)%matches(n_cnx_65(r2,r1)) = (/ o2, o1 /)
             end if
         end do ; end do ; end do
     end do
