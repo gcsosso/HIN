@@ -1358,7 +1358,7 @@ subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_5
     integer, dimension(:,:), allocatable :: rings5
     integer :: nrings5, r1, r2, r3, o1, o2, i, j
     integer, allocatable :: n_cnx_55(:,:), t_n_cnx_55(:)
-    type(cnx_graph), dimension(:), allocatable :: ring_cnxs_55
+    type(cnx_graph), allocatable :: ring_cnxs_55(:)
     
     type(vector3), allocatable :: rings_555(:)
     integer :: n_rings_555
@@ -1403,6 +1403,7 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
     integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
+    type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_655
