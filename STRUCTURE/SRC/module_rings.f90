@@ -1361,6 +1361,8 @@ subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_5
     ! We are looking for three rings with one common element,
     ! and one additional common element between each pair of rings
     
+    n_rings_555 = 0
+    
     do r1=1,nrings5-2
         ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
         if (t_n_cnx_55(r1).ge.4) then ; do r2=r1+1,nrings5-1
@@ -1402,6 +1404,8 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
     
     ! We are looking for three rings (2x5 & 1x6) with one common element,
     ! and one additional common element between each pair of rings
+    
+    n_rings_655 = 0
     
     do r1=1,nrings6
         ! First, check whether r1 is a possible candidate (i.e. has at least 4 connections)
