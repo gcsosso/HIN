@@ -1285,8 +1285,8 @@ subroutine clath_cages(stat_wr,stat_nr)
     
     call partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_555,rings_555)
     
-    !call partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
-    !                 t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
+    call partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
+                     t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
     
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
 
