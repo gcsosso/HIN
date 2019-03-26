@@ -52,7 +52,10 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
    endif
    ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
    if (trim(adjustl(switch_r_cls)).eq.'yes') then
-      if (trim(adjustl(r_cls_W)).ne.'SIX') then
+      if (trim(adjustl(r_cls_W)).eq.'CLA') then
+         open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
+         write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages"
+      else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
       else
       open(unit=207, file='hin_structure.out.rings.stats.patch', status='unknown')
@@ -601,7 +604,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         call clath_cages(stat_wr,stat_nr)
+         call clath_cages(stat_wr,stat_nr,time)
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
          stop
@@ -1252,7 +1255,7 @@ subroutine sort2(dati, n) ! Insertion sort
 end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
-subroutine clath_cages(stat_wr,stat_nr)
+subroutine clath_cages(stat_wr,stat_nr,time)
     
     use MOD_vector3
     implicit none
@@ -1289,6 +1292,8 @@ subroutine clath_cages(stat_wr,stat_nr)
                      t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
     
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
+    
+    write(210,'(1E12.6,2(X,F12.7))') time, n_rings_555, n_rings_655
 
 end subroutine clath_cages
 
