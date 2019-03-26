@@ -1266,6 +1266,7 @@ subroutine clath_cages(stat_wr,stat_nr,time)
     type(vector3), allocatable :: rings_555(:)
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_555, n_rings_655
+    real :: time
     
     integer, dimension(:,:), allocatable :: rings5, rings6
     integer :: nrings5, nrings6
