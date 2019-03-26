@@ -604,7 +604,8 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         call clath_cages(stat_wr,stat_nr,time)
+         call clath_cages(stat_wr,stat_nr,time,nat,natformat)
+         
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
          stop
@@ -1255,7 +1256,7 @@ subroutine sort2(dati, n) ! Insertion sort
 end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
-subroutine clath_cages(stat_wr,stat_nr,time)
+subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat)
     
     use MOD_vector3
     implicit none
@@ -1263,13 +1264,12 @@ subroutine clath_cages(stat_wr,stat_nr,time)
     type(ragged_array) :: stat_wr
     integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
     
-    type(vector3), allocatable :: rings_555(:)
-    type(vector3), allocatable :: rings_655(:)
-    integer :: n_rings_555, n_rings_655
+    type(vector3), allocatable :: rings_555(:), rings_655(:)
+    integer :: n_rings_555, n_rings_655, nat, clath_color(nat), i, j, k
     real :: time
     
     integer, dimension(:,:), allocatable :: rings5, rings6
-    integer :: nrings5, nrings6
+    integer :: nrings5, nrings6, tmp_ring
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     
@@ -1294,7 +1294,36 @@ subroutine clath_cages(stat_wr,stat_nr,time)
     
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
     
-    write(210,'(1E12.6,5X,I10,10X,I10)') time, n_rings_555, n_rings_655
+    write(210,'(1E12.6,4X,I10,12X,I10)') time, n_rings_555, n_rings_655
+    
+    clath_color(:) = 0
+    do i=1,n_rings_555 ; do j=1,3
+        tmp_ring = rings_555(i)%rings(j)
+        do k=1,5
+            clath_color(rings5(tmp_ring,k)) = 1
+        end do
+    end do ; end do
+    do i=1,n_rings_655
+        tmp_ring = rings_655(i)%rings(1)
+        do k=1,6
+                if (clath_color(rings6(tmp_ring,k)).eq.0) then
+                    clath_color(rings6(tmp_ring,k)) = 2
+                else if (clath_color(rings6(tmp_ring,k)).eq.1) then
+                    clath_color(rings6(tmp_ring,k)) = 3
+                end if
+        end do        
+        do j=2,3
+            tmp_ring = rings_655(i)%rings(j)
+            do k=1,5
+                if (clath_color(rings5(tmp_ring,k)).eq.0) then
+                    clath_color(rings5(tmp_ring,k)) = 2
+                else if (clath_color(rings5(tmp_ring,k)).eq.1) then
+                    clath_color(rings5(tmp_ring,k)) = 3
+                end if
+            end do
+        end do
+    end do
+    write(211,'('//adjustl(natformat)//'I1)') (clath_color(i), i=1,nat)
 
 end subroutine clath_cages
 
