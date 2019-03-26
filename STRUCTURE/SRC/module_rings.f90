@@ -1294,7 +1294,7 @@ subroutine clath_cages(stat_wr,stat_nr,time)
     
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
     
-    write(210,'(1E12.6,2(X,I10))') time, n_rings_555, n_rings_655
+    write(210,'(1E12.6,5X,I10,10X,I10)') time, n_rings_555, n_rings_655
 
 end subroutine clath_cages
 
