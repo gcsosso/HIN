@@ -1284,7 +1284,7 @@ subroutine clath_cages(stat_wr,stat_nr,time)
     nrings5 = stat_nr(3)
     nrings6 = stat_nr(4)
     
-    call ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnx_65,n_cnx_55,n_cnx_65, &
+    call ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
                    t_n_cnx_55,t_n_cnx_56,t_n_cnx_6)
     
     call partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_555,rings_555)
