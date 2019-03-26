@@ -1299,7 +1299,7 @@ subroutine clath_cages(stat_wr,stat_nr,time)
 end subroutine clath_cages
 
 ! Find 55 and 65 ring pairs
-subroutine ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnx_65,n_cnx_55,n_cnx_65, &
+subroutine ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
                      t_n_cnx_55,t_n_cnx_56,t_n_cnx_6)
     
     use MOD_vector3
@@ -1309,6 +1309,7 @@ subroutine ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnx_65,n_cn
     integer :: nrings5, nrings6, r1, r2, r3, o1, o2, i, j
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
+    type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
     allocate(n_cnx_55(nrings5,nrings5), n_cnx_65(nrings6,nrings5))
     allocate(t_n_cnx_55(nrings5), t_n_cnx_56(nrings5), t_n_cnx_6(nrings6))
