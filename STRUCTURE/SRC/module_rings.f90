@@ -54,6 +54,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
    if (trim(adjustl(switch_r_cls)).eq.'yes') then
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
          open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
+         open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
          write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages"
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
