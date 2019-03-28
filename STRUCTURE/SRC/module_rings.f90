@@ -1394,6 +1394,7 @@ subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_5
     
     type(vector3), allocatable :: rings_555(:)
     integer :: n_rings_555
+    logical :: flag
     
     allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
     
@@ -1407,15 +1408,23 @@ subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_5
         if (t_n_cnx_55(r1).ge.4) then ; do r2=r1+1,nrings5-1
             if ((t_n_cnx_55(r2).ge.4).and.(n_cnx_55(r1,r2).eq.2)) then ; do r3=r2+1,nrings5
                 if ((n_cnx_55(r1,r3).eq.2).and.(n_cnx_55(r2,r3).eq.2)) then
-                    ! Now have three rings with two connections each. Must check one is common.
+                    ! Now have three rings with two connections each. Must check (exactly) one is common.
+                    flag = .false.
                     outer: do i=1,2 ; do j=1,2
                         if (ring_cnxs_55(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
                             &ring_cnxs_55(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
-                            n_rings_555 = n_rings_555 + 1
-                            rings_555(n_rings_555)%rings = (/ r1, r2, r3 /)
-                            exit outer
+                            if (flag) then
+                                flag = .false.
+                                exit outer
+                            else
+                                flag = .true.
+                            end if
                         end if
                     end do ; end do outer
+                    if (flag) then
+                        n_rings_555 = n_rings_555 + 1
+                        rings_555(n_rings_555)%rings = (/ r1, r2, r3 /)
+                    end if
                 end if
             end do ; end if
         end do ; end if
@@ -1439,6 +1448,7 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
     
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_655
+    logical :: flag
     
     allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
     
@@ -1452,15 +1462,23 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
         if (t_n_cnx_6(r1).ge.4) then ; do r2=1,nrings5-1
             if ((t_n_cnx_55(r2).ge.2).and.(t_n_cnx_56(r2).ge.2).and.(n_cnx_65(r1,r2).eq.2)) then ; do r3=r2+1,nrings5
                 if ((n_cnx_65(r1,r3).eq.2).and.(n_cnx_55(r2,r3).eq.2)) then
-                    ! Now have three rings with two connections each. Must check one is common.
+                    ! Now have three rings with two connections each. Must check (exactly) one is common.
+                    flag = .false.
                     outer: do i=1,2 ; do j=1,2
                         if (ring_cnxs_65(r1)%ring_cnx(r2)%matches(i)%atom_match(1).eq.&
                             &ring_cnxs_65(r1)%ring_cnx(r3)%matches(j)%atom_match(1)) then
-                            n_rings_655 = n_rings_655 + 1
-                            rings_655(n_rings_655)%rings = (/ r1, r2, r3 /)
-                            exit outer
+                            if (flag) then
+                                flag = .false.
+                                exit outer
+                            else
+                                flag = .true.
+                            end if
                         end if
                     end do ; end do outer
+                    if (flag) then
+                        n_rings_655 = n_rings_655 + 1
+                        rings_655(n_rings_655)%rings = (/ r1, r2, r3 /)
+                    end if
                 endif
             end do ; end if
         end do ; end if
