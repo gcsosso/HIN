@@ -1302,25 +1302,25 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     do i=1,n_rings_555 ; do j=1,3
         tmp_ring = rings_555(i)%rings(j)
         do k=1,5
-            clath_color(list_r_ws(1,rings5(tmp_ring,k))) = 1
+            clath_color(list_r_ws(rings5(tmp_ring,k))) = 1
         end do
     end do ; end do
     do i=1,n_rings_655
         tmp_ring = rings_655(i)%rings(1)
         do k=1,6
-                if (clath_color(kto(1,rings6(tmp_ring,k))).eq.0) then
-                    clath_color(kto(1,rings6(tmp_ring,k))) = 2
-                else if (clath_color(kto(1,rings6(tmp_ring,k))).eq.1) then
-                    clath_color(kto(1,rings6(tmp_ring,k))) = 3
+                if (clath_color(kto(rings6(tmp_ring,k))).eq.0) then
+                    clath_color(kto(rings6(tmp_ring,k))) = 2
+                else if (clath_color(kto(rings6(tmp_ring,k))).eq.1) then
+                    clath_color(kto(rings6(tmp_ring,k))) = 3
                 end if
         end do        
         do j=2,3
             tmp_ring = rings_655(i)%rings(j)
             do k=1,5
-                if (clath_color(kto(1,rings5(tmp_ring,k))).eq.0) then
-                    clath_color(kto(1,rings5(tmp_ring,k))) = 2
-                else if (clath_color(kto(1,rings5(tmp_ring,k))).eq.1) then
-                    clath_color(kto(1,rings5(tmp_ring,k))) = 3
+                if (clath_color(kto(rings5(tmp_ring,k))).eq.0) then
+                    clath_color(kto(rings5(tmp_ring,k))) = 2
+                else if (clath_color(kto(rings5(tmp_ring,k))).eq.1) then
+                    clath_color(kto(rings5(tmp_ring,k))) = 3
                 end if
             end do
         end do
