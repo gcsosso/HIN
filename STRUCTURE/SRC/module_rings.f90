@@ -605,7 +605,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         call clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
+         call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
          
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
@@ -1257,7 +1257,7 @@ subroutine sort2(dati, n) ! Insertion sort
 end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
-subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
+subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     
     use MOD_vector3
     implicit none
@@ -1272,7 +1272,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
     
     integer, dimension(:,:), allocatable :: rings5, rings6
     integer :: nrings5, nrings6, tmp_ring
-    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:), list_r_ws(:,:)
+    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:), kto(:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
@@ -1308,19 +1308,19 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
     do i=1,n_rings_655
         tmp_ring = rings_655(i)%rings(1)
         do k=1,6
-                if (clath_color(list_r_ws(1,rings6(tmp_ring,k))).eq.0) then
-                    clath_color(list_r_ws(1,rings6(tmp_ring,k))) = 2
-                else if (clath_color(list_r_ws(1,rings6(tmp_ring,k))).eq.1) then
-                    clath_color(list_r_ws(1,rings6(tmp_ring,k))) = 3
+                if (clath_color(kto(1,rings6(tmp_ring,k))).eq.0) then
+                    clath_color(kto(1,rings6(tmp_ring,k))) = 2
+                else if (clath_color(kto(1,rings6(tmp_ring,k))).eq.1) then
+                    clath_color(kto(1,rings6(tmp_ring,k))) = 3
                 end if
         end do        
         do j=2,3
             tmp_ring = rings_655(i)%rings(j)
             do k=1,5
-                if (clath_color(list_r_ws(1,rings5(tmp_ring,k))).eq.0) then
-                    clath_color(list_r_ws(1,rings5(tmp_ring,k))) = 2
-                else if (clath_color(list_r_ws(1,rings5(tmp_ring,k))).eq.1) then
-                    clath_color(list_r_ws(1,rings5(tmp_ring,k))) = 3
+                if (clath_color(kto(1,rings5(tmp_ring,k))).eq.0) then
+                    clath_color(kto(1,rings5(tmp_ring,k))) = 2
+                else if (clath_color(kto(1,rings5(tmp_ring,k))).eq.1) then
+                    clath_color(kto(1,rings5(tmp_ring,k))) = 3
                 end if
             end do
         end do
