@@ -605,7 +605,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         call clath_cages(stat_wr,stat_nr,time,nat,natformat)
+         call clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
          
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
@@ -1257,7 +1257,7 @@ subroutine sort2(dati, n) ! Insertion sort
 end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
-subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat)
+subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,list_r_ws)
     
     use MOD_vector3
     implicit none
@@ -1272,7 +1272,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat)
     
     integer, dimension(:,:), allocatable :: rings5, rings6
     integer :: nrings5, nrings6, tmp_ring
-    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:)
+    integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:), list_r_ws(:,:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
