@@ -1302,7 +1302,8 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     do i=1,n_rings_555 ; do j=1,3
         tmp_ring = rings_555(i)%rings(j)
         do k=1,5
-            clath_color(list_r_ws(rings5(tmp_ring,k))) = 1
+            clath_color(kto(rings5(tmp_ring,k))) = 1
+            clath_color(kto(rings5(tmp_ring,k))) = 1
         end do
     end do ; end do
     do i=1,n_rings_655
