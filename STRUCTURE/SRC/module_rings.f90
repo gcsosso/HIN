@@ -1325,7 +1325,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat)
             end do
         end do
     end do
-    write(211,'('//adjustl(natformat)//'X,I1)') (clath_color(i), i=1,nat)
+    write(211,'('//adjustl(natformat)//'(X,I1))') (clath_color(i), i=1,nat)
 
 end subroutine clath_cages
 
