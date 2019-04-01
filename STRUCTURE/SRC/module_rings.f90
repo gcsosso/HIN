@@ -118,7 +118,7 @@ double precision, allocatable :: work(:)
 double precision :: mtemp(cart,cart), eigen(cart), delta, esse, rog, trt, trt2, lambda, delta1
 character*100 :: command, command2, rst, rst2, fcommand, stat_format, arname
 logical :: cknn, exist
-type(ragged_array) :: stat_wr
+type(ragged_array) :: stat_wr, stat_wr_HB
 
 ! Arguments
 integer :: r_ns, STEP, counter, six, nat, wcol, nsurf, nbulk, hbflag(cart*cart) ! no more than 9-membered rings in any case...
@@ -366,8 +366,10 @@ enddo
 ! We want to know the fraction of each n-membered category that are actually wholly hydrogen bonded
 nmem=0
 if (trim(adjustl(switch_hbck)).eq.'yes') then
+   allocate(stat_wr_HB%stat_wr_size(maxr-2))
    do k=3,maxr
       nmem=nmem+1
+      allocate(stat_wr_HB%stat_wr_size(nmem)%mrings(stat_nr(nmem),k))
       if (stat_nr(nmem).gt.0) then
          do kr=1,stat_nr(nmem)
             !write(*,*) nmem, k, kr, kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))
@@ -481,6 +483,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
             if (sum(hbflag).eq.(2*k)) then
                !write(*,*) k, sum(hbflag)
                stat_nr_HB(nmem)=stat_nr_HB(nmem)+1
+               stat_wr_HB%stat_wr_size(nmem)%mrings(stat_nr_HB(nmem),:) = stat_wr%stat_wr_size(nmem)%mrings(kr,:)
                ! fix the color!
                if (wcol.eq.k) then
                   r_color(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:)))=k*100 
@@ -508,7 +511,7 @@ endif
 
 if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') then
     ! Do some checks...
-    if (maxr.lt.6) then
+    if (maxr.lt.6) thenx
        write(99,*) "You need to get 6-membered rings in order to look at hexagons and/or DDCs and HCs..."
        stop
     endif 
@@ -605,7 +608,11 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
+         if (trim(adjustl(switch_hbck)).eq.'yes') then
+            call clath_cages(stat_wr_HB,stat_nr_HB,time,nat,natformat,kto)
+         else
+            call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
+         end if
          
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
