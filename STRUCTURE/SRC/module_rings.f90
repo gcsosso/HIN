@@ -511,7 +511,7 @@ endif
 
 if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') then
     ! Do some checks...
-    if (maxr.lt.6) thenx
+    if (maxr.lt.6) then
        write(99,*) "You need to get 6-membered rings in order to look at hexagons and/or DDCs and HCs..."
        stop
     endif 
