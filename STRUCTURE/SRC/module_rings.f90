@@ -55,7 +55,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
          open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
          open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
-         write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages"
+         write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages | N. of 6556 partcages"
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
       else
@@ -1305,7 +1305,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
     
-    write(210,'(1E12.6,4X,I10,12X,I10)') time, n_rings_555, n_rings_655
+    write(210,'(1E12.6,4X,I10,12X,I10,12X,I10)') time, n_rings_555, n_rings_655, n_rings_6556
     
     clath_color(:) = 0
     do i=1,n_rings_555 ; do j=1,3
