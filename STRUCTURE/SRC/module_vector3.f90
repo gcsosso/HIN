@@ -4,6 +4,10 @@ module MOD_vector3
         integer :: rings(3)
     end type vector3
     
+    type :: vector4
+        integer :: rings(4)
+    end type vector4
+    
     type :: vector
         integer, dimension(:,:), allocatable :: mrings
     end type vector

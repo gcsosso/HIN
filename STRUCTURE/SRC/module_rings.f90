@@ -1273,7 +1273,9 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     integer, allocatable :: stat_nr(:) ! No. of 3,4,5,6,... rings
     
     type(vector3), allocatable :: rings_555(:), rings_655(:)
-    integer :: n_rings_555, n_rings_655, nat, clath_color(nat), i, j, k
+    type(vector4), allocatable :: rings_6556(:)
+    integer :: n_rings_555, n_rings_655, n_rings_6556
+    integer :: nat, clath_color(nat), i, j, k
     real :: time
     character*100 :: natformat
     
@@ -1334,6 +1336,8 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
         end do
     end do
     write(211,'('//adjustl(natformat)//'(I1,X))') (clath_color(i), i=1,nat)
+    
+    deallocate(rings_555, rings_655, rings_6556)
 
 end subroutine clath_cages
 
@@ -1493,5 +1497,28 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
 
 end subroutine partcage655
 
+subroutine partcage6556(n_rings_655,n_rings_6556,rings_655,rings_6556)
+    
+    use MOD_vector3
+    implicit none
+    
+    type(vector3), allocatable :: rings_655(:)
+    type(vector4), allocatable :: rings_6556(:)
+    integer :: n_rings_655, n_rings_6556, i, j
+    
+    allocate(rings_6556(n_rings_655))
+    
+    n_rings_6556 = 0
+    
+    do i=1,n_rings_655-1 ; do j=i+1,n_rings_655
+        ! rings_655 is (6-membered ring, 5-membered ring 1, 5-membered ring 2)
+        ! 5-membered rings are ordered, so {i(2)==j(3) and i(3)==j(2)} is impossible
+        if ((rings_655(i)%rings(2).eq.rings_655(j)%rings(2)).and.(rings_655(i)%rings(3).eq.rings_655(j)%rings(3))) then
+            n_rings_6556 = n_rings_6556 + 1
+            rings_6556(n_rings_6556)%rings = (/ rings_655(i)%rings, rings_655(j)%rings(1) /)
+        end if
+    end do ; end do
+    
+end subroutine partcage6556
 
 end module MOD_rings
