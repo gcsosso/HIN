@@ -1303,6 +1303,8 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     call partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
                      t_n_cnx_55,t_n_cnx_56,t_n_cnx_6,n_rings_655,rings_655)
     
+    call partcage6556(n_rings_655,n_rings_6556,rings_655,rings_6556)
+    
     deallocate(n_cnx_55, n_cnx_65, t_n_cnx_55, t_n_cnx_56, t_n_cnx_6, ring_cnxs_55, ring_cnxs_65)
     
     write(210,'(1E12.6,4X,I10,12X,I10,12X,I10)') time, n_rings_555, n_rings_655, n_rings_6556
