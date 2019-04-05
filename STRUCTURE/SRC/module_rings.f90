@@ -1337,7 +1337,39 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
             end do
         end do
     end do
+    do i=1,n_rings_6556
+        do j=1,4,3
+            tmp_ring = rings_6556(i)%rings(j)
+            do k=1,6
+                if (clath_color(kto(rings6(tmp_ring,k))).eq.2) then
+                    clath_color(kto(rings6(tmp_ring,k))) = 4
+                else if (clath_color(kto(rings6(tmp_ring,k))).eq.3) then
+                    clath_color(kto(rings6(tmp_ring,k))) = 5
+                end if
+        end do        
+        do j=2,3
+            tmp_ring = rings_655(i)%rings(j)
+            do k=1,5
+                if (clath_color(kto(rings5(tmp_ring,k))).eq.2) then
+                    clath_color(kto(rings5(tmp_ring,k))) = 4
+                else if (clath_color(kto(rings5(tmp_ring,k))).eq.3) then
+                    clath_color(kto(rings5(tmp_ring,k))) = 5
+                end if
+            end do
+        end do
+    end do
     write(211,'('//adjustl(natformat)//'(I1,X))') (clath_color(i), i=1,nat)
+    
+    ! ----------------------------------
+    ! Colors
+    ! ----------------------------------
+    ! 0 : Not in any partcages
+    ! 1 : In type 555 only
+    ! 2 : In type 655 only
+    ! 3 : In types 555 and 655 only
+    ! 4 : In type 655 and 6556 only
+    ! 5 : In types 555, 655 and 6556
+    ! ----------------------------------
     
     deallocate(rings_555, rings_655, rings_6556)
 
