@@ -1346,6 +1346,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
                 else if (clath_color(kto(rings6(tmp_ring,k))).eq.3) then
                     clath_color(kto(rings6(tmp_ring,k))) = 5
                 end if
+            end do
         end do        
         do j=2,3
             tmp_ring = rings_655(i)%rings(j)
