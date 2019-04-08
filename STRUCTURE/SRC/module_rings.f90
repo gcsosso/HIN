@@ -55,6 +55,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
          open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
          open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
+         open(unit=212, file='hin_structure.out.rings.clath.cls.color', status='unknown')
          write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages | N. of 6556 partcages"
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
          write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
@@ -1284,6 +1285,10 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:), kto(:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     
+    integer :: n_clath_clusters, clath_cls_color(nat), tmp_ring
+    type(vector_alloc), allocatable :: clath_clusters(:)
+    integer, allocatable :: clath_clusters_size(:)
+    
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
     ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
@@ -1318,7 +1323,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
         end do
     end do ; end do
     do i=1,n_rings_655
-        tmp_ring = rings_655(i)%rings(1)
+        tmp_ring = -rings_655(i)%rings(1)
         do k=1,6
                 if (clath_color(kto(rings6(tmp_ring,k))).eq.0) then
                     clath_color(kto(rings6(tmp_ring,k))) = 2
@@ -1339,7 +1344,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     end do
     do i=1,n_rings_6556
         do j=1,4,3
-            tmp_ring = rings_6556(i)%rings(j)
+            tmp_ring = -rings_6556(i)%rings(j)
             do k=1,6
                 if (clath_color(kto(rings6(tmp_ring,k))).eq.2) then
                     clath_color(kto(rings6(tmp_ring,k))) = 4
@@ -1372,7 +1377,26 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     ! 5 : In types 555, 655 and 6556
     ! ----------------------------------
     
-    deallocate(rings_555, rings_655, rings_6556)
+    call dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings5+nrings6,clath_clusters,n_clath_clusters,clath_clusters_size)
+    call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+    
+    clath_cls_color(:) = 0
+    do i=n_clath_clusters,1,-1
+        do j=1,clath_clusters_size(i)
+            tmp_ring = clath_clusters(i)%rings(j)
+            if (tmp_ring.ge.0) then
+                do k=1,5
+                    clath_cls_color(kto(rings5(tmp_ring,k))) = i
+                end do
+            else
+                do k=1,6
+                    clath_cls_color(kto(rings6(-tmp_ring,k))) = i
+                end do
+            end if
+        end do
+    end do
+    
+    deallocate(rings_555, rings_655, rings_6556, clath_clusters, n_clath_clusters, clath_clusters_size)
 
 end subroutine clath_cages
 
@@ -1523,7 +1547,7 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
                     end do ; end do outer
                     if (flag) then
                         n_rings_655 = n_rings_655 + 1
-                        rings_655(n_rings_655)%rings = (/ r1, r2, r3 /)
+                        rings_655(n_rings_655)%rings = (/ -r1, r2, r3 /)
                     end if
                 endif
             end do ; end if
@@ -1555,5 +1579,119 @@ subroutine partcage6556(n_rings_655,n_rings_6556,rings_655,rings_6556)
     end do ; end do
     
 end subroutine partcage6556
+
+
+subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_clusters,n_clath_clusters,clath_clusters_size)
+    
+    use MOD_vector3
+    implicit none
+    
+    type(vector3), allocatable :: rings_555(:), rings_655(:), partcages(:)
+    integer :: n_rings_555, n_rings_655, n_partcages, nrings, i, j, k, l
+    integer :: n_clath_clusters
+    logical, allocatable :: reached_rings(:)
+    type(vector_alloc), allocatable :: clath_clusters(:)
+    integer, allocatable :: clath_clusters_size(:), pc_root_cluster(:)
+    logical :: tmp_flag
+    
+    type :: dfs_alloc
+        integer, allocatable :: pc(:)
+    end type dfs_alloc
+    type(dfs_alloc), allocatable :: dfs_graph(:)
+    integer, allocatable :: dfs_graph_cnx(:)
+    
+    n_partcages = n_rings_555 + n_rings_655
+    
+    allocate(partcages(n_partcages), reached_rings(n_partcages))
+    allocate(dfs_graph(n_partcages), dfs_graph_cnx(n_partcages))
+    allocate(pc_root_cluster(n_partcages))
+    
+    partcages = (/rings_555, rings_655/)
+    
+    reached_rings(:) = .false.
+    dfs_graph_cnx(:) = 0
+    pc_root_cluster(:) = 0
+    n_clath_clusters = 0
+    
+    ! First, populate the DFS graph
+    do i=1,n_partcages
+        reached_rings(i) = .true.
+        allocate(dfs_graph(i)%pc(n_partcages))
+
+        ! Cycle through other partcages to find matches
+        do j=i+1,n_partcages ; if (.not.reached_rings(j)) then
+            ! Check whether two partcages share a ring
+            outer: do k=1,3 ; do l=1,3
+                if (partcages(i)%rings(k).eq.partcages(j)%rings(l)) then
+                    dfs_graph_cnx(i) = dfs_graph_cnx(i) + 1
+                    dfs_graph(i)%pc(dfs_graph_cnx(i)) = j
+                    reached_rings(j) = .true.
+                    exit outer
+                end if
+            end do ; end do outer
+        end if ; end do
+    end do
+    
+    ! Now we work out the clusters from the graph
+    do i=1,n_partcages
+        if (pc_root_cluster(i).eq.0) then
+            ! If this is the start of a cluster, we need to intialise it
+            n_clath_clusters = n_clath_clusters + 1
+            pc_root_cluster(i) = n_clath_clusters
+            allocate(clath_clusters(pc_root_cluster(i))%rings(nrings))
+            clath_clusters(pc_root_cluster(i))%rings(1:3) = partcages(i)%rings
+            clath_clusters_size(pc_root_cluster(i)) = 3
+        end if
+        do j=1,dfs_graph_cnx(i)
+            do k=1,3
+                tmp_flag = .true.
+                do l=1,clath_clusters_size(pc_root_cluster(i))
+                    if (partcages(j)%rings(k).eq.clath_clusters(pc_root_cluster(i))%rings(l))
+                        tmp_flag = .false.
+                    end if
+                end do
+                
+                ! If this is a new ring, add it to clath_clusters
+                if (tmp_flag) then
+                    clath_clusters_size(pc_root_cluster(i)) = clath_clusters_size(pc_root_cluster(i)) + 1
+                    clath_clusters(pc_root_cluster(i))%rings(clath_clusters_size(pc_root_cluster(i))) = partcages(j)%rings(k)
+                end if
+            end do
+        end do
+    end do
+
+end subroutine dfs_clath
+
+subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+    
+    use MOD_vector3
+    implicit none
+    
+    integer :: n_clath_clusters, i, j, insertion_position
+    type(vector_alloc), allocatable :: clath_clusters(:), sorted_clath_clusters(:)
+    integer, allocatable :: clath_clusters_size(:), sorted_clath_clusters_size(:)
+    
+    allocate(sorted_clath_clusters(n_clath_clusters), sorted_clath_clusters_size(n_clath_clusters))
+    
+    do i=1,n_clath_clusters
+        insertion_position = 1
+        do j=i-1,1,-1
+            if (clath_clusters_size(i).le.sorted_clath_clusters_size(j)) then
+                do k = i-1,j+1,-1
+                    sorted_clath_clusters(k+1) = sorted_clath_clusters(k)
+                    sorted_clath_clusters_size(k+1) = sorted_clath_clusters_size(k)
+                end do
+                insertion_position = j + 1
+                exit
+            end if
+        end do
+        sorted_clath_clusters(insertion_position) = clath_clusters(i)
+        sorted_clath_clusters_size(insertion_position) = clath_clusters_size(i)
+    end do
+    
+    clath_clusters = sorted_clath_clusters
+    clath_clusters_size = sorted_clath_clusters_size
+
+end subroutine sort_cls
 
 end module MOD_rings
