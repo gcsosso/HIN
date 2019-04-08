@@ -1667,7 +1667,7 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
     use MOD_vector3
     implicit none
     
-    integer :: n_clath_clusters, i, j, insertion_position
+    integer :: n_clath_clusters, i, j, k, insertion_position
     type(vector_alloc), allocatable :: clath_clusters(:), sorted_clath_clusters(:)
     integer, allocatable :: clath_clusters_size(:), sorted_clath_clusters_size(:)
     
@@ -1677,7 +1677,7 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
         insertion_position = 1
         do j=i-1,1,-1
             if (clath_clusters_size(i).le.sorted_clath_clusters_size(j)) then
-                do k = i-1,j+1,-1
+                do k=i-1,j+1,-1
                     sorted_clath_clusters(k+1) = sorted_clath_clusters(k)
                     sorted_clath_clusters_size(k+1) = sorted_clath_clusters_size(k)
                 end do
