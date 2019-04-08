@@ -1396,7 +1396,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
         end do
     end do
     
-    deallocate(rings_555, rings_655, rings_6556, clath_clusters, n_clath_clusters, clath_clusters_size)
+    deallocate(rings_555, rings_655, rings_6556, clath_clusters, clath_clusters_size)
 
 end subroutine clath_cages
 
@@ -1646,7 +1646,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
             do k=1,3
                 tmp_flag = .true.
                 do l=1,clath_clusters_size(pc_root_cluster(i))
-                    if (partcages(j)%rings(k).eq.clath_clusters(pc_root_cluster(i))%rings(l))
+                    if (partcages(j)%rings(k).eq.clath_clusters(pc_root_cluster(i))%rings(l)) then
                         tmp_flag = .false.
                     end if
                 end do
