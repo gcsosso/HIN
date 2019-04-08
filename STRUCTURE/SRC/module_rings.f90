@@ -1285,7 +1285,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     integer, allocatable :: n_cnx_55(:,:), n_cnx_65(:,:), kto(:)
     integer, allocatable :: t_n_cnx_55(:), t_n_cnx_56(:), t_n_cnx_6(:)
     
-    integer :: n_clath_clusters, clath_cls_color(nat), tmp_ring
+    integer :: n_clath_clusters, clath_cls_color(nat)
     type(vector_alloc), allocatable :: clath_clusters(:)
     integer, allocatable :: clath_clusters_size(:)
     
