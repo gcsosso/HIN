@@ -1633,7 +1633,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     end do
     
     ! Now we work out the clusters from the graph
-    allocate(clath_clusters(n_partcages))
+    allocate(clath_clusters(n_partcages), clath_clusters_size(n_partcages))
     do i=1,n_partcages
         if (pc_root_cluster(i).eq.0) then
             ! If this is the start of a cluster, we need to intialise it
