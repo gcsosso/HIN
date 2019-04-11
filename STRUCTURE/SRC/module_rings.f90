@@ -1607,7 +1607,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     allocate(pc_root_cluster(n_partcages))
     
     partcages = (/ rings_555, rings_655 /)
-    !partcages(1:n_rings_555) = rings_555
+    !!partcages(1:n_rings_555) = rings_555
     !partcages(n_rings_555+1:n_rings_555+n_rings_655) = rings_655
     
     reached_rings(:) = .false.
