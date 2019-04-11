@@ -1395,6 +1395,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
             end if
         end do
     end do
+    write(212,'('//adjustl(natformat)//'(I1,X))') (clath_cls_color(i), i=1,nat)
     
     deallocate(rings_555, rings_655, rings_6556, clath_clusters, clath_clusters_size)
 
