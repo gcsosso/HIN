@@ -1378,7 +1378,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     ! ----------------------------------
     
     call dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings5+nrings6,clath_clusters,n_clath_clusters,clath_clusters_size)
-    !call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+    call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
     
     clath_cls_color(:) = 0
     do i=n_clath_clusters,1,-1
