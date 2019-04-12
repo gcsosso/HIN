@@ -1698,6 +1698,9 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
         sorted_clath_clusters_size(insertion_position) = clath_clusters_size(i)
     end do
     
+    deallocate(clath_clusters, clath_clusters_size)
+    allocate(clath_clusters(n_clath_clusters), clath_clusters_size(n_clath_clusters))
+    
     clath_clusters = sorted_clath_clusters
     clath_clusters_size = sorted_clath_clusters_size
 
