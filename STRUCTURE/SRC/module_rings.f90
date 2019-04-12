@@ -1605,6 +1605,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     
     allocate(partcages(n_partcages), reached_rings(n_partcages))
     allocate(dfs_graph(n_partcages), dfs_graph_cnx(n_partcages))
+    allocate(clath_clusters(n_partcages), clath_clusters_size(n_partcages))
     allocate(pc_root_cluster(n_partcages))
     
     do i=1,n_partcages
@@ -1640,7 +1641,6 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     end do
     
     ! Now we work out the clusters from the graph
-    allocate(clath_clusters(n_partcages), clath_clusters_size(n_partcages))
     do i=1,n_partcages
         if (pc_root_cluster(i).eq.0) then
             ! If this is the start of a cluster, we need to intialise it
@@ -1651,6 +1651,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
             clath_clusters_size(pc_root_cluster(i)) = 3
         end if
         do j=1,dfs_graph_cnx(i)
+            pc_root_cluster(dfs_graph(i)%pc(j)) = pc_root_cluster(i)
             do k=1,3
                 tmp_flag = .true.
                 do l=1,clath_clusters_size(pc_root_cluster(i))
