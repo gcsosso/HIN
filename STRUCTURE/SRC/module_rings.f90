@@ -1692,6 +1692,9 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size,sort_map
                 end do
                 sort_map(j) = i
                 exit
+                if (sort_map(i).eq.0) then
+                    sort_map(i) = i
+                end if
             end if
         end do
     end do
