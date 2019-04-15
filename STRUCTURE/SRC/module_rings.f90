@@ -1287,7 +1287,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     
     integer :: n_clath_clusters, clath_cls_color(nat)
     type(vector_alloc), allocatable :: clath_clusters(:)
-    integer, allocatable :: clath_clusters_size(:)
+    integer, allocatable :: clath_clusters_size(:), sort_map(:)
     
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
@@ -1378,12 +1378,12 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     ! ----------------------------------
     
     call dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings5+nrings6,clath_clusters,n_clath_clusters,clath_clusters_size)
-    !call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+    call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size,sort_map)
     
     clath_cls_color(:) = 0
     do i=n_clath_clusters,1,-1
-        do j=1,clath_clusters_size(i)
-            tmp_ring = clath_clusters(i)%rings(j)
+        do j=1,clath_clusters_size(sort_map(i))
+            tmp_ring = clath_clusters(sort_map(i))%rings(j)
             if (tmp_ring.ge.0) then
                 do k=1,5
                     clath_cls_color(kto(rings5(tmp_ring,k))) = i
@@ -1672,38 +1672,29 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
 
 end subroutine dfs_clath
 
-subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size,sort_map)
     
     use MOD_vector3
     implicit none
     
-    integer :: n_clath_clusters, i, j, k, insertion_position
-    type(vector_alloc), allocatable :: clath_clusters(:), sorted_clath_clusters(:)
-    integer, allocatable :: clath_clusters_size(:), sorted_clath_clusters_size(:)
+    integer :: n_clath_clusters, i, j, k
+    type(vector_alloc), allocatable :: clath_clusters(:)
+    integer, allocatable :: clath_clusters_size(:), sort_map(:)
     
-    allocate(sorted_clath_clusters(n_clath_clusters), sorted_clath_clusters_size(n_clath_clusters))
+    allocate(sort_map(n_clath_clusters))
     
     do i=1,n_clath_clusters
         insertion_position = 1
-        do j=i-1,1,-1
-            if (clath_clusters_size(i).le.sorted_clath_clusters_size(j)) then
-                do k=i-1,j+1,-1
-                    sorted_clath_clusters(k+1) = sorted_clath_clusters(k)
-                    sorted_clath_clusters_size(k+1) = sorted_clath_clusters_size(k)
+        do j=1,i-1
+            if (clath_clusters_size(i).ge.clath_clusters_size(sort_map(j))) then
+                do k=i-1,j,-1
+                    sort_map(k+1) = sorted+map(k)
                 end do
-                insertion_position = j + 1
+                sort_map(j) = i
                 exit
             end if
         end do
-        sorted_clath_clusters(insertion_position) = clath_clusters(i)
-        sorted_clath_clusters_size(insertion_position) = clath_clusters_size(i)
     end do
-    
-    deallocate(clath_clusters, clath_clusters_size)
-    allocate(clath_clusters(n_clath_clusters), clath_clusters_size(n_clath_clusters))
-    
-    clath_clusters = sorted_clath_clusters
-    clath_clusters_size = sorted_clath_clusters_size
 
 end subroutine sort_cls
 
