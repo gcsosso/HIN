@@ -1683,6 +1683,7 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size,sort_map
     
     allocate(sort_map(n_clath_clusters))
     
+    sort_map(:) = 0
     sort_map(1) = 1
     do i=2,n_clath_clusters
         do j=1,i-1
