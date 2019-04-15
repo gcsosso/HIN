@@ -1378,7 +1378,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     ! ----------------------------------
     
     call dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings5+nrings6,clath_clusters,n_clath_clusters,clath_clusters_size)
-    call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
+    !call sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size)
     
     clath_cls_color(:) = 0
     do i=n_clath_clusters,1,-1
@@ -1589,7 +1589,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     
     type(vector3), allocatable :: rings_555(:), rings_655(:), partcages(:)
     integer :: n_rings_555, n_rings_655, n_partcages, nrings, i, j, k, l
-    integer :: n_clath_clusters
+    integer :: n_clath_clusters, tmp_pc
     logical, allocatable :: reached_rings(:)
     type(vector_alloc), allocatable :: clath_clusters(:)
     integer, allocatable :: clath_clusters_size(:), pc_root_cluster(:)
@@ -1651,11 +1651,12 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
             clath_clusters_size(pc_root_cluster(i)) = 3
         end if
         do j=1,dfs_graph_cnx(i)
-            pc_root_cluster(dfs_graph(i)%pc(j)) = pc_root_cluster(i)
+            tmp_pc = dfs_graph(i)%pc(j)
+            pc_root_cluster(tmp_pc) = pc_root_cluster(i)
             do k=1,3
                 tmp_flag = .true.
                 do l=1,clath_clusters_size(pc_root_cluster(i))
-                    if (partcages(j)%rings(k).eq.clath_clusters(pc_root_cluster(i))%rings(l)) then
+                    if (partcages(tmp_pc)%rings(k).eq.clath_clusters(pc_root_cluster(i))%rings(l)) then
                         tmp_flag = .false.
                     end if
                 end do
@@ -1663,7 +1664,7 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
                 ! If this is a new ring, add it to clath_clusters
                 if (tmp_flag) then
                     clath_clusters_size(pc_root_cluster(i)) = clath_clusters_size(pc_root_cluster(i)) + 1
-                    clath_clusters(pc_root_cluster(i))%rings(clath_clusters_size(pc_root_cluster(i))) = partcages(j)%rings(k)
+                    clath_clusters(pc_root_cluster(i))%rings(clath_clusters_size(pc_root_cluster(i))) = partcages(tmp_pc)%rings(k)
                 end if
             end do
         end do
