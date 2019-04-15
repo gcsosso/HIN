@@ -1684,11 +1684,10 @@ subroutine sort_cls(clath_clusters,n_clath_clusters,clath_clusters_size,sort_map
     allocate(sort_map(n_clath_clusters))
     
     do i=1,n_clath_clusters
-        insertion_position = 1
         do j=1,i-1
             if (clath_clusters_size(i).ge.clath_clusters_size(sort_map(j))) then
                 do k=i-1,j,-1
-                    sort_map(k+1) = sorted+map(k)
+                    sort_map(k+1) = sort_map(k)
                 end do
                 sort_map(j) = i
                 exit
