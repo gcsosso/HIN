@@ -1628,15 +1628,32 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
 
         ! Cycle through other partcages to find matches
         do j=i+1,n_partcages ; if (.not.reached_rings(j)) then
+        
             ! Check whether two partcages share a ring
+            !outer: do k=1,3 ; do l=1,3
+            !    if (partcages(i)%rings(k).eq.partcages(j)%rings(l)) then
+            !        dfs_graph_cnx(i) = dfs_graph_cnx(i) + 1
+            !        dfs_graph(i)%pc(dfs_graph_cnx(i)) = j
+            !        reached_rings(j) = .true.
+            !        exit outer
+            !    end if
+            !end do ; end do outer
+            
+            ! Check whether two partcages share two rings
+            tmp_flag = .false.
             outer: do k=1,3 ; do l=1,3
                 if (partcages(i)%rings(k).eq.partcages(j)%rings(l)) then
-                    dfs_graph_cnx(i) = dfs_graph_cnx(i) + 1
-                    dfs_graph(i)%pc(dfs_graph_cnx(i)) = j
-                    reached_rings(j) = .true.
-                    exit outer
+                    if (tmp_flag) then
+                        dfs_graph_cnx(i) = dfs_graph_cnx(i) + 1
+                        dfs_graph(i)%pc(dfs_graph_cnx(i)) = j
+                        reached_rings(j) = .true.
+                        exit outer
+                    else
+                        tmp_flag = .true.
+                    end if
                 end if
             end do ; end do outer
+            
         end if ; end do
     end do
     
