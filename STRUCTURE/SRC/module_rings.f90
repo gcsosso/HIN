@@ -879,9 +879,8 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
 !! END DEBUG
 
 
-      do l=1,nl
-         do m=1,nl
-            if (l.eq.m) cycle
+      do l=1,nl-1
+         do m=l+1,nl
             r_flag=0
             do k=1,6
                if (count(w_rings(l,:).eq.w_rings(m,k)).gt.0) r_flag=1
