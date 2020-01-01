@@ -2,7 +2,7 @@ module MOD_order
 
 contains
 
-subroutine order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh)
+subroutine order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,switch_water)
 
 implicit none
 
@@ -11,6 +11,7 @@ implicit none
 integer :: o_nz
 real :: o_zmax, o_zmin, o_dz, middle
 real, allocatable :: w_order(:), o_zmesh(:)
+character*3 :: switch_water
 
 ! Local
 
@@ -28,11 +29,16 @@ do k=1,o_nz
    o_zmesh(k)=o_zmin+((k*o_dz)-(o_dz/2.0))
 enddo
 
+if (trim(adjustl(switch_water)).eq.'mol') then
+	open(unit=254, file='hin_structure.out.w_order', status='unknown')
+	open(unit=255, file='hin_structure.out.w_order.color', status='unknown')
+endif
+
 end subroutine order_alloc
 
 subroutine order(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,nat,pos, &
                 mq_all,cart,middle,switch_water,sym,wmol,resname, &
-                resnum,axis_1,axis_2,zop_AVE)
+                resnum,axis_1,axis_2,zop_AVE,natformat)
 
 implicit none
 
@@ -47,12 +53,16 @@ character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: sym(:)
 character*5, allocatable :: resname(:)
 integer, allocatable :: resnum(:)
+character*100 :: natformat
 
 ! Local
 integer :: i, j, k, flag_1, flag_2, idx_1, idx_2, resn_1, resn_2
 real, allocatable :: nslice(:), wok(:)
 real :: lb, ub, com(cart), mmm, dm(cart), pos_1(cart), pos_2(cart), zop, nmol, zop_AVE
 character*4 :: sym_1, sym_2
+real, allocatable :: w_order_col(:), w_order_mol(:)
+integer :: n_mol
+character*100 :: n_mol_format
 
 ! Remove COM
 com(:)=0.0
@@ -114,6 +124,46 @@ if (trim(adjustl(switch_water)).eq.'yes') then
 
    ! Get also the Probability density of these angles for all the occurrences of 
    ! water molecules within the slabs closest to e.g. CHL ! 
+
+else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order parameter for each water molecule
+
+   allocate(w_order_col(nat), w_order_mol(nat))
+   w_order_col(:) = 0.0
+   w_order_mol(:) = 0.0
+   n_mol = 0
+	
+   !! Orientational order parameter (wrt to the normal to the slab)
+   !! to be written to a color file (water only!)
+   do j=1,nat
+		! rescale the positions wrt the center of mass of each frame - than move the whole thing in the middle
+		pos(cart,j)=pos(cart,j)-com(cart)+middle
+	 	! save time by ignoring non-water stuff (and HW and MW as well!)
+	 	if (trim(adjustl(sym(j))).ne.trim(adjustl(axis_1))) cycle
+		n_mol = n_mol+1
+	 	! get the unit vector along the dipole moment
+	 	! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
+	 	! there should be no need of invoking pbc - even if the molecules are not whole
+	 	dm(:)=pos(:,j)-pos(:,j+3) ! MW ----> OW - chemistry convention (physicist would do the other way around
+										  ! for the dipole moment, e.g. - -> + instead of + -> - )
+	 	dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0)) ! From -1 to 1
+	 	!(acos(dm(cart)))*rad2deg ! angle between the dipole moment of the water molecule and the z-axis
+	 	! Ranges from 0 deg (dm(cart=1)) to 180 deg (dm(cart)=-1). Average is 90 deg. 
+	 	! order parameter as a function of z. average over all the molecules within a slice
+	 	! angle
+	 	w_order_col(j) = (acos(dm(cart)))*rad2deg
+	 	w_order_mol(n_mol) = (acos(dm(cart)))*rad2deg
+	 	! Values > 90 deg correspond to negative values of dm(cart).
+	 	! That is, negative value of the projection of the (water) dipole moment on the z-axis
+	 	! That is, the water dipole moment is pointing down - with respect to z
+	 	! Values < 90 - the molecular axis or dipole moment or whatever is pointing in the same dir as z
+   enddo
+	write(n_mol_format,*) 2*n_mol
+	
+	write(255,'('//adjustl(natformat)//'F11.4)') (w_order_col(i), i=1,nat)
+	
+	write(254,'('//adjustl(n_mol_format)//'F11.4)') (pos(cart,i), i=1,n_mol)
+	write(254,'('//adjustl(n_mol_format)//'F11.4)') (w_order_mol(i), i=1,n_mol)
+	
 
 else ! molecules other than water
 
