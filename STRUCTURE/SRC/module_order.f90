@@ -60,7 +60,7 @@ integer :: i, j, k, flag_1, flag_2, idx_1, idx_2, resn_1, resn_2
 real, allocatable :: nslice(:), wok(:)
 real :: lb, ub, com(cart), mmm, dm(cart), pos_1(cart), pos_2(cart), zop, nmol, zop_AVE
 character*4 :: sym_1, sym_2
-real, allocatable :: w_order_col(:), w_order_mol(:)
+real, allocatable :: w_order_col(:), w_order_mol(:), w_oz(:)
 integer :: n_mol
 character*100 :: n_mol_format
 
@@ -127,9 +127,10 @@ if (trim(adjustl(switch_water)).eq.'yes') then
 
 else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order parameter for each water molecule
 
-   allocate(w_order_col(nat), w_order_mol(nat))
+   allocate(w_order_col(nat), w_order_mol(nat), w_oz(nat))
    w_order_col(:) = 0.0
    w_order_mol(:) = 0.0
+   w_oz(:) = 0.0
    n_mol = 0
 	
    !! Orientational order parameter (wrt to the normal to the slab)
@@ -140,6 +141,7 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
 	 	! save time by ignoring non-water stuff (and HW and MW as well!)
 	 	if (trim(adjustl(sym(j))).ne.trim(adjustl(axis_1))) cycle
 		n_mol = n_mol+1
+        w_oz(n_mol) = pos(cart,j)+com(cart)-middle
 	 	! get the unit vector along the dipole moment
 	 	! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
 	 	! there should be no need of invoking pbc - even if the molecules are not whole
@@ -161,7 +163,7 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
 	
 	write(255,'('//adjustl(natformat)//'F11.4)') (w_order_col(i), i=1,nat)
 	
-	write(254,'('//adjustl(n_mol_format)//'F11.4)') (pos(cart,i), i=1,n_mol)
+	write(254,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,n_mol)
 	write(254,'('//adjustl(n_mol_format)//'F11.4)') (w_order_mol(i), i=1,n_mol)
 	
 
