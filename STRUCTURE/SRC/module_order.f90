@@ -140,20 +140,22 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
 		pos(cart,j)=pos(cart,j)-com(cart)+middle
 	 	! save time by ignoring non-water stuff (and HW and MW as well!)
 	 	if (trim(adjustl(sym(j))).ne.trim(adjustl(axis_1))) cycle
-		n_mol = n_mol+1
-        w_oz(n_mol) = pos(cart,j)+com(cart)-middle
-	 	! get the unit vector along the dipole moment
-	 	! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
-	 	! there should be no need of invoking pbc - even if the molecules are not whole
-	 	dm(:)=pos(:,j)-pos(:,j+3) ! MW ----> OW - chemistry convention (physicist would do the other way around
+		if (pos(cart,j).gt.lb.and.pos(cart,j).le.ub) then ! filter to just the desired slice
+            n_mol = n_mol+1
+            w_oz(n_mol) = pos(cart,j)+com(cart)-middle
+	 	    ! get the unit vector along the dipole moment
+	 	    ! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
+	 	    ! there should be no need of invoking pbc - even if the molecules are not whole
+	 	    dm(:)=pos(:,j)-pos(:,j+3) ! MW ----> OW - chemistry convention (physicist would do the other way around
 										  ! for the dipole moment, e.g. - -> + instead of + -> - )
-	 	dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0)) ! From -1 to 1
-	 	!(acos(dm(cart)))*rad2deg ! angle between the dipole moment of the water molecule and the z-axis
-	 	! Ranges from 0 deg (dm(cart=1)) to 180 deg (dm(cart)=-1). Average is 90 deg. 
-	 	! order parameter as a function of z. average over all the molecules within a slice
-	 	! angle
-	 	w_order_col(j) = (acos(dm(cart)))*rad2deg
-	 	w_order_mol(n_mol) = (acos(dm(cart)))*rad2deg
+	 	    dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0)) ! From -1 to 1
+	 	    !(acos(dm(cart)))*rad2deg ! angle between the dipole moment of the water molecule and the z-axis
+		    ! Ranges from 0 deg (dm(cart=1)) to 180 deg (dm(cart)=-1). Average is 90 deg. 
+	 	    ! order parameter as a function of z. average over all the molecules within a slice
+	 	    ! angle
+	 	    w_order_col(j) = (acos(dm(cart)))*rad2deg
+	 	    w_order_mol(n_mol) = (acos(dm(cart)))*rad2deg
+        end if
 	 	! Values > 90 deg correspond to negative values of dm(cart).
 	 	! That is, negative value of the projection of the (water) dipole moment on the z-axis
 	 	! That is, the water dipole moment is pointing down - with respect to z
