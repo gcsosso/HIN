@@ -16,11 +16,13 @@ subroutine clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
         write(99,*) "We are calculating the clathrate F3 order parameter."
         open(unit=231, file='hin_structure.out.f.f3.color', status='unknown')
         open(unit=230, file='hin_structure.out.f.f3', status='unknown')
+        open(unit=234, file='hin_structure.out.f_order', status='unknown')
         
         if (trim(adjustl(switch_f4)).eq.'yes') then
             write(99,*) "We are also calculating the clathrate F4 order parameter."
             open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
             open(unit=240, file='hin_structure.out.f.f4', status='unknown')
+            write(234,*) "Z F3 F4" 
             if (trim(adjustl(switch_f_cls)).eq.'yes') then
                 write(99,*) "We are also calculating clustering of ice and clathrate."
                 open(unit=201, file='hin_structure.out.f.ice.patch', status='unknown')
@@ -31,13 +33,14 @@ subroutine clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
             
             write(200,*) "# Time [ps] | Average F3 | Average F4 "
         else
+            write(234,*) "Z F3"
             write(200,*) "# Time [ps] | Average F3 "
         endif
     else
         write(99,*) "We are calculating the clathrate F4 order parameter."
         open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
         open(unit=240, file='hin_structure.out.f.f4', status='unknown')
-        
+        write(234,*) "Z F4"
         write(200,*) "# Time [ps] | Average F4 "
     endif
 
@@ -64,23 +67,28 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
     real, allocatable :: pos(:,:)
     real :: F3_col(nat), F4_col(nat)
-    character*100 :: natformat
+    character*100 :: natformat, n_mol_format
     integer :: f_zbins
     integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
     real :: F3_zbin(f_zbins,nat), F4_zbin(f_zbins,nat)
+    real :: F3_mol(n_f_ow), F4_mol(n_f_ow), w_oz(n_f_ow)
 
     tot_atoms = 0
     F3_avg = 0
     F4_avg = 0
     F3_col(:) = 0.0
     F4_col(:) = 0.0
+    F3_mol(:) = 0.0
+    F4_mol(:) = 0.0
     F3_zbin_len(:) = 0
     F4_zbin_len(:) = 0
+    w_oz(:) = 0.0
 
     do i=1,n_f_ow ! Iterate through OW atoms
         if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
             ! Count how many atoms of interest are in the Z-range
             tot_atoms = tot_atoms + 1
+            w_oz(tot_atoms) = pos(cart,list_f_ow(i))
             
             ! If atom is in Z-region of interest, calculate it's first coordination shell
             call compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell,n_f_ow, &
@@ -94,6 +102,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 ! Calculate average F3 for the frame (per species)
                 F3_avg = F3_avg + F3_atom
                 F3_col(list_f_ow(i)) = F3_atom
+                F3_mol(tot_atoms) = F3_atom
                 do j=1,f_zbins
                     if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
                         (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
@@ -112,6 +121,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                 ! Calculate average F4 for the frame (per species)
                 F4_avg = F4_avg + F4_atom
                 F4_col(list_f_ow(i)) = F4_atom
+                F4_mol(tot_atoms) = F4_atom
                 do j=1,f_zbins
                     if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
                         F4_zbin_len(j) = F4_zbin_len(j) + 1
@@ -122,11 +132,23 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             endif
         endif
     enddo
+
     if (tot_atoms>0) then
         F3_avg = F3_avg/tot_atoms
         F4_avg = F4_avg/tot_atoms
     endif
+
+    write(n_mol_format,*) 2*tot_atoms
     
+    write(234,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
+    
+    if (trim(adjustl(switch_f3)).eq.'yes') then
+        write(234,'('//adjustl(n_mol_format)//'F11.4)') (F3_mol(i), i=1,tot_atoms)
+    endif
+    if (trim(adjustl(switch_f4)).eq.'yes') then
+        write(234,'('//adjustl(n_mol_format)//'F11.4)') (F4_mol(i), i=1,tot_atoms)
+    endif
+
     if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
         ! If we are calculating both order parameters, write to output files
         write(200,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg

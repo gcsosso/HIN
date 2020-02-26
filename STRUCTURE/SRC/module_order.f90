@@ -140,7 +140,7 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
 		pos(cart,j)=pos(cart,j)-com(cart)+middle
 	 	! save time by ignoring non-water stuff (and HW and MW as well!)
 	 	if (trim(adjustl(sym(j))).ne.trim(adjustl(axis_1))) cycle
-		if (pos(cart,j).gt.lb.and.pos(cart,j).le.ub) then ! filter to just the desired slice
+		if (pos(cart,j).gt.o_zmin.and.pos(cart,j).le.o_zmax) then ! filter to just the desired slice
             n_mol = n_mol+1
             w_oz(n_mol) = pos(cart,j)+com(cart)-middle
 	 	    ! get the unit vector along the dipole moment
