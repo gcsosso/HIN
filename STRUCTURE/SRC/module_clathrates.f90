@@ -258,7 +258,8 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: F3_part, F3_atom                ! F3 parameter for triples, atoms
     real :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
-
+    
+    if (size_first_coord_shell.gt.0) then 
     F3_atom = 0
     do j=1,size_first_coord_shell-1
         do k=j+1,size_first_coord_shell
@@ -274,6 +275,10 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
     enddo
     
 #    F3_atom = 2*F3_atom/(size_first_coord_shell**2 - size_first_coord_shell)
+    
+    else
+        F3_atom = -2
+    end if
 
 end subroutine compute_f3
 
@@ -298,7 +303,8 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
     real :: lambda, mu                      ! u = (1,lambda), v=(1,mu) under bases: {h1, o2} and {h2, o2}, resp.
     real :: h1_dot_o2, h2_dot_o2, u_dot_v
     real :: cos_phi                         ! phi is the torsional angle (H1-O1..O2-H2)
-
+    
+    if (size_first_coord_shell.gt.0) then
     F4_atom = 0
     do j=1,size_first_coord_shell
         ! Choose Hydrogen from O1. I.e. furthest from O2.
@@ -365,6 +371,9 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
         ! Add F4/#combinations to total F4
         F4_atom = F4_atom + F4_part/size_first_coord_shell
     enddo
+    else
+        F4_atom = -2
+    end if
 
 end subroutine compute_f4
 
