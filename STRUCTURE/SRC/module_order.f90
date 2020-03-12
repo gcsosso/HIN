@@ -38,7 +38,7 @@ end subroutine order_alloc
 
 subroutine order(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,nat,pos, &
                 mq_all,cart,middle,switch_water,sym,wmol,resname, &
-                resnum,axis_1,axis_2,zop_AVE,natformat)
+                resnum,axis_1,axis_2,zop_AVE,natformat,icell)
 
 implicit none
 
@@ -54,6 +54,7 @@ character*4, allocatable :: sym(:)
 character*5, allocatable :: resname(:)
 integer, allocatable :: resnum(:)
 character*100 :: natformat
+real :: icell(cart*cart)
 
 ! Local
 integer :: i, j, k, flag_1, flag_2, idx_1, idx_2, resn_1, resn_2
@@ -92,7 +93,7 @@ if (trim(adjustl(switch_water)).eq.'yes') then
          ! get the unit vector along the dipole moment
          ! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
          ! there should be no need of invoking pbc - even if the molecules are not whole
-         dm(:)=pos(:,j)-pos(:,j+3) ! MW ----> OW - chemistry convention (physicist would do the other way around
+         dm(:)=pos(:,j)+pos(:,j)-pos(:,j+1)-pos(:,j+2) ! MW ----> OW - chemistry convention (physicist would do the other way around
                                    ! for the dipole moment, e.g. - -> + instead of + -> - )
          dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0)) ! From -1 to 1
          !(acos(dm(cart)))*rad2deg ! angle between the dipole moment of the water molecule and the z-axis
@@ -136,17 +137,16 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
    !! Orientational order parameter (wrt to the normal to the slab)
    !! to be written to a color file (water only!)
    do j=1,nat
-		! rescale the positions wrt the center of mass of each frame - than move the whole thing in the middle
-		pos(cart,j)=pos(cart,j)-com(cart)+middle
 	 	! save time by ignoring non-water stuff (and HW and MW as well!)
 	 	if (trim(adjustl(sym(j))).ne.trim(adjustl(axis_1))) cycle
 		if (pos(cart,j).gt.o_zmin.and.pos(cart,j).le.o_zmax) then ! filter to just the desired slice
             n_mol = n_mol+1
-            w_oz(n_mol) = pos(cart,j)+com(cart)-middle
+            w_oz(n_mol) = pos(cart,j)
 	 	    ! get the unit vector along the dipole moment
 	 	    ! which we assume it lies along the TIP4P OW-MW segment (bisector of the H-O-H angle)
 	 	    ! there should be no need of invoking pbc - even if the molecules are not whole
-	 	    dm(:)=pos(:,j)-pos(:,j+3) ! MW ----> OW - chemistry convention (physicist would do the other way around
+            dm(:)=pos(:,j)+pos(:,j)-pos(:,j+1)-pos(:,j+2) ! MW ----> OW - chemistry convention (physicist would do the other way around
+            call images(cart,0,1,1,icell,dm(1),dm(2),dm(3))
 										  ! for the dipole moment, e.g. - -> + instead of + -> - )
 	 	    dm(:)=dm(:)/(sqrt(dm(1)**2.0+dm(2)**2.0+dm(3)**2.0)) ! From -1 to 1
 	 	    !(acos(dm(cart)))*rad2deg ! angle between the dipole moment of the water molecule and the z-axis

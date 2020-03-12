@@ -202,7 +202,7 @@ do while ( STAT==0 )
       if (trim(adjustl(switch_order)).eq.'yes') then
          call order(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,nat,pos, &
               mq_all,cart,middle,switch_water,sym,wmol,resname, &
-              resnum,axis_1,axis_2,zop_AVE,natformat)
+              resnum,axis_1,axis_2,zop_AVE,natformat,icell)
       endif
       
    endif
