@@ -138,7 +138,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
         F4_avg = F4_avg/tot_atoms
     endif
 
-    write(n_mol_format,*) 2*tot_atoms
+    write(n_mol_format,*) tot_atoms
     
     write(234,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
     

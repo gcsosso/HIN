@@ -12,6 +12,7 @@ use MOD_bonds
 use MOD_electro
 use MOD_output
 use MOD_order
+use MOD_bondorder
 
 implicit none
 
@@ -23,14 +24,14 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz,
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
-integer :: n_f_ow
+integer :: n_f_ow, ql
 integer, allocatable :: list_f_ow(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
-real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
+real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin, q_zmin, q_zmax, q_cut
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
@@ -39,7 +40,7 @@ character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
 character*3 :: switch_electro, switch_order, switch_water, switch_hbck
-character*3 :: switch_f3, switch_f4, switch_f_cls
+character*3 :: switch_f3, switch_f4, switch_f_cls, switch_qorder
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -60,10 +61,11 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
-                switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
+                switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
+					 switch_qorder,ql,q_zmin,q_zmax,q_cut)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
-              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4)
+              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
 
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
@@ -132,6 +134,10 @@ endif
 !if (trim(adjustl(switch_order)).eq.'yes'.and.trim(adjustl(switch_water)).eq.'yes') then
 if (trim(adjustl(switch_order)).eq.'yes') then
    call order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,switch_water)
+endif
+
+if (trim(adjustl(switch_qorder)).eq.'yes') then
+   call bondorder_alloc(ql)
 endif
 
 
@@ -204,6 +210,12 @@ do while ( STAT==0 )
               mq_all,cart,middle,switch_water,sym,wmol,resname, &
               resnum,axis_1,axis_2,zop_AVE,natformat,icell)
       endif
+		
+		! Q Ordering...
+		if (trim(adjustl(switch_qorder)).eq.'yes') then
+			call bondorder(ql,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+                      time,cart,icell,pos,nat,natformat,sym)
+		endif
       
    endif
    counter=counter+1

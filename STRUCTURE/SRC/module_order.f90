@@ -161,7 +161,7 @@ else if (trim(adjustl(switch_water)).eq.'mol') then ! We are outputing an order 
 	 	! That is, the water dipole moment is pointing down - with respect to z
 	 	! Values < 90 - the molecular axis or dipole moment or whatever is pointing in the same dir as z
    enddo
-	write(n_mol_format,*) 2*n_mol
+	write(n_mol_format,*) n_mol
 	
 	write(255,'('//adjustl(natformat)//'F11.4)') (w_order_col(i), i=1,nat)
 	
