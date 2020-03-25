@@ -218,6 +218,8 @@ subroutine compute_qlm(ii,ql,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_
 	 
 	 if (size_first_coord_shell.ne.0) then
 	 		qlm = sigma/size_first_coord_shell
+	 else
+	 		qlm = (0.0, 0.0)
 	 end if
 
 end subroutine compute_qlm
