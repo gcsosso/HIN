@@ -211,7 +211,7 @@ subroutine compute_qlm(ii,ql,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_
 	 
 	 sigma = (0.0, 0.0)
 	 do fj=1,size_first_coord_shell
-	 		call compute_Ylm(Ylm,ql,m,acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))), &
+	 		call compute_Ylm(Ylm,ql,m,first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4)), &
 									atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)))
 	 		sigma = sigma + Ylm
 	 enddo
@@ -224,16 +224,16 @@ subroutine compute_qlm(ii,ql,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_
 
 end subroutine compute_qlm
 
-subroutine compute_Ylm(Ylm,ql,m,th,ph)
+subroutine compute_Ylm(Ylm,ql,m,cos_th,ph)
 	 
 	 implicit none
 	 
 	 integer :: ql, m
 	 complex :: Ylm
-	 real :: th, ph
+	 real :: cos_th, ph
     real, parameter :: Pi = 3.14159
 	 
-	 Ylm = sqrt(((2*ql+1)/(4*Pi))*(factorial(ql-m)/factorial(ql+m)))*compute_Plm(ql,m,cos(th))*exp(cmplx(0.0,1.0)*m*ph)
+	 Ylm = sqrt(((2*ql+1)/(4*Pi))*(factorial(ql-m)/factorial(ql+m)))*compute_Plm(ql,m,cos_th)*exp(cmplx(0.0,1.0)*m*ph)
 	 
 end subroutine compute_Ylm
 
