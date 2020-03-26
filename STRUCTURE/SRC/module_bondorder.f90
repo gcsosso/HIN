@@ -57,7 +57,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
                                            q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
             
             ! Compute the local ql parameter for the atom
-            call compute_qlb(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+            call compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
 										
             ! Compute the averaged ql parameter for the atom
