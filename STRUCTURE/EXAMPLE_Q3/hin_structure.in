@@ -96,4 +96,4 @@ QORDER   yes
 QWHICH   3
 Q_ZMIN   10.2
 Q_ZMAX   18.0
-Q_CUT    0.35
+Q_CUT    0.32
