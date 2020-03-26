@@ -154,8 +154,7 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
     if (size_first_coord_shell.gt.0) then 
     	  ql_atom = 0
     	  do m=-l,l
-        		call compute_qlm(ii,l,m,qlm,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+        		call compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
         		sigma = sigma + real(qlm)**2+aimag(qlm)**2
     	  enddo
 
@@ -165,7 +164,7 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
         ql_atom = -2
     end if
 
-end subroutine compute_qlb
+end subroutine compute_ql
 
 
 ! Computes averaged ql order parameter for an atom
