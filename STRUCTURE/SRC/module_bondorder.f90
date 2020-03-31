@@ -285,15 +285,63 @@ subroutine compute_Ylm(Ylm,l,m,th,ph)
 			else if (m.eq.-2) then
 				Ylm = 0.25*sqrt(52.5/Pi)*(sin(th)**2)*(cos(th))*exp(-2.0*cmplx(0,1)*ph)
 			else if (m.eq.-1) then
-				Ylm = 0.125*sqrt(21.0/Pi)*(sin(th))*(5*(cos(th)**2)-1)*exp(-cmplx(0,1)*ph)
+				Ylm = 0.125*sqrt(21.0/Pi)*(sin(th))*(5.0*(cos(th)**2)-1.0)*exp(-cmplx(0,1)*ph)
 			else if (m.eq.0) then
-				Ylm = 0.25*sqrt(7.0/Pi)*(5*(cos(th)**3)-3*cos(th))
+				Ylm = 0.25*sqrt(7.0/Pi)*(5.0*(cos(th)**3)-3.0*cos(th))
 			else if (m.eq.1) then
-				Ylm = -0.125*sqrt(21.0/Pi)*(sin(th))*(5*cos(th)**2-1)*exp(cmplx(0,1)*ph)
+				Ylm = -0.125*sqrt(21.0/Pi)*(sin(th))*(5.0*(cos(th)**2)-1.0)*exp(cmplx(0,1)*ph)
 			else if (m.eq.2) then
 				Ylm = 0.25*sqrt(52.5/Pi)*(sin(th)**2)*(cos(th))*exp(2.0*cmplx(0,1)*ph)
 			else
 				Ylm = -0.125*sqrt(35.0/Pi)*(sin(th)**3)*exp(3.0*cmplx(0,1)*ph)
+			end if
+	 else if (l.eq.4) then
+	 		if (m.eq.-4) then
+				Ylm = 0.1875*sqrt(17.5/Pi)*(sin(th)**4)*exp(-4.0*cmplx(0,1)*ph)
+			else if (m.eq.-3) then
+				Ylm = 0.375*sqrt(35.0/Pi)*(sin(th)**3)*cos(th)*exp(-3.0*cmplx(0,1)*ph)
+			else if (m.eq.-2) then
+				Ylm = 0.375*sqrt(2.5/Pi)*(sin(th)**2)*(7.0*(cos(th)**2)-1.0)*exp(-2.0*cmplx(0,1)*ph)
+			else if (m.eq.-1) then
+				Ylm = 0.375*sqrt(5.0/Pi)*(sin(th))*(7.0*(cos(th)**3)-3.0*cos(th))*exp(-cmplx(0,1)*ph)
+			else if (m.eq.0) then
+				Ylm = 0.1875*sqrt(1.0/Pi)*(35.0*(cos(th)**4)-30.0*(cos(th)**2)+3.0)
+			else if (m.eq.1) then
+				Ylm = -0.375*sqrt(5.0/Pi)*(sin(th))*(7.0*(cos(th)**3)-3.0*cos(th))*exp(cmplx(0,1)*ph)
+			else if (m.eq.2) then
+				Ylm = 0.375*sqrt(2.5/Pi)*(sin(th)**2)*(7.0*(cos(th)**2)-1.0)*exp(2.0*cmplx(0,1)*ph)
+			else if (m.eq.3) then
+				Ylm = -0.375*sqrt(35.0/Pi)*(sin(th)**3)*(cos(th))*exp(3.0*cmplx(0,1)*ph)
+			else
+				Ylm = 0.1875*sqrt(17.5/Pi)*(sin(th)**4)*exp(4.0*cmplx(0,1)*ph)
+			end if
+	 else if (l.eq.6) then
+	 		if (m.eq.-6) then
+				Ylm = 0.015625*sqrt(3003.0/Pi)*(sin(th)**6)*exp(-6.0*cmplx(0,1)*ph)
+			else if (m.eq.-5) then
+				Ylm = 0.09375*sqrt(1001.0/Pi)*(sin(th)**5)*cos(th)*exp(-5.0*cmplx(0,1)*ph)
+	 		else if (m.eq.-4) then
+				Ylm = 0.09375*sqrt(45.5/Pi)*(sin(th)**4)*(11.0*(cos(th)**2)-1.0)*exp(-4.0*cmplx(0,1)*ph)
+			else if (m.eq.-3) then
+				Ylm = 0.03125*sqrt(1365.0/Pi)*(sin(th)**3)*(11.0*(cos(th)**3)-3.0*cos(th))*exp(-3.0*cmplx(0,1)*ph)
+			else if (m.eq.-2) then
+				Ylm = 0.015625*sqrt(1365.0/Pi)*(sin(th)**2)*(33.0*(cos(th)**4)-18.0*(cos(th)**2)+1.0)*exp(-2.0*cmplx(0,1)*ph)
+			else if (m.eq.-1) then
+				Ylm = 0.0625*sqrt(136.5/Pi)*(sin(th))*(33.0*(cos(th)**5)-30.0*(cos(th)**3)+5.0*cos(th))*exp(-cmplx(0,1)*ph)
+			else if (m.eq.0) then
+				Ylm = 0.03125*sqrt(13.0/Pi)*(231.0*(cos(th)**6)-315.0*(cos(th)**4)+105.0*(cos(th)**2)-5.0)
+			else if (m.eq.1) then
+				Ylm = -0.0625*sqrt(136.5/Pi)*(sin(th))*(33.0*(cos(th)**5)-30.0*(cos(th)**3)+5.0*cos(th))*exp(cmplx(0,1)*ph)
+			else if (m.eq.2) then
+				Ylm = 0.015625*sqrt(1365.0/Pi)*(sin(th)**2)*(33.0*(cos(th)**4)-18.0*(cos(th)**2)+1.0)*exp(2.0*cmplx(0,1)*ph)
+			else if (m.eq.3) then
+				Ylm = -0.03125*sqrt(1365.0/Pi)*(sin(th)**3)*(11.0*(cos(th)**3)-3.0*cos(th))*exp(3.0*cmplx(0,1)*ph)
+			else if (m.eq.4) then
+				Ylm = 0.09375*sqrt(45.5/Pi)*(sin(th)**4)*(11.0*(cos(th)**2)-1.0)*exp(4.0*cmplx(0,1)*ph)
+			else if (m.eq.5) then
+				Ylm = -0.09375*sqrt(1001.0/Pi)*(sin(th)**5)*cos(th)*exp(5.0*cmplx(0,1)*ph)
+			else
+				Ylm = 0.015625*sqrt(3003.0/Pi)*(sin(th)**6)*exp(6.0*cmplx(0,1)*ph)
 			end if
 	 else
 	 		Ylm = sqrt(((2*l+1)/(4*Pi))*(factorial(l-m)/factorial(l+m)))*compute_Plm(l,m,cos(th))*exp(cmplx(0,1)*m*ph)
