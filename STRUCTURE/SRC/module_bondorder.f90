@@ -45,7 +45,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 ql_mol(:) = 0.0
 	 qlb_mol(:) = 0.0
 
-    do ii=1,n_f_ow ! Iterate through atoms
+    do ii=7,7 ! Iterate through atoms
 	 	  i = list_f_ow(ii)
         if (pos(cart,i).ge.q_zmin.and.pos(cart,i).le.q_zmax) then
             ! Count how many atoms of interest are in the Z-range
@@ -251,14 +251,18 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 real :: th, ph
 	 
 	 call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
                                    q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
 	 
 	 sigma = (0.0, 0.0)
 	 do fj=1,size_first_coord_shell
-	 		call compute_Ylm(Ylm,l,m,acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))), &
-									atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)))
+	 		if (first_coord_shell(fj,4).eq.0.0) then ; th = 0.0
+			else ; th = acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))) ; end if
+	 		if (first_coord_shell(fj,1).eq.0.0) then ; ph = 0.0
+			else ; ph = atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)) ; end if
+	 		call compute_Ylm(Ylm,l,m,th,ph)
 	 		sigma = sigma + Ylm
 	 enddo
 	 
