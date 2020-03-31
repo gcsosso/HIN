@@ -257,7 +257,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 	 
 	 sigma = (0.0, 0.0)
 	 do fj=1,size_first_coord_shell
-	 		call compute_Ylm(Ylm,l,m,first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4)), &
+	 		call compute_Ylm(Ylm,l,m,acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))), &
 									atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)))
 	 		sigma = sigma + Ylm
 	 enddo
@@ -270,16 +270,34 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 
 end subroutine compute_qlm
 
-subroutine compute_Ylm(Ylm,l,m,cos_th,ph)
+subroutine compute_Ylm(Ylm,l,m,th,ph)
 	 
 	 implicit none
 	 
 	 integer :: l, m
 	 complex :: Ylm
-	 real :: cos_th, ph
+	 real :: th, ph
     real, parameter :: Pi = 3.14159
 	 
-	 Ylm = sqrt(((2*l+1)/(4*Pi))*(factorial(l-m)/factorial(l+m)))*compute_Plm(l,m,cos_th)*exp(cmplx(0.0,1.0)*m*ph)
+	 if (l.eq.3) then
+	 		if (m.eq.-3) then
+				Ylm = 0.125*sqrt(35.0/Pi)*(sin(th)**3)*exp(-3.0*cmplx(0,1)*ph)
+			else if (m.eq.-2) then
+				Ylm = 0.25*sqrt(52.5/Pi)*(sin(th)**2)*(cos(th))*exp(-2.0*cmplx(0,1)*ph)
+			else if (m.eq.-1) then
+				Ylm = 0.125*sqrt(21.0/Pi)*(sin(th))*(5*(cos(th)**2)-1)*exp(-cmplx(0,1)*ph)
+			else if (m.eq.0) then
+				Ylm = 0.25*sqrt(7.0/Pi)*(5*(cos(th)**3)-3*cos(th))
+			else if (m.eq.1) then
+				Ylm = -0.125*sqrt(21.0/Pi)*(sin(th))*(5*cos(th)**2-1)*exp(cmplx(0,1)*ph)
+			else if (m.eq.2) then
+				Ylm = 0.25*sqrt(52.5/Pi)*(sin(th)**2)*(cos(th))*exp(2.0*cmplx(0,1)*ph)
+			else
+				Ylm = -0.125*sqrt(35.0/Pi)*(sin(th)**3)*exp(3.0*cmplx(0,1)*ph)
+			end if
+	 else
+	 		Ylm = sqrt(((2*l+1)/(4*Pi))*(factorial(l-m)/factorial(l+m)))*compute_Plm(l,m,cos(th))*exp(cmplx(0,1)*m*ph)
+	 end if
 	 
 end subroutine compute_Ylm
 
