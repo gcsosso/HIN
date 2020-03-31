@@ -45,7 +45,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 ql_mol(:) = 0.0
 	 qlb_mol(:) = 0.0
 
-    do ii=7,7 ! Iterate through atoms
+    do ii=1,n_f_ow ! Iterate through atoms
 	 	  i = list_f_ow(ii)
         if (pos(cart,i).ge.q_zmin.and.pos(cart,i).le.q_zmax) then
             ! Count how many atoms of interest are in the Z-range
