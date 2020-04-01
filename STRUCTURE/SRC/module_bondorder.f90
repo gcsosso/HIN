@@ -40,6 +40,8 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 integer, allocatable :: list_f_ow(:)
 	 integer :: n_f_ow
 	 complex :: qlm_all(-l:l,n_f_ow)
+	 real :: qlt_mol(n_f_ow)
+	 real :: qlt_atom
 
     tot_atoms = 0
     w_oz(:) = 0.0
@@ -73,9 +75,14 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
             ! Compute the averaged ql parameter for the atom
             call compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
+										
+            ! Compute the Tianshu ql parameter for the atom
+            call compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
                 
             ql_mol(tot_atoms) = ql_atom
             qlb_mol(tot_atoms) = qlb_atom
+            qlt_mol(tot_atoms) = qlt_atom
         endif
     enddo
 
@@ -84,6 +91,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     write(236,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
     write(236,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
     write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
+    write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
 
 end subroutine bondorder
 
@@ -178,7 +186,7 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
 end subroutine compute_ql
 
 
-! Computes averaged ql order parameter for an atom
+! Computes averaged ql order parameter for an atom (Dellago)
 subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 
@@ -189,7 +197,6 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
     integer :: size_first_coord_shell       ! Size of first coordination shell
     integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
     real :: qlb_atom                        ! ql(i) bar parameter for atom i
-    real :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
     real :: sigma
     complex :: qlmb
     real, parameter :: Pi = 3.14159
@@ -218,6 +225,50 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
     end if
 
 end subroutine compute_qlb
+
+
+! Computes Tianshu version of ql order parameter for an atom
+subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
+
+    implicit none
+    
+    integer :: ii, fj, jj, m, l, counter
+    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: size_first_coord_shell       ! Size of first coordination shell
+    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+	 integer :: cart, n_f_ow
+    real :: icell(cart*cart)
+    real :: q_zmin, q_zmax, q_cut
+    real, allocatable :: pos(:,:)
+	 character*4, allocatable :: sym(:)
+	 integer, allocatable :: list_f_ow(:)
+	 complex :: qlm_all(-l:l,n_f_ow)
+	 complex :: qi_dot_qj, sigma
+	 real :: qi_sq, qj_sq, qlt_atom
+    
+	 qi_sq = 0.0
+	 sigma = (0.0, 0.0)
+	 
+    if (size_first_coord_shell.gt.0) then 
+	 	  do fj=1,size_first_coord_shell
+		  		jj = first_coord_shell_ndx(fj)
+				qi_dot_qj = (0.0, 0.0)
+	 			qj_sq = 0.0
+				do m=-l,l
+					qi_dot_qj = qi_dot_qj + qlm_all(m,ii)*conjg(qlm_all(m,jj))
+					if (fj.eq.1) then ; qi_sq = qi_sq + real(qlm_all(m,ii))**2 + aimag(qlm_all(m,ii))**2 ; end if
+					qj_sq = qj_sq + real(qlm_all(m,jj))**2 + aimag(qlm_all(m,jj))**2
+				end do
+				sigma = sigma + qi_dot_qj/sqrt(qi_sq*qj_sq)
+		  end do
+		  qlt_atom = real(sigma)/size_first_coord_shell
+    else
+        qlt_atom = -2.0
+    end if
+
+end subroutine compute_qlt
+
 
 subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
