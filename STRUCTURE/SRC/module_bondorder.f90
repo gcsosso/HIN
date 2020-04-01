@@ -24,7 +24,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 
     real :: q_zmin, q_zmax, q_cut
     real :: time
-    integer :: i, ii, l, cart, nat
+    integer :: i, ii, l, cart, nat, m
     integer :: counter                      ! Frame
     real :: icell(cart*cart)
     integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
@@ -39,11 +39,21 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
 	 integer :: n_f_ow
+	 complex :: qlm_all(-l:l,n_f_ow)
 
     tot_atoms = 0
     w_oz(:) = 0.0
 	 ql_mol(:) = 0.0
 	 qlb_mol(:) = 0.0
+	 
+	 do ii=1,n_f_ow
+	 	  i = list_f_ow(ii)
+		  if (pos(cart,i).ge.(q_zmin-q_cut).and.pos(cart,i).le.(q_zmax+q_cut)) then
+		  		do m=-l,l
+		  			call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+				end do
+		  end if
+	 end do
 
     do ii=1,n_f_ow ! Iterate through atoms
 	 	  i = list_f_ow(ii)
@@ -58,11 +68,11 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
             
             ! Compute the local ql parameter for the atom
             call compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 										
             ! Compute the averaged ql parameter for the atom
             call compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
                 
             ql_mol(tot_atoms) = ql_atom
             qlb_mol(tot_atoms) = qlb_atom
@@ -129,7 +139,7 @@ end subroutine compute_first_coord_shell
 
 ! Computes local ql order parameter for an atom
 subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 
     implicit none
     
@@ -148,13 +158,14 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 complex :: qlm_all(-l:l,n_f_ow)
     
     sigma = 0.0
 	 
     if (size_first_coord_shell.gt.0) then 
     	  ql_atom = 0
     	  do m=-l,l
-        		call compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+        		qlm = qlm_all(m,ii)
         		sigma = sigma + real(qlm)**2+aimag(qlm)**2
     	  enddo
 
@@ -169,7 +180,7 @@ end subroutine compute_ql
 
 ! Computes averaged ql order parameter for an atom
 subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 
     implicit none
     
@@ -188,6 +199,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 complex :: qlm_all(-l:l,n_f_ow)
     
     sigma = 0.0
 	 
@@ -195,7 +207,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
     	  qlb_atom = 0
     	  do m=-l,l
         		call compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
         		sigma = sigma + real(qlmb)**2+aimag(qlmb)**2
     	  enddo
 
@@ -208,7 +220,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
 end subroutine compute_qlb
 
 subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
     
     implicit none
 
@@ -223,12 +235,13 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 complex :: qlm_all(-l:l,n_f_ow)
     
-    call compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+    qlm = qlm_all(m,ii)
     sigma = qlm
 
     do fi=1,size_first_coord_shell
-        call compute_qlm(first_coord_shell_ndx(fi),l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+        qlm = qlm_all(m,first_coord_shell_ndx(fi))
         sigma = sigma + qlm
     enddo
 
@@ -353,7 +366,7 @@ subroutine compute_Ylm(Ylm,l,m,th,ph)
 	 
 end subroutine compute_Ylm
 
-recursive function compute_Plm(l,m,x) result(Plm)
+recursive function compute_Plm(l,m,x) result(Plm) ! This code doesn't seem to work correctly
 
 	 implicit none
 	 
