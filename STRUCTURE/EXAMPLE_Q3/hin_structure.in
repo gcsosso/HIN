@@ -92,8 +92,12 @@ O_ZMAX   16.0
 O_DZ     0.1
 
 # Q Order
-QORDER   yes
-QWHICH   3
+Q3   yes
+Q4   no
+Q6   no
+Q_LOCAL   yes
+Q_DELLAGO   yes
+Q_TIANSHU   yes
 Q_ZMIN   10.2
 Q_ZMAX   18.0
 Q_CUT    0.32

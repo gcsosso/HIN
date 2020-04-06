@@ -10,11 +10,11 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                       switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-							 switch_qorder,ql,q_zmin,q_zmax,q_cut)
+							 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut)
 
 implicit none
                    
-integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy, f_zbins, ql
+integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy, f_zbins
 integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
@@ -25,7 +25,8 @@ character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
 character*3 :: switch_water, switch_hbck
-character*3 :: switch_f3, switch_f4, switch_f_cls, switch_qorder
+character*3 :: switch_f3, switch_f4, switch_f_cls
+character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
@@ -156,8 +157,12 @@ read(100,*) buffer, o_dz                    ; if (trim(adjustl(buffer)).ne.'O_DZ
 
 ! Q order section
 read(100,*) ; read(100,*)
-read(100,*) buffer, switch_qorder           ; if (trim(adjustl(buffer)).ne.'QORDER') eflag=1
-read(100,*) buffer, ql                      ; if (trim(adjustl(buffer)).ne.'QWHICH') eflag=1
+read(100,*) buffer, switch_q3           	  ; if (trim(adjustl(buffer)).ne.'Q3') eflag=1
+read(100,*) buffer, switch_q4          	  ; if (trim(adjustl(buffer)).ne.'Q4') eflag=1
+read(100,*) buffer, switch_q6          	  ; if (trim(adjustl(buffer)).ne.'Q6') eflag=1
+read(100,*) buffer, switch_ql               ; if (trim(adjustl(buffer)).ne.'Q_LOCAL') eflag=1
+read(100,*) buffer, switch_qd               ; if (trim(adjustl(buffer)).ne.'Q_DELLAGO') eflag=1
+read(100,*) buffer, switch_qt               ; if (trim(adjustl(buffer)).ne.'Q_TIANSHU') eflag=1
 read(100,*) buffer, q_zmin                  ; if (trim(adjustl(buffer)).ne.'Q_ZMIN') eflag=1
 read(100,*) buffer, q_zmax                  ; if (trim(adjustl(buffer)).ne.'Q_ZMAX') eflag=1
 read(100,*) buffer, q_cut                   ; if (trim(adjustl(buffer)).ne.'Q_CUT')   eflag=1

@@ -10,15 +10,15 @@ subroutine bondorder_alloc(l)
     integer :: l
 	 character*100 :: fileloc
     
-    write(99, '(A,I0.2,A)') 'We are calculating the q', l, ' order parameter.'
-	 write(fileloc, '(A,I0.2,A)') 'hin_structure.out.q', l, '_order'
+    write(99, '(A,I0.1,A)') 'We are calculating the q', l, ' order parameter.'
+	 write(fileloc, '(A,I0.1,A)') 'hin_structure.out.q', l, '_order'
 	 
     open(unit=236, file=fileloc, status='unknown')
 
 end subroutine bondorder_alloc
 
 subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym)
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
 
     implicit none
 
@@ -37,6 +37,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     real :: ql_atom, qlb_atom
 	 character*100 :: n_mol_format
 	 character*4, allocatable :: sym(:)
+	 character*3 :: switch_ql, switch_qd, switch_qt
 	 integer, allocatable :: list_f_ow(:)
 	 integer :: n_f_ow
 	 complex :: qlm_all(-l:l,n_f_ow)
@@ -69,29 +70,40 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
                                            q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
             
             ! Compute the local ql parameter for the atom
-            call compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+				if (trim(adjustl(switch_ql)).eq.'yes') then
+            		call compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
+						ql_mol(tot_atoms) = ql_atom
+				end if
 										
             ! Compute the averaged ql parameter for the atom
-            call compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+				if (trim(adjustl(switch_qd)).eq.'yes') then
+            		call compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
+						qlb_mol(tot_atoms) = qlb_atom
+				end if
 										
             ! Compute the Tianshu ql parameter for the atom
-            call compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+				if (trim(adjustl(switch_qt)).eq.'yes') then
+            		call compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
-                
-            ql_mol(tot_atoms) = ql_atom
-            qlb_mol(tot_atoms) = qlb_atom
-            qlt_mol(tot_atoms) = qlt_atom
+						qlt_mol(tot_atoms) = qlt_atom
+				end if
         endif
     enddo
 
     write(n_mol_format,*) tot_atoms
     
     write(236,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
-    write(236,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
-    write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
-    write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
+	 if (trim(adjustl(switch_ql)).eq.'yes') then
+	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
+	 end if
+	 if (trim(adjustl(switch_qd)).eq.'yes') then
+	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
+	 end if
+	 if (trim(adjustl(switch_qt)).eq.'yes') then
+	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
+	 end if
 
 end subroutine bondorder
 
@@ -260,9 +272,9 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,siz
 					if (fj.eq.1) then ; qi_sq = qi_sq + real(qlm_all(m,ii))**2 + aimag(qlm_all(m,ii))**2 ; end if
 					qj_sq = qj_sq + real(qlm_all(m,jj))**2 + aimag(qlm_all(m,jj))**2
 				end do
-				sigma = sigma + qi_dot_qj/sqrt(qi_sq*qj_sq)
+				sigma = sigma + qi_dot_qj/sqrt(qj_sq)
 		  end do
-		  qlt_atom = real(sigma)/size_first_coord_shell
+		  qlt_atom = real(sigma)/(size_first_coord_shell*sqrt(qi_sq))
     else
         qlt_atom = -2.0
     end if

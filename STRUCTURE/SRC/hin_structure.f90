@@ -24,7 +24,7 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz,
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
-integer :: n_f_ow, ql
+integer :: n_f_ow
 integer, allocatable :: list_f_ow(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
@@ -40,7 +40,8 @@ character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
 character*3 :: switch_electro, switch_order, switch_water, switch_hbck
-character*3 :: switch_f3, switch_f4, switch_f_cls, switch_qorder
+character*3 :: switch_f3, switch_f4, switch_f_cls
+character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt, switch_qorder
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -62,7 +63,11 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-					 switch_qorder,ql,q_zmin,q_zmax,q_cut)
+					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut)
+
+if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q3)).eq.'yes')) then
+		switch_qorder = 'yes'
+else ; switch_qorder = 'no' ; end if
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
@@ -136,8 +141,14 @@ if (trim(adjustl(switch_order)).eq.'yes') then
    call order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,switch_water)
 endif
 
-if (trim(adjustl(switch_qorder)).eq.'yes') then
-   call bondorder_alloc(ql)
+if (trim(adjustl(switch_q3)).eq.'yes') then
+   call bondorder_alloc(3)
+endif
+if (trim(adjustl(switch_q4)).eq.'yes') then
+   call bondorder_alloc(4)
+endif
+if (trim(adjustl(switch_q6)).eq.'yes') then
+   call bondorder_alloc(6)
 endif
 
 
@@ -212,9 +223,17 @@ do while ( STAT==0 )
       endif
 		
 		! Q Ordering...
-		if (trim(adjustl(switch_qorder)).eq.'yes') then
-			call bondorder(ql,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym)
+		if (trim(adjustl(switch_q3)).eq.'yes') then
+			call bondorder(3,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+		endif
+		if (trim(adjustl(switch_q4)).eq.'yes') then
+			call bondorder(4,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+		endif
+		if (trim(adjustl(switch_q6)).eq.'yes') then
+			call bondorder(6,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
 		endif
       
    endif
