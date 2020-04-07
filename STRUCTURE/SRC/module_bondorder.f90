@@ -93,7 +93,6 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     enddo
 
     write(n_mol_format,*) tot_atoms
-	 write(240+l,*) n_f_ow
     
     write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 if (trim(adjustl(switch_ql)).eq.'yes') then
