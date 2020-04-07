@@ -65,7 +65,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
 					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut)
 
-if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q3)).eq.'yes')) then
+if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q4)).eq.'yes').or.(trim(adjustl(switch_q6)).eq.'yes')) then
 		switch_qorder = 'yes'
 else ; switch_qorder = 'no' ; end if
 

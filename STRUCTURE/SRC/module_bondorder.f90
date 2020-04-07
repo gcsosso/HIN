@@ -13,7 +13,7 @@ subroutine bondorder_alloc(l)
     write(99, '(A,I0.1,A)') 'We are calculating the q', l, ' order parameter.'
 	 write(fileloc, '(A,I0.1,A)') 'hin_structure.out.q', l, '_order'
 	 
-    open(unit=236, file=fileloc, status='unknown')
+    open(unit=240+l, file=fileloc, status='unknown')
 
 end subroutine bondorder_alloc
 
@@ -93,16 +93,17 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     enddo
 
     write(n_mol_format,*) tot_atoms
+	 write(240+l,*) n_f_ow
     
-    write(236,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
+    write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 if (trim(adjustl(switch_ql)).eq.'yes') then
-	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
 	 end if
 	 if (trim(adjustl(switch_qd)).eq.'yes') then
-	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
 	 end if
 	 if (trim(adjustl(switch_qt)).eq.'yes') then
-	 	  write(236,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
 	 end if
 
 end subroutine bondorder
