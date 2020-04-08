@@ -52,9 +52,16 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 do ii=1,n_f_ow
 	 	  i = list_f_ow(ii)
 		  if (pos(cart,i).ge.(q_zmin-q_cut).and.pos(cart,i).le.(q_zmax+q_cut)) then
-		  		do m=-l,l
-		  			call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
-				end do
+		  		call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                                   			 q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
+				if (size_first_coord_shell.gt.0) then
+		  			do m=-l,l
+		  				call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
+											  first_coord_shell,size_first_coord_shell)
+					end do
+				else
+					qlm_all(:,ii) = (0.0, 0.0)
+				end if
 		  end if
 	 end do
 
@@ -69,7 +76,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
             call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
                                            q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
             
-            ! Compute the local ql parameter for the atom
+            ! Compute the ql parameter for the atom
 				if (trim(adjustl(switch_ql)).eq.'yes') then
             		call compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
@@ -159,7 +166,7 @@ end subroutine compute_first_coord_shell
 
 ! Computes local ql order parameter for an atom
 subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-								cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
+							 cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 
     implicit none
     
@@ -168,9 +175,7 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
     integer :: size_first_coord_shell       ! Size of first coordination shell
     integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
     real :: ql_atom                         ! ql(i) parameter for atom i
-    real :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
     real :: sigma
-    complex :: qlm
     real, parameter :: Pi = 3.14159
 	 integer :: cart, n_f_ow
     real :: icell(cart*cart)
@@ -185,14 +190,13 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
     if (size_first_coord_shell.gt.0) then 
     	  ql_atom = 0
     	  do m=-l,l
-        		qlm = qlm_all(m,ii)
-        		sigma = sigma + real(qlm)**2+aimag(qlm)**2
+        		sigma = sigma + real(qlm_all(m,ii))**2+aimag(qlm_all(m,ii))**2
     	  enddo
 
-    	  ql_atom = sqrt(4*Pi*sigma/(2*l+1))
+    	  ql_atom = sqrt(4.0*Pi*sigma/(2.0*l+1.0))
     
     else
-        ql_atom = -2
+        ql_atom = -2.0
     end if
 
 end subroutine compute_ql
@@ -312,7 +316,8 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size
 
 end subroutine compute_qlmb
 
-subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym)
+subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
+								first_coord_shell,size_first_coord_shell)
     
     implicit none
 
@@ -320,7 +325,6 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
     complex :: qlm, Ylm, sigma
 	 real :: first_coord_shell(20,4)
 	 integer :: size_first_coord_shell
-	 integer :: first_coord_shell_ndx(20)
 	 integer :: cart, n_f_ow
     real :: icell(cart*cart)
     real :: q_zmin, q_zmax, q_cut
@@ -328,9 +332,6 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
 	 real :: th, ph
-	 
-	 call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                   q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
 	 
 	 sigma = (0.0, 0.0)
 	 do fj=1,size_first_coord_shell
@@ -342,11 +343,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 	 		sigma = sigma + Ylm
 	 enddo
 	 
-	 if (size_first_coord_shell.ne.0) then
-	 		qlm = sigma/size_first_coord_shell
-	 else
-	 		qlm = (0.0, 0.0)
-	 end if
+	 qlm = sigma/size_first_coord_shell
 
 end subroutine compute_qlm
 
