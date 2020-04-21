@@ -46,8 +46,8 @@ character*3 :: switch_zdens
 
 ! Number density profile along z...
 if (trim(adjustl(switch_zdens)).eq.'yes') then
-   do i=1,ns
-      do j=1,n_ws(i)
+   do i=1,ns ! Number of species
+      do j=1,n_ws(i) ! Number of atoms for the i-th specie
          do k=1,nz
             lb=zmin+(k-1)*dz
             ub=lb+dz

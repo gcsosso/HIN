@@ -11,12 +11,13 @@ use MOD_bonds
 use MOD_electro
 use MOD_output
 use MOD_order
+use MOD_cryo
 
 implicit none
 
 integer,parameter :: cart=3, six=6
 integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, fframe, stride, lframe, nz, e_nz, b_bins, nz_bAVE, io, nm
-integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin
+integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin, ox_ns
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
@@ -30,11 +31,11 @@ real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, 
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
-real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
+real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:), o_dist(:)
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
-character*3 :: switch_electro, switch_order, switch_water, switch_hbck
+character*3 :: switch_electro, switch_order, switch_water, switch_hbck, switch_cryo
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -54,7 +55,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
-                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS)
+                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -124,6 +125,11 @@ if (trim(adjustl(switch_order)).eq.'yes') then
    call order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh)
 endif
 
+! Cryo stuff - alloc
+if (trim(adjustl(switch_cryo)).eq.'yes') then
+   call cryo_alloc(pos,o_dist,sym,ns,n_ws,list_ws,ox_ns)
+endif
+
 
 ! Read the whole thing
 counter=0
@@ -187,6 +193,11 @@ do while ( STAT==0 )
          call order(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,nat,pos, &
               mq_all,cart,middle,switch_water,sym,wmol,resname, &
               resnum,axis_1,axis_2,zop_AVE)
+      endif
+
+      ! Cryo...
+      if (trim(adjustl(switch_cryo)).eq.'yes') then
+         call cryo(pos,sym,ns,n_ws,list_ws,o_dist,ox_ns)
       endif
       
    endif

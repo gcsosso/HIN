@@ -30,10 +30,10 @@
 # the same distribution terms that you use for the rest of that program.
 
 # A sed program that does not truncate output.
-SED="/usr/bin/sed"
+SED="/opt/local/bin/gsed"
 
 # Sed that helps us avoid accidentally triggering echo(1) options like -n.
-Xsed="/usr/bin/sed -e 1s/^X//"
+Xsed="/opt/local/bin/gsed -e 1s/^X//"
 
 # The HP-UX ksh and POSIX shell print the target directory to stdout
 # if CDPATH is set.
@@ -44,7 +44,7 @@ available_tags=" CXX"
 
 # ### BEGIN LIBTOOL CONFIG
 
-# Libtool was configured on host serganov.csc.warwick.ac.uk:
+# Libtool was configured on host angmar:
 
 # Shell to use when invoking shell scripts.
 SHELL="/bin/sh"
@@ -56,7 +56,7 @@ build_libtool_libs=no
 build_old_libs=yes
 
 # Whether or not to add -lc for building shared libraries.
-build_libtool_need_lc=yes
+build_libtool_need_lc=no
 
 # Whether or not to disallow shared libs when runtime libs are static
 allow_libtool_libs_with_static_runtimes=no
@@ -66,16 +66,16 @@ fast_install=needless
 
 # The host system.
 host_alias=
-host=x86_64-unknown-linux-gnu
-host_os=linux-gnu
+host=i386-apple-darwin19.3.0
+host_os=darwin19.3.0
 
 # The build system.
 build_alias=
-build=x86_64-unknown-linux-gnu
-build_os=linux-gnu
+build=i386-apple-darwin19.3.0
+build_os=darwin19.3.0
 
 # An echo program that does not interpret backslashes.
-echo="echo"
+echo="/bin/echo"
 
 # The archiver.
 AR="ar"
@@ -85,7 +85,7 @@ AR_FLAGS="cru"
 LTCC="cc"
 
 # LTCC compiler flags.
-LTCFLAGS=" -O3 -fomit-frame-pointer -finline-functions -Wall -Wno-unused -msse2 -funroll-all-loops -std=gnu99 -fexcess-precision=fast"
+LTCFLAGS=" -O3 -fomit-frame-pointer -finline-functions -Wall -Wno-unused -msse2 -std=gnu99"
 
 # A language-specific compiler.
 CC="cc"
@@ -97,13 +97,13 @@ with_gcc=yes
 EGREP="/usr/bin/grep -E"
 
 # The linker used to build libraries.
-LD="/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/bin/ld -m elf_x86_64"
+LD="/Library/Developer/CommandLineTools/usr/bin/ld"
 
 # Whether we need hard or soft links.
 LN_S="ln -s"
 
 # A BSD-compatible nm program.
-NM="/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/bin/nm -B"
+NM="/opt/local/bin/nm -B"
 
 # A symbol stripping program
 STRIP="strip"
@@ -125,7 +125,7 @@ objdir=.libs
 
 # How to create reloadable object files.
 reload_flag=" -r"
-reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
+reload_cmds="\$LTCC \$LTCFLAGS -nostdlib \${wl}-r -o \$output\$reload_objs"
 
 # How to pass a linker flag through the compiler.
 wl="-Wl,"
@@ -137,17 +137,17 @@ objext="o"
 libext="a"
 
 # Shared library suffix (normally ".so").
-shrext_cmds='.so'
+shrext_cmds='`test .$module = .yes && echo .so || echo .dylib`'
 
 # Executable file suffix (normally "").
 exeext=""
 
 # Additional compiler flags for building library objects.
-pic_flag=" -fPIC -DPIC"
+pic_flag=" -fno-common -DPIC"
 pic_mode=default
 
 # What is the maximum length of a command?
-max_cmd_len=32768
+max_cmd_len=196608
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -171,32 +171,32 @@ dlopen_self=unknown
 dlopen_self_static=unknown
 
 # Compiler flag to prevent dynamic linking.
-link_static_flag="-static"
+link_static_flag=""
 
 # Compiler flag to turn off builtin functions.
-no_builtin_flag=" -fno-builtin"
+no_builtin_flag=" -fno-builtin -fno-rtti -fno-exceptions"
 
 # Compiler flag to allow reflexive dlopens.
-export_dynamic_flag_spec="\${wl}--export-dynamic"
+export_dynamic_flag_spec=""
 
 # Compiler flag to generate shared objects directly from archives.
-whole_archive_flag_spec="\${wl}--whole-archive\$convenience \${wl}--no-whole-archive"
+whole_archive_flag_spec=""
 
 # Compiler flag to generate thread-safe objects.
 thread_safe_flag_spec=""
 
 # Library versioning type.
-version_type=linux
+version_type=darwin
 
 # Format of library name prefix.
 libname_spec="lib\$name"
 
 # List of archive names.  First name is the real one, the rest are links.
 # The last name is the one that the linker finds with -lNAME.
-library_names_spec="\${libname}\${release}\${shared_ext}\$versuffix \${libname}\${release}\${shared_ext}\$major \$libname\${shared_ext}"
+library_names_spec="\${libname}\${release}\${major}\$shared_ext \${libname}\$shared_ext \${libname}\${release}\${versuffix}\$shared_ext"
 
 # The coded name of the library, if different from the real name.
-soname_spec="\${libname}\${release}\${shared_ext}\$major"
+soname_spec="\${libname}\${release}\${major}\$shared_ext"
 
 # Commands used to build and install an old-style archive.
 RANLIB="ranlib"
@@ -211,21 +211,18 @@ old_archive_from_new_cmds=""
 old_archive_from_expsyms_cmds=""
 
 # Commands used to build and install a shared archive.
-archive_cmds="\$CC -shared \$libobjs \$deplibs \$compiler_flags \${wl}-soname \$wl\$soname -o \$lib"
-archive_expsym_cmds="\$echo \\\"{ global:\\\" > \$output_objdir/\$libname.ver~
-  cat \$export_symbols | sed -e \\\"s/\\\\(.*\\\\)/\\\\1;/\\\" >> \$output_objdir/\$libname.ver~
-  \$echo \\\"local: *; };\\\" >> \$output_objdir/\$libname.ver~
-	  \$CC -shared \$libobjs \$deplibs \$compiler_flags \${wl}-soname \$wl\$soname \${wl}-version-script \${wl}\$output_objdir/\$libname.ver -o \$lib"
+archive_cmds="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring"
+archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
 postinstall_cmds=""
 postuninstall_cmds=""
 
 # Commands used to build a loadable module (assumed same as above if empty)
-module_cmds=""
-module_expsym_cmds=""
+module_cmds="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs\$compiler_flags"
+module_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag  -o \$lib -bundle \$libobjs \$deplibs\$compiler_flags~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
 
 # Commands to strip libraries.
-old_striplib="strip --strip-debug"
-striplib="strip --strip-unneeded"
+old_striplib=""
+striplib="strip -x"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -254,19 +251,19 @@ deplibs_check_method="pass_all"
 file_magic_cmd="\$MAGIC_CMD"
 
 # Flag that allows shared libraries with undefined symbols to be built.
-allow_undefined_flag=""
+allow_undefined_flag="\${wl}-flat_namespace \${wl}-undefined \${wl}suppress"
 
 # Flag that forces no undefined symbols.
 no_undefined_flag=""
 
 # Commands used to finish a libtool library installation in a directory.
-finish_cmds="PATH=\\\"\\\$PATH:/sbin\\\" ldconfig -n \$libdir"
+finish_cmds=""
 
 # Same as above, but a single script fragment to be evaled but not shown.
 finish_eval=""
 
 # Take the output of nm and produce a listing of raw symbols and C names.
-global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[ 	][ 	]*\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 \\2 \\2/p'"
+global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([BCDEGRST][BCDEGRST]*\\)[ 	][ 	]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p'"
 
 # Transform the output of nm in a proper C declaration
 global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern int \\1;/p'"
@@ -275,23 +272,23 @@ global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern int \\1;/p'"
 global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^[BCDEGRST] \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (lt_ptr) \\&\\2},/p'"
 
 # This is the shared library runtime path variable.
-runpath_var=LD_RUN_PATH
+runpath_var=
 
 # This is the shared library path variable.
-shlibpath_var=LD_LIBRARY_PATH
+shlibpath_var=DYLD_LIBRARY_PATH
 
 # Is shlibpath searched before the hard-coded library search path?
-shlibpath_overrides_runpath=no
+shlibpath_overrides_runpath=yes
 
 # How to hardcode a shared library path into an executable.
 hardcode_action=immediate
 
 # Whether we should hardcode library paths into libraries.
-hardcode_into_libs=yes
+hardcode_into_libs=no
 
 # Flag to hardcode $libdir into a binary during linking.
 # This must work even if $libdir does not exist.
-hardcode_libdir_flag_spec="\${wl}--rpath \${wl}\$libdir"
+hardcode_libdir_flag_spec=""
 
 # If ld is used when linking, flag to hardcode $libdir into
 # a binary during linking. This must work even if $libdir does
@@ -315,20 +312,20 @@ hardcode_shlibpath_var=unsupported
 
 # Set to yes if building a shared library automatically hardcodes DIR into the library
 # and all subsequent libraries and executables linked against it.
-hardcode_automatic=no
+hardcode_automatic=yes
 
 # Variables whose values should be saved in libtool wrapper scripts and
 # restored at relink time.
-variables_saved_for_relink="PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
+variables_saved_for_relink="PATH DYLD_LIBRARY_PATH  GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
 
 # Whether libtool must link a program against all its dependency libraries.
-link_all_deplibs=unknown
+link_all_deplibs=yes
 
 # Compile-time system search path for libraries
-sys_lib_search_path_spec=" /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/../lib64/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/../lib64/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/../lib64/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/../lib64/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../lib64/ /lib/x86_64-pc-linux-gnu/6.4.0/ /lib/../lib64/ /usr/lib/x86_64-pc-linux-gnu/6.4.0/ /usr/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../ /lib/ /usr/lib/"
+sys_lib_search_path_spec=" /Library/Developer/CommandLineTools/usr/lib/clang/11.0.3  /lib /usr/lib /usr/local/lib"
 
 # Run-time system search path for libraries
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/atlas /usr/lib64/dyninst /usr/lib64/mysql /usr/lib64/nvidia /usr/lib64/vdpau /usr/lib/nvidia /usr/lib/vdpau /usr/lib64/octave/3.8.2 /usr/lib64/qt-3.3/lib /usr/lib64/tcl8.5 "
+sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
 
 # Fix the shell variable $srcfile for the compiler.
 fix_srcfile_path=""
@@ -7223,7 +7220,7 @@ disable_libs=static
 # End:
 # ### BEGIN LIBTOOL TAG CONFIG: CXX
 
-# Libtool was configured on host serganov.csc.warwick.ac.uk:
+# Libtool was configured on host angmar:
 
 # Shell to use when invoking shell scripts.
 SHELL="/bin/sh"
@@ -7245,16 +7242,16 @@ fast_install=needless
 
 # The host system.
 host_alias=
-host=x86_64-unknown-linux-gnu
-host_os=linux-gnu
+host=i386-apple-darwin19.3.0
+host_os=darwin19.3.0
 
 # The build system.
 build_alias=
-build=x86_64-unknown-linux-gnu
-build_os=linux-gnu
+build=i386-apple-darwin19.3.0
+build_os=darwin19.3.0
 
 # An echo program that does not interpret backslashes.
-echo="echo"
+echo="/bin/echo"
 
 # The archiver.
 AR="ar"
@@ -7264,7 +7261,7 @@ AR_FLAGS="cru"
 LTCC="cc"
 
 # LTCC compiler flags.
-LTCFLAGS=" -O3 -fomit-frame-pointer -finline-functions -Wall -Wno-unused -msse2 -funroll-all-loops -std=gnu99 -fexcess-precision=fast"
+LTCFLAGS=" -O3 -fomit-frame-pointer -finline-functions -Wall -Wno-unused -msse2 -std=gnu99"
 
 # A language-specific compiler.
 CC="g++"
@@ -7276,13 +7273,13 @@ with_gcc=yes
 EGREP="/usr/bin/grep -E"
 
 # The linker used to build libraries.
-LD="/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/bin/ld -m elf_x86_64"
+LD="/Library/Developer/CommandLineTools/usr/bin/ld"
 
 # Whether we need hard or soft links.
 LN_S="ln -s"
 
 # A BSD-compatible nm program.
-NM="/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/bin/nm -B"
+NM="/opt/local/bin/nm -B"
 
 # A symbol stripping program
 STRIP="strip"
@@ -7304,7 +7301,7 @@ objdir=.libs
 
 # How to create reloadable object files.
 reload_flag=" -r"
-reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
+reload_cmds="\$LTCC \$LTCFLAGS -nostdlib \${wl}-r -o \$output\$reload_objs"
 
 # How to pass a linker flag through the compiler.
 wl="-Wl,"
@@ -7316,17 +7313,17 @@ objext="o"
 libext="a"
 
 # Shared library suffix (normally ".so").
-shrext_cmds='.so'
+shrext_cmds='`test .$module = .yes && echo .so || echo .dylib`'
 
 # Executable file suffix (normally "").
 exeext=""
 
 # Additional compiler flags for building library objects.
-pic_flag=" -fPIC -DPIC"
+pic_flag=" -fno-common -DPIC"
 pic_mode=default
 
 # What is the maximum length of a command?
-max_cmd_len=32768
+max_cmd_len=196608
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -7350,32 +7347,32 @@ dlopen_self=unknown
 dlopen_self_static=unknown
 
 # Compiler flag to prevent dynamic linking.
-link_static_flag="-static"
+link_static_flag=""
 
 # Compiler flag to turn off builtin functions.
 no_builtin_flag=" -fno-builtin"
 
 # Compiler flag to allow reflexive dlopens.
-export_dynamic_flag_spec="\${wl}--export-dynamic"
+export_dynamic_flag_spec=""
 
 # Compiler flag to generate shared objects directly from archives.
-whole_archive_flag_spec="\${wl}--whole-archive\$convenience \${wl}--no-whole-archive"
+whole_archive_flag_spec=""
 
 # Compiler flag to generate thread-safe objects.
 thread_safe_flag_spec=""
 
 # Library versioning type.
-version_type=linux
+version_type=darwin
 
 # Format of library name prefix.
 libname_spec="lib\$name"
 
 # List of archive names.  First name is the real one, the rest are links.
 # The last name is the one that the linker finds with -lNAME.
-library_names_spec="\${libname}\${release}\${shared_ext}\$versuffix \${libname}\${release}\${shared_ext}\$major \$libname\${shared_ext}"
+library_names_spec="\${libname}\${release}\${major}\$shared_ext \${libname}\$shared_ext \${libname}\${release}\${versuffix}\$shared_ext"
 
 # The coded name of the library, if different from the real name.
-soname_spec="\${libname}\${release}\${shared_ext}\$major"
+soname_spec="\${libname}\${release}\${major}\$shared_ext"
 
 # Commands used to build and install an old-style archive.
 RANLIB="ranlib"
@@ -7390,26 +7387,26 @@ old_archive_from_new_cmds=""
 old_archive_from_expsyms_cmds=""
 
 # Commands used to build and install a shared archive.
-archive_cmds="\$CC -shared -nostdlib \$predep_objects \$libobjs \$deplibs \$postdep_objects \$compiler_flags \${wl}-soname \$wl\$soname -o \$lib"
-archive_expsym_cmds="\$CC -shared -nostdlib \$predep_objects \$libobjs \$deplibs \$postdep_objects \$compiler_flags \${wl}-soname \$wl\$soname \${wl}-retain-symbols-file \$wl\$export_symbols -o \$lib"
+archive_cmds="\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring"
+archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
 postinstall_cmds=""
 postuninstall_cmds=""
 
 # Commands used to build a loadable module (assumed same as above if empty)
-module_cmds=""
-module_expsym_cmds=""
+module_cmds="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs\$compiler_flags"
+module_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag  -o \$lib -bundle \$libobjs \$deplibs\$compiler_flags~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
 
 # Commands to strip libraries.
-old_striplib="strip --strip-debug"
-striplib="strip --strip-unneeded"
+old_striplib=""
+striplib="strip -x"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
-predep_objects="/lib/../lib64/crti.o /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/crtbeginS.o"
+predep_objects=""
 
 # Dependencies to place after the objects being linked to create a
 # shared library.
-postdep_objects="/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/crtendS.o /lib/../lib64/crtn.o"
+postdep_objects=""
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -7417,11 +7414,11 @@ predeps=""
 
 # Dependencies to place after the objects being linked to create a
 # shared library.
-postdeps="-lstdc++ -lm -lgcc_s -lc -lgcc_s"
+postdeps=""
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path="-L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/../lib64 -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/../lib64 -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/../lib64 -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/../lib64 -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0 -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib -L/warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib -L/warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64 -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib -L/warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib -L/warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64 -L/warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64 -L/warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64 -L/warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64 -L/warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64 -L/warwick/desktop/2018/software/Core/binutils/2.28/lib -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64 -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib -L/warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../.."
+compiler_lib_search_path=""
 
 # Method to check whether dependent libraries are shared objects.
 deplibs_check_method="pass_all"
@@ -7430,19 +7427,19 @@ deplibs_check_method="pass_all"
 file_magic_cmd="\$MAGIC_CMD"
 
 # Flag that allows shared libraries with undefined symbols to be built.
-allow_undefined_flag=""
+allow_undefined_flag="\${wl}-flat_namespace \${wl}-undefined \${wl}suppress"
 
 # Flag that forces no undefined symbols.
 no_undefined_flag=""
 
 # Commands used to finish a libtool library installation in a directory.
-finish_cmds="PATH=\\\"\\\$PATH:/sbin\\\" ldconfig -n \$libdir"
+finish_cmds=""
 
 # Same as above, but a single script fragment to be evaled but not shown.
 finish_eval=""
 
 # Take the output of nm and produce a listing of raw symbols and C names.
-global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[ 	][ 	]*\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 \\2 \\2/p'"
+global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([BCDEGRST][BCDEGRST]*\\)[ 	][ 	]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p'"
 
 # Transform the output of nm in a proper C declaration
 global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern int \\1;/p'"
@@ -7451,23 +7448,23 @@ global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern int \\1;/p'"
 global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^[BCDEGRST] \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (lt_ptr) \\&\\2},/p'"
 
 # This is the shared library runtime path variable.
-runpath_var=LD_RUN_PATH
+runpath_var=
 
 # This is the shared library path variable.
-shlibpath_var=LD_LIBRARY_PATH
+shlibpath_var=DYLD_LIBRARY_PATH
 
 # Is shlibpath searched before the hard-coded library search path?
-shlibpath_overrides_runpath=no
+shlibpath_overrides_runpath=yes
 
 # How to hardcode a shared library path into an executable.
 hardcode_action=immediate
 
 # Whether we should hardcode library paths into libraries.
-hardcode_into_libs=yes
+hardcode_into_libs=no
 
 # Flag to hardcode $libdir into a binary during linking.
 # This must work even if $libdir does not exist.
-hardcode_libdir_flag_spec="\${wl}--rpath \${wl}\$libdir"
+hardcode_libdir_flag_spec=""
 
 # If ld is used when linking, flag to hardcode $libdir into
 # a binary during linking. This must work even if $libdir does
@@ -7491,20 +7488,20 @@ hardcode_shlibpath_var=unsupported
 
 # Set to yes if building a shared library automatically hardcodes DIR into the library
 # and all subsequent libraries and executables linked against it.
-hardcode_automatic=no
+hardcode_automatic=yes
 
 # Variables whose values should be saved in libtool wrapper scripts and
 # restored at relink time.
-variables_saved_for_relink="PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
+variables_saved_for_relink="PATH DYLD_LIBRARY_PATH  GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
 
 # Whether libtool must link a program against all its dependency libraries.
-link_all_deplibs=unknown
+link_all_deplibs=yes
 
 # Compile-time system search path for libraries
-sys_lib_search_path_spec=" /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/../lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/../lib64/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/../lib64/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/../lib64/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/../lib64/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/../lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../x86_64-pc-linux-gnu/6.4.0/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../lib64/ /lib/x86_64-pc-linux-gnu/6.4.0/ /lib/../lib64/ /usr/lib/x86_64-pc-linux-gnu/6.4.0/ /usr/lib/../lib64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/FFTW/3.3.6/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/python3.6/site-packages/numpy-1.13.3-py3.6-linux-x86_64.egg/numpy/core/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/Python/3.6.3/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/OpenSSL/1.0.2l/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/binutils/2.28/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib64/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libffi/3.2.1/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/XZ/5.2.3/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/GMP/6.1.2/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/SQLite/3.20.1/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/Tcl/8.6.7/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/libreadline/7.0/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/ncurses/6.0/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/zlib/1.2.11/lib/ /warwick/desktop/2018/software/Compiler/GCCcore/6.4.0/bzip2/1.0.6/lib/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/mkl/lib/intel64/ /warwick/desktop/2018/software/MPI/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/imkl/2017.3.196/lib/intel64/ /warwick/desktop/2018/software/Compiler/intel/2017.4.196-GCC-6.4.0-2.28/impi/2017.3.196/lib64/ /warwick/desktop/2018/software/Core/ifort/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/ /warwick/desktop/2018/software/Core/icc/2017.4.196-GCC-6.4.0-2.28/compilers_and_libraries_2017.4.196/linux/compiler/lib/intel64/ /warwick/desktop/2018/software/Core/binutils/2.28/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib64/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../../x86_64-pc-linux-gnu/lib/ /warwick/desktop/2018/software/Core/GCCcore/6.4.0/lib/gcc/x86_64-pc-linux-gnu/6.4.0/../../../ /lib/ /usr/lib/"
+sys_lib_search_path_spec=" /Library/Developer/CommandLineTools/usr/lib/clang/11.0.3  /lib /usr/lib /usr/local/lib"
 
 # Run-time system search path for libraries
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/atlas /usr/lib64/dyninst /usr/lib64/mysql /usr/lib64/nvidia /usr/lib64/vdpau /usr/lib/nvidia /usr/lib/vdpau /usr/lib64/octave/3.8.2 /usr/lib64/qt-3.3/lib /usr/lib64/tcl8.5 "
+sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
 
 # Fix the shell variable $srcfile for the compiler.
 fix_srcfile_path=""

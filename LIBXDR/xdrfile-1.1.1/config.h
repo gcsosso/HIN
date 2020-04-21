@@ -5,13 +5,13 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* Hardware and OS version for build host */
-#define BUILD_MACHINE "Linux 3.10.0-862.14.4.el7.x86_64 x86_64"
+#define BUILD_MACHINE "Darwin 19.3.0 x86_64"
 
 /* Date and time for build */
-#define BUILD_TIME "Wed Nov 21 16:55:44 GMT 2018"
+#define BUILD_TIME "Tue Apr 21 09:00:25 BST 2020"
 
 /* User doing build */
-#define BUILD_USER "maungn@serganov.csc.warwick.ac.uk"
+#define BUILD_USER "wolf@angmar"
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -71,7 +71,7 @@
 /* #undef GMX_THREAD_PTHREAD */
 
 /* Enable x86 gcc inline assembly */
-/* #undef GMX_X86_GCC_INLINE_ASM */
+#define GMX_X86_GCC_INLINE_ASM /**/
 
 /* Enable x86 MSVC inline assembly */
 /* #undef GMX_X86_MSVC_INLINE_ASM */
@@ -95,7 +95,7 @@
 #define HAVE_LIBM 1
 
 /* Define to 1 if you have the `nsl' library (-lnsl). */
-#define HAVE_LIBNSL 1
+/* #undef HAVE_LIBNSL */
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
