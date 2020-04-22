@@ -17,7 +17,7 @@ implicit none
 
 integer,parameter :: cart=3, six=6
 integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, fframe, stride, lframe, nz, e_nz, b_bins, nz_bAVE, io, nm
-integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin, ox_ns
+integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin, o_ns
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
@@ -26,7 +26,7 @@ integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
-real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
+real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
@@ -49,7 +49,7 @@ logical :: ex, proc, cknn
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
-call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, & 
+call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, &
                 switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,n_r_ws,rcut,switch_cls,plumed_exe, &
                 switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
@@ -77,11 +77,11 @@ call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_ring
 !close(877)
 
 ! Set the averages to zero !
-nz_bAVE=0; n_ddc_AVE=0.0; n_hc_AVE=0.0; n_hex_AVE=0.0; n_cls_AVE=0.0; zop_AVE=0.0; 
-n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0; n_ddc_AVE_BULK=0.0; 
-n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0; ze_AVE=0.0; ze_AVE_BULK=0.0;  ze_AVE_SURF=0.0; 
-delta_AVE=0.0;  delta_AVE_BULK=0.0;  delta_AVE_SURF=0.0; esse_AVE=0.0; esse_AVE_BULK=0.0; 
-esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0; 
+nz_bAVE=0; n_ddc_AVE=0.0; n_hc_AVE=0.0; n_hex_AVE=0.0; n_cls_AVE=0.0; zop_AVE=0.0;
+n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0; n_ddc_AVE_BULK=0.0;
+n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0; ze_AVE=0.0; ze_AVE_BULK=0.0;  ze_AVE_SURF=0.0;
+delta_AVE=0.0;  delta_AVE_BULK=0.0;  delta_AVE_SURF=0.0; esse_AVE=0.0; esse_AVE_BULK=0.0;
+esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0;
 
 if (trim(adjustl(switch_zdens)).eq.'yes') then
    call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
@@ -127,7 +127,7 @@ endif
 
 ! Cryo stuff - alloc
 if (trim(adjustl(switch_cryo)).eq.'yes') then
-   call cryo_alloc(pos,o_dist,sym,ns,n_ws,list_ws,ox_ns)
+   call cryo_alloc(pos,sym,ns,n_ws,list_ws,o_dist,o_ns)
 endif
 
 
@@ -142,7 +142,7 @@ do while ( STAT==0 )
 
       ! Write .xtc...
       if (trim(adjustl(outxtc)).eq.'yes') then
-         STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec) 
+         STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
       endif
 
       ! Number density profile along z...
@@ -155,7 +155,7 @@ do while ( STAT==0 )
          call xyfes(switch_xyfes,ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
       endif
 
-      ! Rings statistics...  
+      ! Rings statistics...
       if (trim(adjustl(switch_rings)).eq.'yes') then
           call rings(kto,r_ns,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax,sym,rings_exe,r_color,time,STEP, &
                      counter,natformat,nat,icell,rcut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS, &
@@ -170,13 +170,13 @@ do while ( STAT==0 )
       endif
 
       ! Ice-like clusters...
-      if (trim(adjustl(switch_cls)).eq.'yes') then 
+      if (trim(adjustl(switch_cls)).eq.'yes') then
          call clusters(outxtc,plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
                        box_trans,pos,prec,cart,pmpi,cls_stat,r_color,natformat,nat,n_cls_AVE)
       endif
-      
+
       ! Bonds statistics...
-      if (trim(adjustl(switch_bonds)).eq.'yes') then 
+      if (trim(adjustl(switch_bonds)).eq.'yes') then
          call bonds(b_zmin,b_zmax,b_dz,pos,icell,pdbon,cart,ns,n_ws,list_ws, &
                     ws,b_rcut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
       endif
@@ -197,9 +197,9 @@ do while ( STAT==0 )
 
       ! Cryo...
       if (trim(adjustl(switch_cryo)).eq.'yes') then
-         call cryo(pos,sym,ns,n_ws,list_ws,o_dist,ox_ns)
+         call cryo(pos,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell)
       endif
-      
+
    endif
    counter=counter+1
    if (counter.gt.lframe) exit
