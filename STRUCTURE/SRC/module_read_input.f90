@@ -2,21 +2,21 @@ module MOD_read_input
 
 contains
 
-subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, & 
+subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, &
                       switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,n_r_ws,rcut,switch_cls,plumed_exe, &
                       switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
                       switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
-                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo)
+                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut)
 
 implicit none
-                   
+
 integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy
 integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
-real :: o_zmin, o_zmax, o_dz, hbdist, hbangle
+real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, c_rcut
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
@@ -34,7 +34,7 @@ do i=1,3
    read(100,*)
 enddo
 ! Trajectory section
-read(100,*) buffer, sfile  ; if (trim(adjustl(buffer)).ne.'SFILE')  eflag=1    
+read(100,*) buffer, sfile  ; if (trim(adjustl(buffer)).ne.'SFILE')  eflag=1
 read(100,*) buffer, tfile  ; if (trim(adjustl(buffer)).ne.'TFILE')  eflag=1
 read(100,*) buffer, fframe ; if (trim(adjustl(buffer)).ne.'FFRAME') eflag=1
 read(100,*) buffer, stride ; if (trim(adjustl(buffer)).ne.'STRIDE') eflag=1
@@ -56,7 +56,7 @@ read(100,*) buffer, switch_xyfes      ; if (trim(adjustl(buffer)).ne.'XYFES')   
 read(100,*) buffer, xymin             ; if (trim(adjustl(buffer)).ne.'XYMIN')   eflag=1
 read(100,*) buffer, xymax             ; if (trim(adjustl(buffer)).ne.'XYMAX')   eflag=1
 read(100,*) buffer, nxy               ; if (trim(adjustl(buffer)).ne.'NXY')     eflag=1
-read(100,*) ; read(100,*); read(100,*) 
+read(100,*) ; read(100,*); read(100,*)
 ! Rings section
 read(100,*) buffer, switch_rings          ; if (trim(adjustl(buffer)).ne.'RINGS')  eflag=1
 read(100,*) buffer, rings_exe             ; if (trim(adjustl(buffer)).ne.'R_EXE')  eflag=1
@@ -97,12 +97,12 @@ read(100,*) buffer, pmpi                ; if (trim(adjustl(buffer)).ne.'PMPI') e
 read(100,*) buffer, cls_stat            ; if (trim(adjustl(buffer)).ne.'CLS_STAT') eflag=1
 read(100,*) ; read(100,*)
 ! Bonds section
-read(100,*) buffer, switch_bonds            ; if (trim(adjustl(buffer)).ne.'BON')    eflag=1 
+read(100,*) buffer, switch_bonds            ; if (trim(adjustl(buffer)).ne.'BON')    eflag=1
 read(100,*) buffer, b_zmin                  ; if (trim(adjustl(buffer)).ne.'B_ZMIN') eflag=1
 read(100,*) buffer, b_zmax                  ; if (trim(adjustl(buffer)).ne.'B_ZMAX') eflag=1
 read(100,*) buffer, b_dz                    ; if (trim(adjustl(buffer)).ne.'B_DZ')   eflag=1
 npairs=factorial(ns+2-1)/(2*factorial(ns-1))
-allocate(b_rcut(npairs)) 
+allocate(b_rcut(npairs))
 if (adjustl(trim(switch_bonds)).eq."yes") then
    read(100,*) buffer, (b_rcut(i), i=1,npairs) ; if (trim(adjustl(buffer)).ne.'B_RCUT') eflag=1
 else
@@ -117,7 +117,7 @@ if (hw_ex.eq.'yes') then
    if (ws(ns).ne.'HW1') then
       write(99,*) "If the HW1/HW2 option is active, HW1 must be specified as the last atomic species!"
       stop
-   endif  
+   endif
 endif
 
 ! Electrostatic section
@@ -140,8 +140,9 @@ read(100,*) buffer, o_dz                    ; if (trim(adjustl(buffer)).ne.'O_DZ
 ! Cryo  section
 read(100,*) ; read(100,*)
 read(100,*) buffer, switch_cryo            ; if (trim(adjustl(buffer)).ne.'CRYO') eflag=1
+read(100,*) buffer, c_rcut                 ; if (trim(adjustl(buffer)).ne.'C_RCUT') eflag=1
 
-if (eflag.eq.1) then 
+if (eflag.eq.1) then
    write(99,*) "Something is wrong with the input file..."
    stop
 endif
@@ -185,7 +186,7 @@ do i=1,nat
    do j=1,ns
       if (trim(adjustl(sym(i))).eq.trim(adjustl(ws(j)))) then
          n_ws(j)=n_ws(j)+1
-         list_ws(j,n_ws(j))=i 
+         list_ws(j,n_ws(j))=i
       endif
    enddo
    if (trim(adjustl(switch_rings)).eq.'yes') then
@@ -198,8 +199,8 @@ do i=1,nat
             n_r_ws(j)=n_r_ws(j)+1
             list_r_ws(j,n_r_ws(j))=i
          endif
-      enddo 
-   endif  
+      enddo
+   endif
 enddo
 
 return
@@ -247,7 +248,7 @@ if (trim(adjustl(outxtc)).eq.'yes') then
    call c_f_pointer(xd_c_out,xd_out)
 endif
 
-! Read first frame 
+! Read first frame
 STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
 icell(1)=box_trans(1,1) ; icell(2)=box_trans(1,2) ; icell(3)=box_trans(1,3)
 icell(4)=box_trans(2,1) ; icell(5)=box_trans(2,2) ; icell(6)=box_trans(2,3)

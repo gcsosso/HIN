@@ -1,15 +1,11 @@
- Time (ps):        4000.000000  Step: 2000000 Frame: 0
- Time (ps):        4004.000000  Step: 2002000 Frame: 1
- Time (ps):        4008.000000  Step: 2004000 Frame: 2
- Time (ps):        4012.000000  Step: 2006000 Frame: 3
- Time (ps):        4016.000000  Step: 2008000 Frame: 4
- Time (ps):        4020.000000  Step: 2010000 Frame: 5
- Time (ps):        4024.000000  Step: 2012000 Frame: 6
- Time (ps):        4028.000000  Step: 2014000 Frame: 7
- Time (ps):        4032.000000  Step: 2016000 Frame: 8
- Time (ps):        4036.000000  Step: 2018000 Frame: 9
+ Time (ps):           0.000000  Step: 0 Frame: 0
+ Time (ps):           4.000000  Step: 2000 Frame: 1
+ Time (ps):           8.000000  Step: 4000 Frame: 2
+ Time (ps):          12.000000  Step: 6000 Frame: 3
+ Time (ps):          16.000000  Step: 8000 Frame: 4
+ Time (ps):          20.000000  Step: 10000 Frame: 5
+ Time (ps):          24.000000  Step: 12000 Frame: 6
+ Time (ps):          28.000000  Step: 14000 Frame: 7
+ Time (ps):          32.000000  Step: 16000 Frame: 8
+ Time (ps):          36.000000  Step: 18000 Frame: 9
  We have taken into account           10 frames, from frame            0  to frame            9  with stride            1
- We have computed the number density profile along z. See: hin_structure.out.zdens
- We have            2 atomic species, namely OW  HW1 
- We have         3024 OW  
- We have         6048 HW1 

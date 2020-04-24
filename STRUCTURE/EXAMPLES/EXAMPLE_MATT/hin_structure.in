@@ -12,10 +12,10 @@ WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in t
 HW_EXC yes                 # if this keyword is active, HW2 and considered along with HW1 atoms [recommended: yes]
 
 # z-Density section
-ZDENS   yes                # calculate (or not) the z-density profile
-ZMIN   0.0                 # zmin: lower bound for the computation along the normal to the surface [nm]
-ZMAX 100.0                 # zmax: upper bound for the computation along the normal to the surface [nm]
-DZ     0.02                # dz: width of each z-slice [nm]
+ZDENS   no                 # calculate (or not) the z-density profile
+ZMIN    0.0                 # zmin: lower bound for the computation along the normal to the surface [nm]
+ZMAX    100.0                 # zmax: upper bound for the computation along the normal to the surface [nm]
+DZ      0.02                # dz: width of each z-slice [nm]
 
 # xy-FES section
 XYFES   no                  # calculate (or not) the 2D- xy free energy
@@ -31,17 +31,17 @@ R_CLS_ONLY yes 				                                       # Consider the atoms i
 R_ZMIN     0.0  #13.0	           			           	               # lower bound of the region for which we'll get the rings
 R_ZMAX     30.0 #17.0            					               # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
 R_NS       1							               # n. of species for which we want to get the rings [1]
-R_WS       OW       			        		               # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+R_WS       OW       			        		               # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW]
 RCUT       0.32                                                                # nearest neighbor cutoff [nm]
 HBCK       no                                                                  # Consider only hydrogen-bonded rings
-HB_DIST    0.3 								       # O-H distance criteria for HB [nm]	   
+HB_DIST    0.3 								       # O-H distance criteria for HB [nm]
 HB_ANGLE   30.0								       # O-H-O angle criteria for HB [deg] (deviation from pi)
 MAXR       6              						       # Will get up to MAXR-membered rings [min=6, max=9]
 HEX        no   							       # Get regular hexagonal rings
 ATHR       30.0                                                                # Angular threshold [deg]
 R_CLS      no  SIX						               # Cluster N-membered rings (e.g. SIX) or cages (CAG) [not yet implemented]
-CAGES      yes 		        				               # get (or) not DDC and HC cages 
-FFS_SURF   no  1.5 1.7                                                         # distinguish between surf ans non surf clusters. gets asphericity and more as well... 
+CAGES      yes 		        				               # get (or) not DDC and HC cages
+FFS_SURF   no  1.5 1.7                                                         # distinguish between surf ans non surf clusters. gets asphericity and more as well...
 WCOL       1   							               # Which atoms we color for VMD. See Documentation
 
 # Ice-like clusters section - You must have the PLUMED2 code ready at hand together with:
@@ -53,11 +53,11 @@ VMD_EXE 'vmd'                                                           # VMD ex
 PMPI   4						                # N. of MPI tasks for the plumed driver
 CLS_STAT no								# Get asphericity, z-plot, and more... - TO BE IMPLEMENTED
 
-# Bonds statistics						       
-BON    no 							       # calculate (or not) bonds statistics 	
+# Bonds statistics
+BON    no 							       # calculate (or not) bonds statistics
 B_ZMIN 1.0							       # settings z-slices, typically much thicker than z-dens - minimum [nm]
-B_ZMAX 3.01     						               # max z [nm]	
-B_DZ   1.0							       # thickness of each slice [nm]	
+B_ZMAX 3.01     						               # max z [nm]
+B_DZ   1.0							       # thickness of each slice [nm]
 B_RCUT 0.32 0.0 0.32 0.0 0.0 0.0 0.0 0.0 0.32 0.0                      # cutoff for each pair as e.g. a,b -> aa, ab (ba), bb [nm]
 B_BINS 100                					       # number of bins for the P(bond_length)
 B_BMIN 0.0							       # lower bound for the P(bond_length)
@@ -66,8 +66,8 @@ B_BMAX 0.6							       # upper bound for the P(bond_length)
 # Electrostatic
 ELECTRO  no                   					       # calculate some electrostatic property
 E_ZMIN   0.0                                                           # settings z-slices
-E_ZMAX  21.0                                                           # max z [nm]     
-E_DZ     0.041                                                         # thickness of each slice [nm] 
+E_ZMAX  21.0                                                           # max z [nm]
+E_DZ     0.041                                                         # thickness of each slice [nm]
 
 # Order
 ORDER    no                                                            # ordering of molecules
@@ -75,8 +75,9 @@ WATER    yes
 WMOL     HO4                                                           # which molecules, e.g. CHL1
 AXIS     OW MW                                                         # define the molecular axis (for water should be OW MW), for CHL e.g. C3 C25
 O_ZMIN    7.0                                                          # if WMOL = HO4 (or any other water...), than we get profiles along z... else dummy
-O_ZMAX   16.0 
-O_DZ     0.1   
+O_ZMAX   16.0
+O_DZ     0.1
 
 # Cryo
 CRYO     yes
+C_RCUT   0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
