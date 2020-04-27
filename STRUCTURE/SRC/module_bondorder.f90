@@ -96,11 +96,24 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 										cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym,qlm_all)
 						qlt_mol(tot_atoms) = qlt_atom
 				end if
-        endif
+				
+				if (0.eq.1) then
+				if (l.eq.6) then
+						write(246, '(A(30F11.4))') 'X', pos(1,i), pos(2,i), pos(3,i), ql_mol(tot_atoms), &
+								real(qlm_all(-6,ii)), aimag(qlm_all(-6,ii)), real(qlm_all(-5,ii)), aimag(qlm_all(-5,ii)), &
+								real(qlm_all(-4,ii)), aimag(qlm_all(-4,ii)), real(qlm_all(-3,ii)), aimag(qlm_all(-3,ii)), &
+								real(qlm_all(-2,ii)), aimag(qlm_all(-2,ii)), real(qlm_all(-1,ii)), aimag(qlm_all(-1,ii)), &
+								real(qlm_all(0,ii)), aimag(qlm_all(0,ii)), real(qlm_all(1,ii)), aimag(qlm_all(1,ii)), &
+								real(qlm_all(2,ii)), aimag(qlm_all(2,ii)), real(qlm_all(3,ii)), aimag(qlm_all(3,ii)), &
+								real(qlm_all(4,ii)), aimag(qlm_all(4,ii)), real(qlm_all(5,ii)), aimag(qlm_all(5,ii)), &
+								real(qlm_all(6,ii)), aimag(qlm_all(6,ii))
+				end if ; end if
+        end if
     enddo
 
     write(n_mol_format,*) tot_atoms
     
+	 !if (l.ne.6) then
     write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 if (trim(adjustl(switch_ql)).eq.'yes') then
 	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
@@ -111,6 +124,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 if (trim(adjustl(switch_qt)).eq.'yes') then
 	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
 	 end if
+	 !end if
 
 end subroutine bondorder
 
@@ -320,9 +334,11 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 								first_coord_shell,size_first_coord_shell)
     
     implicit none
-
+	 
+	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fj, l, m, counter
-    complex :: qlm, Ylm, sigma
+    complex(dp) :: Ylm, sigma
+	 complex :: qlm
 	 real :: first_coord_shell(20,4)
 	 integer :: size_first_coord_shell
 	 integer :: cart, n_f_ow
@@ -331,16 +347,39 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
-	 real :: th, ph
+	 real(dp) :: th, ph
+    real, parameter :: Pi = 3.14159
 	 
 	 sigma = (0.0, 0.0)
 	 do fj=1,size_first_coord_shell
 	 		if (first_coord_shell(fj,4).eq.0.0) then ; th = 0.0
 			else ; th = acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))) ; end if
-	 		if (first_coord_shell(fj,1).eq.0.0) then ; ph = 0.0
-			else ; ph = atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)) ; end if
+			
+	 		if (first_coord_shell(fj,1).eq.0.0) then
+					if (first_coord_shell(fj,2).eq.0.0) then
+							ph = 0.0
+					else if (first_coord_shell(fj,2).gt.0.0) then
+							ph = Pi/2
+					else
+							ph = 3*Pi/2
+					end if
+			else if (first_coord_shell(fj,1).ge.0) then
+					if (first_coord_shell(fj,2).ge.0) then
+							ph = atan(first_coord_shell(fj,2)/first_coord_shell(fj,1))
+					else
+							ph = 3*Pi/2 - atan(first_coord_shell(fj,1)/first_coord_shell(fj,2))
+					end if
+			else
+					if (first_coord_shell(fj,2).ge.0) then
+							ph = Pi/2 - atan(first_coord_shell(fj,1)/first_coord_shell(fj,2))
+					else
+							ph = Pi + atan(first_coord_shell(fj,2)/first_coord_shell(fj,1))
+					end if
+			end if
+			
 	 		call compute_Ylm(Ylm,l,m,th,ph)
-	 		sigma = sigma + Ylm
+			sigma = sigma + Ylm
+			
 	 enddo
 	 
 	 qlm = sigma/size_first_coord_shell
@@ -351,9 +390,10 @@ subroutine compute_Ylm(Ylm,l,m,th,ph)
 	 
 	 implicit none
 	 
+	 integer, parameter :: dp = kind(1.d0)
 	 integer :: l, m
-	 complex :: Ylm
-	 real :: th, ph
+	 complex(dp) :: Ylm
+	 real(dp) :: th, ph
     real, parameter :: Pi = 3.14159
 	 
 	 if (l.eq.3) then
@@ -430,8 +470,9 @@ recursive function compute_Plm(l,m,x) result(Plm) ! This code doesn't seem to wo
 
 	 implicit none
 	 
+	 integer, parameter :: dp = kind(1.d0)
 	 integer :: l, m
-	 real :: x, Plm
+	 real(dp) :: x, Plm
 	 
 	 if (m.lt.0) then
 	 		Plm = ((-1)**(-m))*(factorial(l+m)/factorial(l-m))*compute_Plm(l,-m,x)
