@@ -50,7 +50,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                       time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
 
     implicit none
-
+	 
+	 integer, parameter :: dp = kind(1.d0)
     character*3 :: switch_f3, switch_f4, switch_f_cls
     real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
     real :: time
@@ -63,7 +64,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     real :: first_coord_shell(20,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
-    real :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
+    real(dp) :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
     real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
     real, allocatable :: pos(:,:)
     real :: F3_col(nat), F4_col(nat)
@@ -71,7 +72,8 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     integer :: f_zbins
     integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
     real :: F3_zbin(f_zbins,nat), F4_zbin(f_zbins,nat)
-    real :: F3_mol(n_f_ow), F4_mol(n_f_ow), w_oz(n_f_ow)
+    real :: w_oz(n_f_ow)
+	 real(dp) :: F3_mol(n_f_ow), F4_mol(n_f_ow)
 
     tot_atoms = 0
     F3_avg = 0
@@ -143,10 +145,10 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
     write(234,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
     
     if (trim(adjustl(switch_f3)).eq.'yes') then
-        write(234,'('//adjustl(n_mol_format)//'F11.4)') (F3_mol(i), i=1,tot_atoms)
+        write(234,'('//adjustl(n_mol_format)//'F12.8)') (F3_mol(i), i=1,tot_atoms)
     endif
     if (trim(adjustl(switch_f4)).eq.'yes') then
-        write(234,'('//adjustl(n_mol_format)//'F11.4)') (F4_mol(i), i=1,tot_atoms)
+        write(234,'('//adjustl(n_mol_format)//'F12.8)') (F4_mol(i), i=1,tot_atoms)
     endif
 
     if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
@@ -253,11 +255,12 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
 
     implicit none
     
+	 integer, parameter :: dp = kind(1.d0)
     integer :: j, k
     real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
-    real :: F3_part, F3_atom                ! F3 parameter for triples, atoms
-    real :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
+    real(dp) :: F3_part, F3_atom                ! F3 parameter for triples, atoms
+    real(dp) :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
     
     if (size_first_coord_shell.gt.0) then 
     F3_atom = 0
@@ -289,11 +292,12 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
 
     implicit none
     
+	 integer, parameter :: dp = kind(1.d0)
     integer :: i, j, cart
     real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: first_coord_shell_ndx(20)    ! First coordination shell indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
-    real :: F4_part, F4_atom                ! F3 parameter for triples, atoms
+    real(dp) :: F4_part, F4_atom                ! F3 parameter for triples, atoms
     real, allocatable :: pos(:,:)
     integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
     real :: icell(cart*cart)

@@ -16,6 +16,7 @@ use MOD_bondorder
 
 implicit none
 
+integer, parameter :: dp = kind(1.d0)
 integer,parameter :: cart=3, six=6
 integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, fframe, stride, lframe, nz, e_nz, b_bins, nz_bAVE, io, nm
 integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin

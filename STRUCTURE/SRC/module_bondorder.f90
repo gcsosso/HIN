@@ -21,7 +21,8 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
                       time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
 
     implicit none
-
+	 
+	 integer, parameter :: dp = kind(1.d0)
     real :: q_zmin, q_zmax, q_cut
     real :: time
     integer :: i, ii, l, cart, nat, m
@@ -33,16 +34,14 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real, allocatable :: pos(:,:)
     character*100 :: natformat
-    real :: ql_mol(n_f_ow), qlb_mol(n_f_ow), w_oz(n_f_ow)
-    real :: ql_atom, qlb_atom
+    real(dp) :: ql_mol(n_f_ow), qlb_mol(n_f_ow), qlt_mol(n_f_ow), w_oz(n_f_ow), t6_mol(n_f_ow)
+    real(dp) :: ql_atom, qlb_atom, qlt_atom
 	 character*100 :: n_mol_format
 	 character*4, allocatable :: sym(:)
 	 character*3 :: switch_ql, switch_qd, switch_qt
 	 integer, allocatable :: list_f_ow(:)
 	 integer :: n_f_ow
-	 complex :: qlm_all(-l:l,n_f_ow)
-	 real :: qlt_mol(n_f_ow)
-	 real :: qlt_atom
+	 complex(dp) :: qlm_all(-l:l,n_f_ow)
 
     tot_atoms = 0
     w_oz(:) = 0.0
@@ -116,13 +115,13 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 !if (l.ne.6) then
     write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 if (trim(adjustl(switch_ql)).eq.'yes') then
-	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (ql_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (ql_mol(i), i=1,tot_atoms)
 	 end if
 	 if (trim(adjustl(switch_qd)).eq.'yes') then
-	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (qlb_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlb_mol(i), i=1,tot_atoms)
 	 end if
 	 if (trim(adjustl(switch_qt)).eq.'yes') then
-	 	  write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (qlt_mol(i), i=1,tot_atoms)
+	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(i), i=1,tot_atoms)
 	 end if
 	 !end if
 
@@ -184,11 +183,12 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
 
     implicit none
     
+	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, m, l, counter
     real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
     integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
-    real :: ql_atom                         ! ql(i) parameter for atom i
+    real(dp) :: ql_atom                         ! ql(i) parameter for atom i
     real :: sigma
     real, parameter :: Pi = 3.14159
 	 integer :: cart, n_f_ow
@@ -197,7 +197,7 @@ subroutine compute_ql(ii,l,ql_atom,first_coord_shell,first_coord_shell_ndx,size_
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
-	 complex :: qlm_all(-l:l,n_f_ow)
+	 complex(dp) :: qlm_all(-l:l,n_f_ow)
     
     sigma = 0.0
 	 
@@ -222,11 +222,12 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
 
     implicit none
     
+	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, m, l, counter
     real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
     integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
-    real :: qlb_atom                        ! ql(i) bar parameter for atom i
+    real(dp) :: qlb_atom                        ! ql(i) bar parameter for atom i
     real :: sigma
     complex :: qlmb
     real, parameter :: Pi = 3.14159
@@ -236,7 +237,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell,first_coord_shell_ndx,siz
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
-	 complex :: qlm_all(-l:l,n_f_ow)
+	 complex(dp) :: qlm_all(-l:l,n_f_ow)
     
     sigma = 0.0
 	 
@@ -263,6 +264,7 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,siz
 
     implicit none
     
+	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fj, jj, m, l, counter
     real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
     integer :: size_first_coord_shell       ! Size of first coordination shell
@@ -273,9 +275,10 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell,first_coord_shell_ndx,siz
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
-	 complex :: qlm_all(-l:l,n_f_ow)
+	 complex(dp) :: qlm_all(-l:l,n_f_ow)
 	 complex :: qi_dot_qj, sigma
-	 real :: qi_sq, qj_sq, qlt_atom
+	 real :: qi_sq, qj_sq
+	 real(dp) :: qlt_atom
     
 	 qi_sq = 0.0
 	 sigma = (0.0, 0.0)
@@ -305,6 +308,7 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size
     
     implicit none
 
+	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fi, m, l, counter
     real :: first_coord_shell(20,4)
     integer :: size_first_coord_shell
@@ -316,7 +320,7 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell,first_coord_shell_ndx,size
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
-	 complex :: qlm_all(-l:l,n_f_ow)
+	 complex(dp) :: qlm_all(-l:l,n_f_ow)
     
     qlm = qlm_all(m,ii)
     sigma = qlm
@@ -338,7 +342,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
 	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fj, l, m, counter
     complex(dp) :: Ylm, sigma
-	 complex :: qlm
+	 complex(dp) :: qlm
 	 real :: first_coord_shell(20,4)
 	 integer :: size_first_coord_shell
 	 integer :: cart, n_f_ow
