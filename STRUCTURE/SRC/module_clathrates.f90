@@ -262,7 +262,7 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
     real(dp) :: F3_part, F3_atom                ! F3 parameter for triples, atoms
     real(dp) :: j_dot_k, cos2_num, cos2_den     ! j.k, |cos|cos numerator, |cos|cos denominator
     
-    if (size_first_coord_shell.gt.0) then 
+    if (size_first_coord_shell.gt.1) then 
     F3_atom = 0
     do j=1,size_first_coord_shell-1
         do k=j+1,size_first_coord_shell
@@ -277,7 +277,7 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
         enddo
     enddo
     
-#    F3_atom = 2*F3_atom/(size_first_coord_shell**2 - size_first_coord_shell)
+!    F3_atom = 2*F3_atom/(size_first_coord_shell**2 - size_first_coord_shell)
     
     else
         F3_atom = -2
