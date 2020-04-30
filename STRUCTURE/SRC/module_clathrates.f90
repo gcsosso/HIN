@@ -102,17 +102,17 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
 
                 ! this is where you color
                 ! Calculate average F3 for the frame (per species)
-                F3_avg = F3_avg + F3_atom
-                F3_col(list_f_ow(i)) = F3_atom
+                !F3_avg = F3_avg + F3_atom
+                !F3_col(list_f_ow(i)) = F3_atom
                 F3_mol(tot_atoms) = F3_atom
-                do j=1,f_zbins
-                    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
-                        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
-                        F3_zbin_len(j) = F3_zbin_len(j) + 1
-                        F3_zbin(j,F3_zbin_len(j)) = F3_atom
-                        exit
-                    endif
-                enddo
+                !do j=1,f_zbins
+                !    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
+                !        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
+                !        F3_zbin_len(j) = F3_zbin_len(j) + 1
+                !        F3_zbin(j,F3_zbin_len(j)) = F3_atom
+                !        exit
+                !    endif
+                !enddo
                 ! later on - clustering
             endif
             if (trim(adjustl(switch_f4)).eq.'yes') then
@@ -121,24 +121,24 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
                                 cart,icell,pos,list_f_ow)
                 
                 ! Calculate average F4 for the frame (per species)
-                F4_avg = F4_avg + F4_atom
-                F4_col(list_f_ow(i)) = F4_atom
+                !F4_avg = F4_avg + F4_atom
+                !F4_col(list_f_ow(i)) = F4_atom
                 F4_mol(tot_atoms) = F4_atom
-                do j=1,f_zbins
-                    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
-                        F4_zbin_len(j) = F4_zbin_len(j) + 1
-                        F4_zbin(j,F4_zbin_len(j)) = F4_atom
-                        exit
-                    endif
-                enddo
+                !do j=1,f_zbins
+                !    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
+                !        F4_zbin_len(j) = F4_zbin_len(j) + 1
+                !        F4_zbin(j,F4_zbin_len(j)) = F4_atom
+                !        exit
+                !    endif
+                !enddo
             endif
         endif
     enddo
 
-    if (tot_atoms>0) then
-        F3_avg = F3_avg/tot_atoms
-        F4_avg = F4_avg/tot_atoms
-    endif
+    !if (tot_atoms>0) then
+    !    F3_avg = F3_avg/tot_atoms
+    !    F4_avg = F4_avg/tot_atoms
+    !endif
 
     write(n_mol_format,*) tot_atoms
     
@@ -151,7 +151,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
         write(234,'('//adjustl(n_mol_format)//'F12.8)') (F4_mol(i), i=1,tot_atoms)
     endif
 
-    if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
+    if (0.eq.1) then ; if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
         ! If we are calculating both order parameters, write to output files
         write(200,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
         ! Write line to color files
@@ -181,7 +181,7 @@ subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,c
             write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
         enddo
     
-    endif
+    endif ; endif
 
     ! Clustering
     
