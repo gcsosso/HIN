@@ -19,9 +19,9 @@ implicit none
 
 ! Local
 integer :: i, j, k, ibin, l, rmin
-real :: rstep, h, rsum, gr_int, norm
+real :: rstep, h, rsum, gr_int, norm, n_bins, delta_r, density
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
-real, allocatable :: efield(:), epot(:)
+real, allocatable :: efield(:), epot(:), g_r_average(:), cn_running(:)
 character*100 :: wformat
 
 ! Arguments
@@ -239,23 +239,44 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
   write(99,*) "We have calculated some hydration parameters. See: hin_structure.out.cryo"
   open(unit=163, file='hin_structure.out.cryo', status='unknown')
 
-  ! Write to file
-  do i=1,size(rad(:))
-    write(163,*) rad(i), gr_norm(i)/dble(lframe-fframe+1)
+  ! N. of bins
+  n_bins=size(rad)
+  allocate(g_r_average(n_bins), cn_running(n_bins))
+
+  ! g_r (averaged over the n. of frames)
+  do i=1,n_bins
+     g_r_average(i)=gr_norm(i)/dble(lframe-fframe+1) 
+  enddo
+ 
+  ! coordination number
+!delta_r=tdrad[1]-tdrad[0]
+!td_n=len(td_data)
+!td_density=td_n/(tdlength*tdlength*tdlength) # number density, 3D
+!cn_3d=np.zeros((len(tdrad),2))
+!
+!for i in range(0,len(tdrad)):
+!    cn_3d[i,0]=tdrad[i]
+!    cn_3d[i,1]=cn_3d[i,1]+(tdg_r[i]*tdrad[i]*tdrad[i]*delta_r)
+!
+!cn_3d[:,1]=cn_3d[:,1]*(4*np.pi*density)
+  
+  delta_r=rad(2)-rad(1)
+  
+  cn_running(:)=0.0d0
+  do i=1,n_bins
+     cn_running(i)=cn_running(i)+(g_r_average(i)*rad(i)*rad(i)*delta_r)
   enddo
 
-  gr_int=0.0d0
-  rmin=18 ! This is the index of the bin corresponding to the first minimum ~ 0.33 Å
-  do i=1,rmin
-    if ((i.eq.1).or.(i.eq.rmin)) then ! Following the trapezium rule for approximating an integral
-      gr_int=gr_int+(gr_norm(i)*dr*rad(i)**2.0d0)
-    else
-      gr_int=gr_int+(2.0d0*gr_norm(i)*dr*rad(i)**2.0d0)
-    endif
+  density=34.34375 ! hardcoded...
+
+  cn_running(:)=cn_running(:)*4.0d0*2.D0*DASIN(1.D0)*density
+
+  ! Write to file
+  do i=1,size(rad(:))
+    write(163,*) rad(i), g_r_average(i), cn_running(i)
   enddo
-  norm=dble(fact/dr) ! fact = pi4*rho*dr, so need to get rid of the dr
-  gr_int=gr_int*(dr/2.0d0)*norm ! bits for trapezium rule and normalise
-  !write(163,*) gr_int
+
+  deallocate(g_r_average,cn_running)
 
 endif
 
