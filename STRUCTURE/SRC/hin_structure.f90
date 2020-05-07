@@ -30,10 +30,11 @@ real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE,
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: c_rcut, o_rad_count, dr, half_dr
+real :: c_rcut, o_rad_count, dr, half_dr, fact
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
-real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:), o_dist(:), rad(:)
+real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
+real, allocatable :: o_dist(:), rad(:), gr_norm(:)
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
@@ -129,7 +130,7 @@ endif
 
 ! Cryo stuff - alloc
 if (trim(adjustl(switch_cryo)).eq.'yes') then
-   call cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad)
+   call cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
 endif
 
 
@@ -199,7 +200,7 @@ do while ( STAT==0 )
 
       ! Cryo...
       if (trim(adjustl(switch_cryo)).eq.'yes') then
-         call cryo(pos,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,c_rcut,o_rad_count,nr,dr,half_dr,rad)
+         call cryo(pos,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,c_rcut,o_rad_count,nr,dr,half_dr,rad,gr_norm,fact)
       endif
 
    endif
@@ -218,7 +219,8 @@ call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_
             n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,switch_ffss, &
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
-            switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck)
+            switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
+            switch_cryo,rad,dr,gr_norm,fact)
 
 STAT=xdrfile_close(xd)
 

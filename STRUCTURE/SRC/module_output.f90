@@ -12,13 +12,14 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
                   delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
-                  switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck)
+                  switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
+                  switch_cryo,rad,dr,gr_norm,fact)
 
 implicit none
 
 ! Local
-integer :: i, j, k, ibin, l
-real :: rstep, h, rsum
+integer :: i, j, k, ibin, l, rmin
+real :: rstep, h, rsum, gr_int, norm
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, allocatable :: efield(:), epot(:)
 character*100 :: wformat
@@ -32,11 +33,12 @@ real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK,
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
+real :: dr, fact
 real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_AVE(:,:), stat_nr_HB_AVE(:)
-real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
+real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:), rad(:), gr_norm(:)
 character*3 :: outxtc, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes, switch_hbck
 character*3 :: switch_hex, switch_cages, switch_r_cls, r_cls_W, switch_ffss, switch_electro
-character*3 :: switch_order, switch_water
+character*3 :: switch_order, switch_water, switch_cryo
 character*4, allocatable :: ws(:), r_ws(:)
 
 if (dostuff.ne.((lframe-fframe)/stride)+1) then
@@ -52,7 +54,7 @@ if (trim(adjustl(outxtc)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_zdens)).eq.'yes') then
-   write(99,*) "We have computed the number density profile along z. See: hin_structure.out.zdens"      
+   write(99,*) "We have computed the number density profile along z. See: hin_structure.out.zdens"
    write(99,*) "We have ", ns, "atomic species, namely ", (ws(i), i=1,ns)
    do j=1,ns
       write(99,*) "We have ", n_ws(j), ws(j)
@@ -82,7 +84,7 @@ if (trim(adjustl(switch_xyfes)).eq.'yes') then
    do k=1,nxy
       write(1102,*)
       do l=1,nxy
-         write(1102,*) xmesh(k), ymesh(l),  xydens(k,l,:) 
+         write(1102,*) xmesh(k), ymesh(l),  xydens(k,l,:)
       enddo
    enddo
 endif
@@ -109,7 +111,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
       write(99,*) "Average number of DDCcages: ", n_ddc_AVE/real(dostuff)
       write(99,*) "Average number of HCcages: ", n_hc_AVE/real(dostuff)
    endif
-   if (trim(adjustl(switch_ffss)).eq.'yes') then 
+   if (trim(adjustl(switch_ffss)).eq.'yes') then
       if (nbulk+nsurf.ne.dostuff) write(99,*) "Something's wrong, mate!"
       write(99,*) "Of the ", nbulk+nsurf, " clusters at this interface, "
       write(99,*) nbulk, " are within the bulk and "
@@ -182,7 +184,7 @@ if (trim(adjustl(switch_electro)).eq.'yes') then
    open(unit=902, file='hin_structure.out.electro', status='unknown')
 
    ! Output:
-   ! 1. z [angs] 
+   ! 1. z [angs]
    ! 2. charge density profile  [e/angs^3]
    ! 3. electric field profile  [V/angs]
    ! 4. electrostatic potential [V]
@@ -198,10 +200,10 @@ if (trim(adjustl(switch_electro)).eq.'yes') then
    do k=1,e_nz-1
       rsum=rsum+((d_charge(k)+d_charge(k+1))*h)
       efield(k)=rsum
-   enddo 
+   enddo
 
    ! Integrate the field to get the electrostatic potential
-   allocate(epot(e_nz))  
+   allocate(epot(e_nz))
    epot(:)=0.0
    rsum=0.0
    h=((e_zmesh(2)-e_zmesh(1)))
@@ -222,7 +224,7 @@ if (trim(adjustl(switch_order)).eq.'yes') then
       write(99,*) "Water ordering - profile along z..."
       open(unit=992, file='hin_structure.out.w_order', status='unknown')
       o_zmesh(:)=o_zmesh(:)*10.0
-      w_order(:)=(w_order(:)/real(dostuff))!/(box_trans(1,1)*box_trans(2,2)*dz*1000.0)      
+      w_order(:)=(w_order(:)/real(dostuff))!/(box_trans(1,1)*box_trans(2,2)*dz*1000.0)
       do k=1,o_nz
          write(992,'(2f20.10)') o_zmesh(k), w_order(k)
       enddo
@@ -230,6 +232,30 @@ if (trim(adjustl(switch_order)).eq.'yes') then
       write(99,*) "Average angle of the molecular axis of choice wrt the z-axis"
       write(99,*) zop_AVE/real(dostuff)
    endif
+
+endif
+
+if (trim(adjustl(switch_cryo)).eq.'yes') then
+  write(99,*) "We have calculated some hydration parameters. See: hin_structure.out.cryo"
+  open(unit=163, file='hin_structure.out.cryo', status='unknown')
+
+  ! Write to file
+  do i=1,size(rad(:))
+    write(163,*) rad(i), gr_norm(i)/dble(lframe-fframe+1)
+  enddo
+
+  gr_int=0.0d0
+  rmin=18 ! This is the index of the bin corresponding to the first minimum ~ 0.33 Å
+  do i=1,rmin
+    if ((i.eq.1).or.(i.eq.rmin)) then ! Following the trapezium rule for approximating an integral
+      gr_int=gr_int+(gr_norm(i)*dr*rad(i)**2.0d0)
+    else
+      gr_int=gr_int+(2.0d0*gr_norm(i)*dr*rad(i)**2.0d0)
+    endif
+  enddo
+  norm=dble(fact/dr) ! fact = pi4*rho*dr, so need to get rid of the dr
+  gr_int=gr_int*(dr/2.0d0)*norm ! bits for trapezium rule and normalise
+  !write(163,*) gr_int
 
 endif
 

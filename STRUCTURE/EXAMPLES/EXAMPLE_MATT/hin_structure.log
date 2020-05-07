@@ -1,2 +1,12 @@
- Time (ps):           0.000000  Step: 0 Frame: 0
- We have taken into account            1 frames, from frame            0  to frame            0  with stride            1
+ Time (ps):       18000.000000  Step: 9000000 Frame: 0
+ Time (ps):       18004.000000  Step: 9002000 Frame: 1
+ Time (ps):       18008.000000  Step: 9004000 Frame: 2
+ Time (ps):       18012.000000  Step: 9006000 Frame: 3
+ Time (ps):       18016.000000  Step: 9008000 Frame: 4
+ Time (ps):       18020.000000  Step: 9010000 Frame: 5
+ Time (ps):       18024.000000  Step: 9012000 Frame: 6
+ Time (ps):       18028.000000  Step: 9014000 Frame: 7
+ Time (ps):       18032.000000  Step: 9016000 Frame: 8
+ Time (ps):       18036.000000  Step: 9018000 Frame: 9
+ We have taken into account           10 frames, from frame            0  to frame            9  with stride            1
+ We have calculated some hydration parameters. See: hin_structure.out.cryo
