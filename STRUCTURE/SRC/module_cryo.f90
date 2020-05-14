@@ -86,40 +86,13 @@ o_rad=0 ! Vector of 0s corresponding to O water atoms - to be 'coloured in' when
 gr(:)=0.0d0
 
 ! O-O Pair correlation functions: count atoms, assign to bins
-do i=1,n_ws(o_ns)
-  i_spc=list_ws(o_ns,i)
-  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
-
-  do j=1,n_ws(o_ns)
-    j_spc=list_ws(o_ns,j)
-    if (i_spc.eq.j_spc) cycle
-    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-
-    xdf=i_pos(1)-j_pos(1)
-    ydf=i_pos(2)-j_pos(2)
-    zdf=i_pos(3)-j_pos(3)
-
-    call images(cart,0,1,1,icell,xdf,ydf,zdf)
-    r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
-
-    !if (r_ij.lt.c_rcut) then
-      !o_rad(j)=1 ! 'colour in' the corresponding cell
-
-    do ir=1,nr
-      if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
-         gr(ir)=gr(ir)+1
-      endif
-    enddo
-  enddo
-enddo
-
-! Mol-O Pair correlation functions: count atoms, assign to bins
-! do i=1,n_nw
-!   i_spc=list_nw(i)
+! do i=1,n_ws(o_ns)
+!   i_spc=list_ws(o_ns,i)
 !   i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
 !
 !   do j=1,n_ws(o_ns)
 !     j_spc=list_ws(o_ns,j)
+!     if (i_spc.eq.j_spc) cycle
 !     j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
 !
 !     xdf=i_pos(1)-j_pos(1)
@@ -127,28 +100,55 @@ enddo
 !     zdf=i_pos(3)-j_pos(3)
 !
 !     call images(cart,0,1,1,icell,xdf,ydf,zdf)
-!     r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
+!     r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
 !
 !     !if (r_ij.lt.c_rcut) then
 !       !o_rad(j)=1 ! 'colour in' the corresponding cell
 !
 !     do ir=1,nr
 !       if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
-!         gr(ir)=gr(ir)+1
+!          gr(ir)=gr(ir)+1
 !       endif
 !     enddo
 !   enddo
 ! enddo
 
+! Mol-O Pair correlation functions: count atoms, assign to bins
+do i=1,n_nw
+  i_spc=list_nw(i)
+  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+
+  do j=1,n_ws(o_ns)
+    j_spc=list_ws(o_ns,j)
+    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+
+    xdf=i_pos(1)-j_pos(1)
+    ydf=i_pos(2)-j_pos(2)
+    zdf=i_pos(3)-j_pos(3)
+
+    call images(cart,0,1,1,icell,xdf,ydf,zdf)
+    r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
+
+    !if (r_ij.lt.c_rcut) then
+      !o_rad(j)=1 ! 'colour in' the corresponding cell
+
+    do ir=1,nr
+      if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
+        gr(ir)=gr(ir)+1
+      endif
+    enddo
+  enddo
+enddo
+
 ! O-O PCF normalisation
-num_i=dble(n_ws(o_ns))
-num_j=num_i
-volume=icell(1)**3.0d0
+! num_i=dble(n_ws(o_ns))
+! num_j=num_i
+! volume=icell(1)**3.0d0
 
 ! Mol-O PCF normalisation
-! num_i=dble(n_nw)
-! num_j=dble(n_ws(o_ns))
-! volume=icell(1)**3.0d0
+num_i=dble(n_nw)
+num_j=dble(n_ws(o_ns))
+volume=icell(1)**3.0d0
 
 fact=pi4*dr*(num_j/volume)
 do ir=1,nr

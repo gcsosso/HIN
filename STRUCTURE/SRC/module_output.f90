@@ -19,7 +19,7 @@ implicit none
 
 ! Local
 integer :: i, j, k, ibin, l, rmin
-real :: rstep, h, rsum, gr_int, norm, n_bins, delta_r, density
+real :: rstep, h, rsum, gr_int, norm, n_bins, density, cn_r_summed
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, allocatable :: efield(:), epot(:), g_r_average(:), cn_running(:)
 character*100 :: wformat
@@ -245,35 +245,24 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
 
   ! g_r (averaged over the n. of frames)
   do i=1,n_bins
-     g_r_average(i)=gr_norm(i)/dble(lframe-fframe+1) 
-  enddo
- 
-  ! coordination number
-!delta_r=tdrad[1]-tdrad[0]
-!td_n=len(td_data)
-!td_density=td_n/(tdlength*tdlength*tdlength) # number density, 3D
-!cn_3d=np.zeros((len(tdrad),2))
-!
-!for i in range(0,len(tdrad)):
-!    cn_3d[i,0]=tdrad[i]
-!    cn_3d[i,1]=cn_3d[i,1]+(tdg_r[i]*tdrad[i]*tdrad[i]*delta_r)
-!
-!cn_3d[:,1]=cn_3d[:,1]*(4*np.pi*density)
-  
-  delta_r=rad(2)-rad(1)
-  
-  cn_running(:)=0.0d0
-  do i=1,n_bins
-     cn_running(i)=cn_running(i)+(g_r_average(i)*rad(i)*rad(i)*delta_r)
+     g_r_average(i)=gr_norm(i)/dble(lframe-fframe+1)
   enddo
 
+  ! Running coordination number
+  cn_running(:)=0.0d0
+  cn_r_summed=0.0d0
   density=34.34375 ! hardcoded...
 
-  cn_running(:)=cn_running(:)*4.0d0*2.D0*DASIN(1.D0)*density
+  do i=1,n_bins
+     cn_running(i)=cn_running(i)+(g_r_average(i)*rad(i)*rad(i)*dr) ! integration
+  enddo
+
+  cn_running(:)=cn_running(:)*4.0d0*2.D0*DASIN(1.D0)*density ! normalisation
 
   ! Write to file
   do i=1,size(rad(:))
-    write(163,*) rad(i), g_r_average(i), cn_running(i)
+    cn_r_summed=cn_r_summed+cn_running(i)
+    write(163,*) rad(i), g_r_average(i), cn_r_summed
   enddo
 
   deallocate(g_r_average,cn_running)
