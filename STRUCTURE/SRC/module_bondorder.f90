@@ -17,8 +17,19 @@ subroutine bondorder_alloc(l)
 
 end subroutine bondorder_alloc
 
+subroutine bondorder_t4_alloc()
+
+    implicit none
+    
+    write(99, '(A,I0.1,A)') 'We are calculating the t4 order parameter.'
+	 
+    open(unit=240, file='hin_structure.out.t4', status='unknown')
+    open(unit=241, file='hin_structure.out.t4.color', status='unknown')
+
+end subroutine bondorder_t4_alloc
+
 subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 
     implicit none
 	 
@@ -34,19 +45,24 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real, allocatable :: pos(:,:)
     character*100 :: natformat
-    real(dp) :: ql_mol(n_f_ow), qlb_mol(n_f_ow), qlt_mol(n_f_ow), w_oz(n_f_ow), t6_mol(n_f_ow)
+    real(dp) :: ql_mol(n_f_ow), qlb_mol(n_f_ow), qlt_mol(n_f_ow), w_oz(n_f_ow)
+	 real(dp) :: t4_mol(n_f_ow), t4_col(nat)
+	 real(dp), allocatable :: qlb_io(:)
     real(dp) :: ql_atom, qlb_atom, qlt_atom
 	 character*100 :: n_mol_format
 	 character*4, allocatable :: sym(:)
-	 character*3 :: switch_ql, switch_qd, switch_qt
+	 character*3 :: switch_ql, switch_qd, switch_qt, switch_t4
 	 integer, allocatable :: list_f_ow(:)
 	 integer :: n_f_ow
 	 complex(dp) :: qlm_all(-l:l,n_f_ow)
+    real, parameter :: Pi = 3.14159
 
     tot_atoms = 0
     w_oz(:) = 0.0
 	 ql_mol(:) = 0.0
 	 qlb_mol(:) = 0.0
+	 qlt_mol(:) = 0.0
+	 t4_col(:) = 0.0
 	 
 	 do ii=1,n_f_ow
 	 	  i = list_f_ow(ii)
@@ -96,19 +112,18 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 						qlt_mol(tot_atoms) = qlt_atom
 				end if
 				
-				if (0.eq.1) then
-				if (l.eq.6) then
-						write(246, '(A(30F11.4))') 'X', pos(1,i), pos(2,i), pos(3,i), ql_mol(tot_atoms), &
-								real(qlm_all(-6,ii)), aimag(qlm_all(-6,ii)), real(qlm_all(-5,ii)), aimag(qlm_all(-5,ii)), &
-								real(qlm_all(-4,ii)), aimag(qlm_all(-4,ii)), real(qlm_all(-3,ii)), aimag(qlm_all(-3,ii)), &
-								real(qlm_all(-2,ii)), aimag(qlm_all(-2,ii)), real(qlm_all(-1,ii)), aimag(qlm_all(-1,ii)), &
-								real(qlm_all(0,ii)), aimag(qlm_all(0,ii)), real(qlm_all(1,ii)), aimag(qlm_all(1,ii)), &
-								real(qlm_all(2,ii)), aimag(qlm_all(2,ii)), real(qlm_all(3,ii)), aimag(qlm_all(3,ii)), &
-								real(qlm_all(4,ii)), aimag(qlm_all(4,ii)), real(qlm_all(5,ii)), aimag(qlm_all(5,ii)), &
-								real(qlm_all(6,ii)), aimag(qlm_all(6,ii))
-				end if ; end if
+				! Compute t4 if appropriate
+				if ((trim(adjustl(switch_t4)).eq.'yes').and.(l.eq.6)) then
+						t4_mol(tot_atoms) = (1/Pi)*acos((qlb_io(tot_atoms)-0.36)/&
+												  sqrt((qlb_io(tot_atoms)-0.36)**2+(qlb_mol(tot_atoms)-0.16)**2))
+						t4_col(i) = t4_mol(tot_atoms)
+				end if
         end if
     enddo
+	 
+	 if ((trim(adjustl(switch_t4)).eq.'yes').and.(l.eq.3)) then
+		  qlb_io = qlb_mol
+	 endif
 
     write(n_mol_format,*) tot_atoms
     
@@ -122,6 +137,10 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 end if
 	 if (trim(adjustl(switch_qt)).eq.'yes') then
 	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(i), i=1,tot_atoms)
+	 end if
+	 if (trim(adjustl(switch_t4)).eq.'yes') then
+	 	  write(240,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(i), i=1,tot_atoms)
+		  write(241,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
 	 end if
 	 !end if
 

@@ -42,7 +42,7 @@ character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bon
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
 character*3 :: switch_electro, switch_order, switch_water, switch_hbck
 character*3 :: switch_f3, switch_f4, switch_f_cls
-character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt, switch_qorder
+character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt, switch_qorder, switch_t4
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -52,6 +52,7 @@ character*100 :: pstring, pstring_C, command1, command2, fcommand, vmd_exe, buff
 type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical :: ex, proc, cknn
+real(dp), allocatable :: qlb_io(:)
 
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
@@ -73,6 +74,7 @@ else ; switch_qorder = 'no' ; end if
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
 
+allocate(qlb_io(n_f_ow))
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
 !open(unit=877, file='flags.dat', status='old')
@@ -142,7 +144,12 @@ if (trim(adjustl(switch_order)).eq.'yes') then
    call order_alloc(o_nz,o_zmax,o_zmin,o_dz,w_order,o_zmesh,switch_water)
 endif
 
+switch_t4 = 'no'
 if (trim(adjustl(switch_q3)).eq.'yes') then
+	if ((trim(adjustl(switch_q6)).eq.'yes').and.(trim(adjustl(switch_qd)).eq.'yes')) then
+		switch_t4 = 'yes'
+		call bondorder_t4_alloc()
+	endif
    call bondorder_alloc(3)
 endif
 if (trim(adjustl(switch_q4)).eq.'yes') then
@@ -226,15 +233,15 @@ do while ( STAT==0 )
 		! Q Ordering...
 		if (trim(adjustl(switch_q3)).eq.'yes') then
 			call bondorder(3,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
 		if (trim(adjustl(switch_q4)).eq.'yes') then
 			call bondorder(4,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
 		if (trim(adjustl(switch_q6)).eq.'yes') then
 			call bondorder(6,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
-                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt)
+                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
       
    endif
