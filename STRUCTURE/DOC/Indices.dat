@@ -1,0 +1,62 @@
+This is a record of the file indices used in Fortran.  Please update with any new files.
+
+    1-68 : ***unused***
+      69 : temporary files (should be closed immediately after use)
+      70 : temporary files (should be closed immediately after use)
+      99 : hin_structure.log
+     100 : hin_structure.in (read) 							[module_read_input.f90]
+     101 : .gro structure file (read) 						[module_read_input.f90]
+     102 : hin_structure.out.zdens 							[module_output.f90]
+     103 : hin_structure.out.rings.cages 					[module_rings.f90]
+     104 : hin_structure.out.rings.color 					[module_rings.f90]
+     105 : hin_structure.out.bonds 							[module_output.f90]
+     106 : hin_structure.out.coords 						[module_output.f90]
+     107 : hin_structure.out.rings.stats 					[module_rings.f90]
+     108 : hin_structure.out.rings.hex 					[module_rings.f90]
+     109 : hin_structure.out.cls.color 					[module_clusters.f90]
+     110 : hin_structure.out.cls.lambda 					[module_clusters.f90]
+ 111-199 : ***unused***
+     200 : hin_structure.out.f.stats 						[module_clathrates.f90]
+     201 : hin_structure.out.f.ice.patch 					[module_clathrates.f90]
+     202 : hin_structure.out.f.ice.patch.color 			[module_clathrates.f90]
+     203 : hin_structure.out.f.clathrate.patch 			[module_clathrates.f90]
+     204 : hin_structure.out.f.clathrate.patch.color 	[module_clathrates.f90]
+ 205-206 : ***unused***
+     207 : hin_structure.out.rings.stats.patch 			[module_rings.f90]
+     208 : hin_structure.out.rings.color.patch 			[module_rings.f90]
+     209 : ***unused***
+     210 : hin_structure.out.rings.clath 					[module_rings.f90]
+     211 : hin_structure.out.rings.clath.color 			[module_rings.f90]
+     212 : hin_structure.out.rings.clath.cls.color 	[module_rings.f90]
+ 213-229 : ***unused***
+     230 : hin_structure.out.f.f3 							[module_clathrates.f90]
+     231 : hin_structure.out.f.f3.color 					[module_clathrates.f90]
+ 232-233 : ***unused***
+     234 : hin_structure.out.f_order 						[module_clathrates.f90]
+ 235-239 : ***unused***
+     240 : hin_structure.out.f.f4 							[module_clathrates.f90]
+     241 : hin_structure.out.f.f4.color 					[module_clathrates.f90]
+     242 : ***unused***
+     243 : hin_structure.out.q3_order						[module_bondorder.f90]
+	  244 : hin_structure.out.q4_order						[module_bondorder.f90]
+	  245 : ***unused***
+	  246 : hin_structure.out.q6_order						[module_bondorder.f90]
+ 247-249 : ***unused***
+	  250 : hin_structure.out.t4								[module_bondorder.f90]
+	  251 : hin_structure.out.t4.color						[module_bondorder.f90]
+ 252-253 : ***unused***
+     254 : hin_structure.out.w_order 						[module_order.f90]
+     255 : hin_structure.out.w_order.color 				[module_order.f90, module_output.f90]
+ 256-306 : ***unused***
+     307 : hin_structure.out.rings.HB 						[module_rings.f90]
+ 308-901 : ***unused***
+     902 : hin_structure.out.electro 						[module_output.f90]
+ 903-974 : ***unused***
+ 	  975 : charges.q (read) 									[module_electro.f90]
+976-1101 : ***unused***
+	 1102 : hin_structure.out.xyfes 							[module_output.f90]
+ 
+ 
+ 
+ 
+ 

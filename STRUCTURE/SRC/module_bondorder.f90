@@ -14,6 +14,7 @@ subroutine bondorder_alloc(l)
 	 write(fileloc, '(A,I0.1,A)') 'hin_structure.out.q', l, '_order'
 	 
     open(unit=240+l, file=fileloc, status='unknown')
+	 !NB if more l values are allowed, file indices need to be rethinked
 
 end subroutine bondorder_alloc
 
@@ -23,8 +24,8 @@ subroutine bondorder_t4_alloc()
     
     write(99, '(A,I0.1,A)') 'We are calculating the t4 order parameter.'
 	 
-    open(unit=240, file='hin_structure.out.t4', status='unknown')
-    open(unit=241, file='hin_structure.out.t4.color', status='unknown')
+    open(unit=250, file='hin_structure.out.t4', status='unknown')
+    open(unit=251, file='hin_structure.out.t4.color', status='unknown')
 
 end subroutine bondorder_t4_alloc
 
@@ -139,6 +140,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(i), i=1,tot_atoms)
 	 end if
 	 if (trim(adjustl(switch_t4)).eq.'yes') then
+	 	  write(240,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 	  write(240,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(i), i=1,tot_atoms)
 		  write(241,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
 	 end if

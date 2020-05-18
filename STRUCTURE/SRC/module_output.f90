@@ -220,11 +220,11 @@ if (trim(adjustl(switch_order)).eq.'yes') then
    write(99,*) "We have calculated some order parameters as well..."
    if (trim(adjustl(switch_water)).eq.'yes') then
       write(99,*) "Water ordering - profile along z..."
-      open(unit=992, file='hin_structure.out.w_order', status='unknown')
+      open(unit=254, file='hin_structure.out.w_order', status='unknown')
       o_zmesh(:)=o_zmesh(:)*10.0
       w_order(:)=(w_order(:)/real(dostuff))!/(box_trans(1,1)*box_trans(2,2)*dz*1000.0)      
       do k=1,o_nz
-         write(992,'(2f20.10)') o_zmesh(k), w_order(k)
+         write(254,'(2f20.10)') o_zmesh(k), w_order(k)
       enddo
    else
       write(99,*) "Average angle of the molecular axis of choice wrt the z-axis"

@@ -167,6 +167,7 @@ read(100,*) buffer, q_zmin                  ; if (trim(adjustl(buffer)).ne.'Q_ZM
 read(100,*) buffer, q_zmax                  ; if (trim(adjustl(buffer)).ne.'Q_ZMAX') eflag=1
 read(100,*) buffer, q_cut                   ; if (trim(adjustl(buffer)).ne.'Q_CUT')   eflag=1
 
+close(100)
 
 if (eflag.eq.1) then 
    write(99,*) "Something is wrong with the input file..."
@@ -237,6 +238,8 @@ do i=1,nat
      endif
    endif  
 enddo
+
+close(101)
 
 return
 
