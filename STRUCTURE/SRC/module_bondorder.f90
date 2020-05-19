@@ -139,7 +139,7 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
 	 if (trim(adjustl(switch_qt)).eq.'yes') then
 	 	  write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(i), i=1,tot_atoms)
 	 end if
-	 if (trim(adjustl(switch_t4)).eq.'yes') then
+	 if (trim(adjustl(switch_t4)).eq.'yes'.and.(l.eq.6)) then
 	 	  write(250,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
 	 	  write(250,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(i), i=1,tot_atoms)
 		  write(251,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
