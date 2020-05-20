@@ -29,7 +29,7 @@ subroutine bondorder_t4_alloc()
 
 end subroutine bondorder_t4_alloc
 
-subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow, &
+subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_coord, &
                       time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 
     implicit none
@@ -37,12 +37,12 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_o
 	 integer, parameter :: dp = kind(1.d0)
     real :: q_zmin, q_zmax, q_cut, qd_cut, qt_cut
     real :: time
-    integer :: i, ii, l, cart, nat, m
+    integer :: i, ii, l, cart, nat, m, max_coord
     integer :: counter                      ! Frame
     real :: icell(cart*cart)
     integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(50,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
+    real :: first_coord_shell(max_coord,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real, allocatable :: pos(:,:)
     character*100 :: natformat
@@ -70,11 +70,11 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_o
 	 	  i = list_f_ow(ii)
 		  if (pos(cart,i).ge.(q_zmin-q_cut).and.pos(cart,i).le.(q_zmax+q_cut)) then
 		  		call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                   			 q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
+                                   			 q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
 				if (size_first_coord_shell.gt.0) then
 		  			do m=-l,l
 		  				call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
-											  first_coord_shell,size_first_coord_shell)
+											  first_coord_shell,size_first_coord_shell,max_coord)
 					end do
 				else
 					qlm_all(:,ii) = (0.0, 0.0)
@@ -97,20 +97,22 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_o
 				end if
             
             call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                           q_zmin,q_zmax,qd_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
+                                           q_zmin,q_zmax,qd_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
 										
             ! Compute the averaged ql parameter for the atom
 				if (trim(adjustl(switch_qd)).eq.'yes') then
-            		call compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first(ii))
+            		call compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all, &
+											  size_first(ii),max_coord)
 						qlb_mol(tot_atoms) = qlb_atom
 				end if
             
             call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                           q_zmin,q_zmax,qt_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
+                                           q_zmin,q_zmax,qt_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
 										
             ! Compute the Tianshu ql parameter for the atom
 				if (trim(adjustl(switch_qt)).eq.'yes') then
-            		call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first(ii))
+            		call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all, &
+											  size_first(ii),max_coord)
 						qlt_mol(tot_atoms) = qlt_atom
 				end if
 				
@@ -152,14 +154,14 @@ end subroutine bondorder
 
 ! Computes first coordination shell
 subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                     q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym)
+                                     q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
 
     implicit none
     
     integer :: ii, i, jj, j, cart, counter, n_f_ow          ! Atom numbers for central OW, other OW atoms
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(50,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
+    real :: first_coord_shell(max_coord,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
     real :: dsq                             ! Square distance between two atoms
@@ -168,6 +170,7 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 integer :: max_coord
 	 
 	 first_coord_shell(:,:) = 0.0
 	 first_coord_shell_ndx(:) = 0
@@ -185,10 +188,10 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
             dsq = dx*dx + dy*dy + dz*dz
             if (dsq <= q_cut*q_cut) then
                 size_first_coord_shell = size_first_coord_shell + 1
-                ! if size_first_coord_shell > 50, or whatever allocated size, warn & stop
-                if (size_first_coord_shell >= 50) then
+                ! if size_first_coord_shell > max_coord, or whatever allocated size, warn & stop
+                if (size_first_coord_shell >= max_coord) then
                     write(99,*) "WARNING: Q first coordination shell for atom ", i, &
-                                ", at frame ", counter, " exceeds 50 atoms!"
+                                ", at frame ", counter, " exceeds ", max_coord, " atoms!"
                     EXIT
                 endif
                 first_coord_shell_ndx(size_first_coord_shell) = jj
@@ -234,14 +237,14 @@ end subroutine compute_ql
 
 
 ! Computes averaged ql order parameter for an atom (Dellago)
-subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first)
+subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first,max_coord)
 
     implicit none
     
 	 integer, parameter :: dp = kind(1.d0)
-    integer :: ii, m, l, n_f_ow
+    integer :: ii, m, l, n_f_ow, max_coord
     integer :: size_first_coord_shell, size_first       ! Size of coordination shells
-    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
     real(dp) :: qlb_atom                        ! ql(i) bar parameter for atom i
     real :: sigma
     complex :: qlmb
@@ -253,7 +256,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shel
     if (size_first.gt.0) then 
     	  qlb_atom = 0
     	  do m=-l,l
-        		call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all)
+        		call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,max_coord)
         		sigma = sigma + real(qlmb)**2+aimag(qlmb)**2
     	  enddo
 
@@ -267,14 +270,14 @@ end subroutine compute_qlb
 
 
 ! Computes Tianshu version of ql order parameter for an atom
-subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first)
+subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first,max_coord)
 
     implicit none
     
 	 integer, parameter :: dp = kind(1.d0)
-    integer :: ii, fj, jj, m, l, n_f_ow
+    integer :: ii, fj, jj, m, l, n_f_ow, max_coord
     integer :: size_first_coord_shell, size_first       ! Size of coordination shells
-    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
 	 complex(dp) :: qlm_all(-l:l,n_f_ow)
 	 complex :: qi_dot_qj, sigma
 	 real :: qi_sq, qj_sq
@@ -303,14 +306,14 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shel
 end subroutine compute_qlt
 
 
-subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all)
+subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,max_coord)
     
     implicit none
 
 	 integer, parameter :: dp = kind(1.d0)
-    integer :: ii, fi, m, l, n_f_ow
+    integer :: ii, fi, m, l, n_f_ow, max_coord
     integer :: size_first_coord_shell
-    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
     complex :: qlmb, qlm, sigma
 	 complex(dp) :: qlm_all(-l:l,n_f_ow)
     
@@ -327,15 +330,15 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell
 end subroutine compute_qlmb
 
 subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
-								first_coord_shell,size_first_coord_shell)
+								first_coord_shell,size_first_coord_shell,max_coord)
     
     implicit none
 	 
 	 integer, parameter :: dp = kind(1.d0)
-    integer :: ii, fj, l, m, counter
+    integer :: ii, fj, l, m, counter, max_coord
     complex(dp) :: Ylm, sigma
 	 complex(dp) :: qlm
-	 real :: first_coord_shell(50,4)
+	 real :: first_coord_shell(max_coord,4)
 	 integer :: size_first_coord_shell
 	 integer :: cart, n_f_ow
     real :: icell(cart*cart)
