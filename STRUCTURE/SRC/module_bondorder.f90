@@ -168,6 +168,10 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
     real, allocatable :: pos(:,:)
 	 character*4, allocatable :: sym(:)
 	 integer, allocatable :: list_f_ow(:)
+	 
+	 first_coord_shell(:,:) = 0.0
+	 first_coord_shell_ndx(:) = 0
+	 size_first_coord_shell = 0
     
     size_first_coord_shell = 0
     do jj=1,n_f_ow ! Iterate through other atoms
