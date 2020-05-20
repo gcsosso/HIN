@@ -41,8 +41,8 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_o
     integer :: counter                      ! Frame
     real :: icell(cart*cart)
     integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(20,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+    real :: first_coord_shell(50,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real, allocatable :: pos(:,:)
     character*100 :: natformat
@@ -158,8 +158,8 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
     
     integer :: ii, i, jj, j, cart, counter, n_f_ow          ! Atom numbers for central OW, other OW atoms
     integer, allocatable :: tot_atoms(:)    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+    real :: first_coord_shell(50,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
     integer :: size_first_coord_shell       ! Size of first coordination shell
     real :: dx, dy, dz                      ! X, Y and Z distances between two atoms
     real :: dsq                             ! Square distance between two atoms
@@ -185,10 +185,10 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
             dsq = dx*dx + dy*dy + dz*dz
             if (dsq <= q_cut*q_cut) then
                 size_first_coord_shell = size_first_coord_shell + 1
-                ! if size_first_coord_shell > 20, or whatever allocated size, warn & stop
-                if (size_first_coord_shell >= 20) then
-                    write(99,*) "WARNING: (F3) first coordination shell for atom ", i, &
-                                ", at frame ", counter, " exceeds 20 atoms!"
+                ! if size_first_coord_shell > 50, or whatever allocated size, warn & stop
+                if (size_first_coord_shell >= 50) then
+                    write(99,*) "WARNING: Q first coordination shell for atom ", i, &
+                                ", at frame ", counter, " exceeds 50 atoms!"
                     EXIT
                 endif
                 first_coord_shell_ndx(size_first_coord_shell) = jj
@@ -241,7 +241,7 @@ subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shel
 	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, m, l, n_f_ow
     integer :: size_first_coord_shell, size_first       ! Size of coordination shells
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
     real(dp) :: qlb_atom                        ! ql(i) bar parameter for atom i
     real :: sigma
     complex :: qlmb
@@ -274,7 +274,7 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shel
 	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fj, jj, m, l, n_f_ow
     integer :: size_first_coord_shell, size_first       ! Size of coordination shells
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
 	 complex(dp) :: qlm_all(-l:l,n_f_ow)
 	 complex :: qi_dot_qj, sigma
 	 real :: qi_sq, qj_sq
@@ -310,7 +310,7 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell
 	 integer, parameter :: dp = kind(1.d0)
     integer :: ii, fi, m, l, n_f_ow
     integer :: size_first_coord_shell
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+    integer :: first_coord_shell_ndx(50)    ! First coordination shell atom indices
     complex :: qlmb, qlm, sigma
 	 complex(dp) :: qlm_all(-l:l,n_f_ow)
     
@@ -335,7 +335,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
     integer :: ii, fj, l, m, counter
     complex(dp) :: Ylm, sigma
 	 complex(dp) :: qlm
-	 real :: first_coord_shell(20,4)
+	 real :: first_coord_shell(50,4)
 	 integer :: size_first_coord_shell
 	 integer :: cart, n_f_ow
     real :: icell(cart*cart)
