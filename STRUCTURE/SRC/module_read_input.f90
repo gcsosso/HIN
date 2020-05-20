@@ -10,7 +10,7 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                       switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-							 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut)
+							 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut)
 
 implicit none
                    
@@ -18,7 +18,7 @@ integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy, f_zbins
 integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
-real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, q_zmin, q_zmax, q_cut
+real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, q_zmin, q_zmax, q_cut, qd_cut, qt_cut
 real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
@@ -166,6 +166,8 @@ read(100,*) buffer, switch_qt               ; if (trim(adjustl(buffer)).ne.'Q_TI
 read(100,*) buffer, q_zmin                  ; if (trim(adjustl(buffer)).ne.'Q_ZMIN') eflag=1
 read(100,*) buffer, q_zmax                  ; if (trim(adjustl(buffer)).ne.'Q_ZMAX') eflag=1
 read(100,*) buffer, q_cut                   ; if (trim(adjustl(buffer)).ne.'Q_CUT')   eflag=1
+read(100,*) buffer, qd_cut                  ; if (trim(adjustl(buffer)).ne.'QD_CUT')   eflag=1
+read(100,*) buffer, qt_cut                  ; if (trim(adjustl(buffer)).ne.'QT_CUT')   eflag=1
 
 close(100)
 

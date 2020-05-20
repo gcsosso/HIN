@@ -32,7 +32,7 @@ real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xym
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
-real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin, q_zmin, q_zmax, q_cut
+real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin, q_zmin, q_zmax, q_cut, qd_cut, qt_cut
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
@@ -65,7 +65,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut)
+					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut)
 
 if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q4)).eq.'yes').or.(trim(adjustl(switch_q6)).eq.'yes')) then
 		switch_qorder = 'yes'
@@ -232,15 +232,15 @@ do while ( STAT==0 )
 		
 		! Q Ordering...
 		if (trim(adjustl(switch_q3)).eq.'yes') then
-			call bondorder(3,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+			call bondorder(3,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow, &
                       time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
 		if (trim(adjustl(switch_q4)).eq.'yes') then
-			call bondorder(4,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+			call bondorder(4,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow, &
                       time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
 		if (trim(adjustl(switch_q6)).eq.'yes') then
-			call bondorder(6,q_zmin,q_zmax,q_cut,counter,list_f_ow,n_f_ow, &
+			call bondorder(6,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow, &
                       time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
 		endif
       

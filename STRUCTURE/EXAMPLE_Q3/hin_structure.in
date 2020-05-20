@@ -101,3 +101,5 @@ Q_TIANSHU   yes
 Q_ZMIN   10.2
 Q_ZMAX   18.0
 Q_CUT    0.32
+QD_CUT   0.7
+QT_CUT   0.32
