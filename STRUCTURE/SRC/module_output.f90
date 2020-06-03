@@ -17,7 +17,7 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
 implicit none
 
 ! Local
-integer :: i, j, k, ibin, l
+integer :: i, j, k, ibin, l, n
 real :: rstep, h, rsum
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, allocatable :: efield(:), epot(:)
@@ -93,15 +93,15 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
    do j=1,r_ns
       write(99,*) "We have ", n_r_ws(j), r_ws(j)
    enddo
-   do k=3,maxr
-      write(99,*) "Average number of ", k , "-membered rings = ", stat_nr_AVE(k-2)/real(dostuff)
+   do n=3,maxr
+      write(99,*) "Average number of ", n , "-membered rings = ", stat_nr_AVE(n)/real(dostuff)
    enddo
    if (trim(adjustl(switch_hbck)).eq.'yes') then
       write(99,*) "We have also computed the number or wholly hydrogen-bonded rings!!"
       write(99,*) "See: hin_structure.out.rings.stats.HB"
       write(99,*) "Here are the averages ** for the HB rings only **"
-      do k=3,maxr
-         write(99,*) "Average number of ", k , "-membered rings = ", stat_nr_HB_AVE(k-2)/real(dostuff)
+      do n=3,maxr
+         write(99,*) "Average number of ", n , "-membered rings = ", stat_nr_HB_AVE(n)/real(dostuff)
       enddo
    endif
 

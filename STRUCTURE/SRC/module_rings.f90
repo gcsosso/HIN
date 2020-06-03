@@ -65,7 +65,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
       endif
    endif 
    ! Allocate the average...
-   allocate(stat_nr_AVE(maxr-2),stat_nr_HB_AVE(maxr-2))
+   allocate(stat_nr_AVE(3:maxr),stat_nr_HB_AVE(3:maxr))
    stat_nr_AVE(:)=0.0
    stat_nr_HB_AVE(:)=0.0
    n_ddc_AVE=0.0
@@ -101,11 +101,11 @@ implicit none
 
 ! Local
 integer, parameter :: osix=6
-integer :: i, j, k, l, m, nxyz, nl, endf, iostat, id, nsix, n_hex, cart
+integer :: i, j, k, l, m, n, nxyz, nl, endf, iostat, id, nsix, n_hex, cart
 integer :: r_flag, r_flag2, r_flag3, tr(osix), tr6(osix), nper, ckr, ck
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13
 integer :: r15, r24, r26, n_ddc, n_hc, maxr, maxr_RINGS, info
-integer :: nmem, ti, tj, tk, tri, kr, surfF, lwork, dummy
+integer :: ti, tj, tk, tri, kr, surfF, lwork, dummy
 ! JPCL
 integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_surf_madeit, hc_surf_madeit, ddc_surf_dead, hc_surf_dead
 ! JPCL
@@ -287,17 +287,15 @@ call system(rings_exe // "rings.in > log 2>&1")
 !
 
 ! Allocate stuff for stat
-allocate(stat_nr(maxr-2)) ! this guy contains the number of rings of each n-membered type
+allocate(stat_nr(3:maxr)) ! this guy contains the number of rings of each n-membered type
                           ! e.g. if maxr=9, n. of 3,4,5,6,7,8 or 9 membered rings
 ! HB
-allocate(stat_nr_HB(maxr-2))
+allocate(stat_nr_HB(3:maxr))
 
 ! Get all the files we need...
-nmem=0
 stat_nr(:)=0
 stat_nr_HB(:)=0
-do k=3,maxr
-   nmem=nmem+1
+do n=3,maxr
    ! if non-primitive rings, substitute liste-5 with liste-1
    command="./rstat/liste-5/r"
    ! if non-primitive rings, substitute -5.dat with -1.dat
@@ -328,22 +326,20 @@ do k=3,maxr
         nl=nl+1
       enddo     
       rewind(69)
-      stat_nr(nmem)=nl
+      stat_nr(n)=nl
       close(69)
    else
       write(99,*) "Achtung! At time ", time, "no ", k, "-membered rings were found!"
-      stat_nr(nmem)=0
+      stat_nr(n)=0
    endif  
 enddo
 
 ! Allocate this rather cumbersome array...
-allocate(stat_wr%stat_wr_size(maxr-2))
-nmem=0
-do k=3,maxr
-   nmem=nmem+1
-   allocate(stat_wr%stat_wr_size(nmem)%mrings(stat_nr(nmem),k)) ! Apparently no need to deallocate
+allocate(stat_wr%stat_wr_size(3:maxr))
+do n=3,maxr
+   allocate(stat_wr%stat_wr_size(n)%mrings(stat_nr(n),k)) ! Apparently no need to deallocate
    ! Get the atoms belonging to each ring size
-   if (stat_nr(nmem).gt.0) then
+   if (stat_nr(n).gt.0) then
       command="r"
       write(rst2,*) k
       rst2=trim(adjustl(rst2))
@@ -351,13 +347,13 @@ do k=3,maxr
       rst="-5.dat"
       fcommand=trim(command)//trim(rst2)//trim(rst)
       open(unit=69, file=trim(adjustl(fcommand)), status='old')
-      do kr=1,stat_nr(nmem)
+      do kr=1,stat_nr(n)
          ! Get the atoms involved in each ring... 
-         read(69,*) stat_wr%stat_wr_size(nmem)%mrings(kr,:)
+         read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
          ! Colors
          if (wcol.eq.k) then
-            r_color(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:)))=k
-            !write(*,*) kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))-1
+            r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=k
+            !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
          endif   
       enddo 
       close(69)
@@ -365,41 +361,39 @@ do k=3,maxr
 enddo
 
 ! We want to know the fraction of each n-membered category that are actually wholly hydrogen bonded
-nmem=0
 if (trim(adjustl(switch_hbck)).eq.'yes') then
-   allocate(stat_wr_HB%stat_wr_size(maxr-2))
-   do k=3,maxr
-      nmem=nmem+1
-      allocate(stat_wr_HB%stat_wr_size(nmem)%mrings(stat_nr(nmem),k))
-      if (stat_nr(nmem).gt.0) then
-         do kr=1,stat_nr(nmem)
-            !write(*,*) nmem, k, kr, kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))
+   allocate(stat_wr_HB%stat_wr_size(3:maxr))
+   do n=3,maxr
+      allocate(stat_wr_HB%stat_wr_size(n)%mrings(stat_nr(n),k))
+      if (stat_nr(n).gt.0) then
+         do kr=1,stat_nr(n)
+            !write(*,*) n, k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))
             hbflag(:)=0 ! If this guy is HB, we should have hbflag=2 for each element!
             ! Loop over each oxygen
             do l=1,k
                ! Loop over every other oxygen
                do m=l+1,k
                   !! M-L
-                  if (sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group . It can only receive HB!
+                  if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group . It can only receive HB!
                      dummy=0
                   else ! water-water or water-OH TIP4P/Ice, OW HW1 HW2 MW
                      ! H1
-                     xdf=pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
-                     ydf=pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
-                     zdf=pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
+                     xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                     ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                     zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                      call images(cart,0,1,1,icell,xdf,ydf,zdf)
                      rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
 !                     ! DEBUG
-!                     if (kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))-1.eq.5008.and.kr.eq.13.and.k.eq.6) then
-!                        write(*,*) k, kr, kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)), kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))-1, rij_M
-!                        !write(*,*) k, kr, kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))-1
+!                     if (kto(stat_wr%stat_wr_size(n)%mrings(kr,l))-1.eq.5008.and.kr.eq.13.and.k.eq.6) then
+!                        write(*,*) k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,l)), kto(stat_wr%stat_wr_size(n)%mrings(kr,m))-1, rij_M
+!                        !write(*,*) k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
 !                     endif
                      ! END DEBUG
                      if (rij_M.lt.hbdist) then
                      ! Check the O-H-O angle
-                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
+                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
                      v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+1)
+                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)
                      v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
                      tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
                         if (abs(tangle).lt.hbangle) then
@@ -408,17 +402,17 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         endif
                      endif
                      ! H2
-                     if (sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))).ne."O3") then ! if .eq. it means that's a OH...
-                        xdf=pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+2)-pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
-                        ydf=pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+2)-pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
-                        zdf=pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+2)-pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
+                     if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).ne."O3") then ! if .eq. it means that's a OH...
+                        xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                        ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                        zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                         call images(cart,0,1,1,icell,xdf,ydf,zdf)
                         rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
                         if (rij_M.lt.hbdist) then
                         ! Check the O-H-O angle
-                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+2)-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
+                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
                         v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l))+2)
+                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)
                         v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
                         tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
                            if (abs(tangle).lt.hbangle) then
@@ -429,20 +423,20 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                      endif
                   endif
                   !! L-M
-                  if (sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group
+                  if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group
                      dummy=dummy
                   else ! water-water or water-OH
                      ! H1
-                     xdf=pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+1)-pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
-                     ydf=pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+1)-pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
-                     zdf=pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+1)-pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
+                     xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
+                     ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
+                     zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
                      call images(cart,0,1,1,icell,xdf,ydf,zdf)
                      rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
                      if (rij_M.lt.hbdist) then
                      ! Check the O-H-O angle
-                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+1)-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
+                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                      v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+1)
+                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)
                      v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
                      tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
                         if (abs(tangle).lt.hbangle) then
@@ -451,17 +445,17 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         endif
                      endif
                      ! H2
-                     if (sym(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))).ne."O3") then ! if .eq. it means that's a OH...
-                        xdf=pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+2)-pos(1,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
-                        ydf=pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+2)-pos(2,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
-                        zdf=pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+2)-pos(3,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))
+                     if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).ne."O3") then ! if .eq. it means that's a OH...
+                        xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
+                        ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
+                        zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
                         call images(cart,0,1,1,icell,xdf,ydf,zdf)
                         rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
                         if (rij_M.lt.hbdist) then
                         ! Check the O-H-O angle
-                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+2)-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m)))
+                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                         v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(nmem)%mrings(kr,m))+2)
+                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)
                         v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
                         tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
                            if (abs(tangle).lt.hbangle) then
@@ -473,7 +467,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                   endif     
                enddo
             enddo 
-            !write(*,*) kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))-1
+            !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
             !write(*,*) (hbflag(l), l=1,k)
             ! HERE !
             !! stat_nr contains the number of rings / n-member. if all hbflags = 2 , this is HB - DONE
@@ -483,20 +477,20 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
             !! 
             if (sum(hbflag).eq.(2*k)) then
                !write(*,*) k, sum(hbflag)
-               stat_nr_HB(nmem)=stat_nr_HB(nmem)+1
-               stat_wr_HB%stat_wr_size(nmem)%mrings(stat_nr_HB(nmem),:) = stat_wr%stat_wr_size(nmem)%mrings(kr,:)
+               stat_nr_HB(n)=stat_nr_HB(n)+1
+               stat_wr_HB%stat_wr_size(n)%mrings(stat_nr_HB(n),:) = stat_wr%stat_wr_size(n)%mrings(kr,:)
                ! fix the color!
                if (wcol.eq.k) then
-                  r_color(kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:)))=k*100 
+                  r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=k*100 
                endif 
                !if (k.eq.6) then
-               !   write(*,*) kto(stat_wr%stat_wr_size(nmem)%mrings(kr,:))-1
+               !   write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
                !endif
             endif
          enddo
       endif      
    enddo
-endif
+endif ! END OF HBCK
 
 ! TBF 
 !stop
@@ -519,7 +513,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
    
    ! Six-rings stuff, for hexagons/cages. Keep it separate from "normal" rings statistics...
    ! if non-primitive rings, substitute -5.dat with -1.dat
-   if (stat_nr(4)==0) then ! No hexagonal rings!?
+   if (stat_nr(6)==0) then ! No hexagonal rings!?
       n_ddc=0
       n_hc=0
       goto 656
@@ -1291,13 +1285,13 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     type(cnx_graph), allocatable :: ring_cnxs_55(:), ring_cnxs_65(:)
     
     ! NOTE: stat_wr is an array of integer 2D arrays (stat_wr_size)
-    ! The array is indexed by #members in ring, from 3 to max_rings (3->5, 4->6)
+    ! The array is indexed by #members in ring, from 3 to max_rings (3->3, 4->4, 5->5, 6->6, ...)
     ! 2D arrays are (which ring, member of ring), [#N-membered rings] x [N]
     
-    rings5 = stat_wr%stat_wr_size(3)%mrings
-    rings6 = stat_wr%stat_wr_size(4)%mrings
-    nrings5 = stat_nr(3)
-    nrings6 = stat_nr(4)
+    rings5 = stat_wr%stat_wr_size(5)%mrings
+    rings6 = stat_wr%stat_wr_size(6)%mrings
+    nrings5 = stat_nr(5)
+    nrings6 = stat_nr(6)
     
     call ringpairs(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n_cnx_55,n_cnx_65, &
                    t_n_cnx_55,t_n_cnx_56,t_n_cnx_6)
