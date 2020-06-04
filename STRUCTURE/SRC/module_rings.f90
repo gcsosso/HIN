@@ -300,7 +300,7 @@ do n=3,maxr
    command="./rstat/liste-5/r"
    ! if non-primitive rings, substitute -5.dat with -1.dat
    rst="-5.dat"
-   write(rst2,*) k
+   write(rst2,*) n
    rst2=trim(adjustl(rst2))
    fcommand=trim(command)//trim(rst2)//trim(rst)
    inquire(file=fcommand, exist=exist)
@@ -308,7 +308,7 @@ do n=3,maxr
       command="cp ./rstat/liste-5/r"
       ! if non-primitive rings, substitute -5.dat with -1.dat
       rst="-5.dat ."
-      write(rst2,*) k
+      write(rst2,*) n
       rst2=trim(adjustl(rst2))
       fcommand=trim(command)//trim(rst2)//trim(rst)
       call system(fcommand) 
@@ -329,7 +329,7 @@ do n=3,maxr
       stat_nr(n)=nl
       close(69)
    else
-      write(99,*) "Achtung! At time ", time, "no ", k, "-membered rings were found!"
+      write(99,*) "Achtung! At time ", time, "no ", n, "-membered rings were found!"
       stat_nr(n)=0
    endif  
 enddo
@@ -337,11 +337,11 @@ enddo
 ! Allocate this rather cumbersome array...
 allocate(stat_wr%stat_wr_size(3:maxr))
 do n=3,maxr
-   allocate(stat_wr%stat_wr_size(n)%mrings(stat_nr(n),k)) ! Apparently no need to deallocate
+   allocate(stat_wr%stat_wr_size(n)%mrings(stat_nr(n),n)) ! Apparently no need to deallocate
    ! Get the atoms belonging to each ring size
    if (stat_nr(n).gt.0) then
       command="r"
-      write(rst2,*) k
+      write(rst2,*) n
       rst2=trim(adjustl(rst2))
       ! if non-primitive rings, substitute -5.dat with -1.dat
       rst="-5.dat"
@@ -351,8 +351,8 @@ do n=3,maxr
          ! Get the atoms involved in each ring... 
          read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
          ! Colors
-         if (wcol.eq.k) then
-            r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=k
+         if (wcol.eq.n) then
+            r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
             !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
          endif   
       enddo 
@@ -364,15 +364,15 @@ enddo
 if (trim(adjustl(switch_hbck)).eq.'yes') then
    allocate(stat_wr_HB%stat_wr_size(3:maxr))
    do n=3,maxr
-      allocate(stat_wr_HB%stat_wr_size(n)%mrings(stat_nr(n),k))
+      allocate(stat_wr_HB%stat_wr_size(n)%mrings(stat_nr(n),n))
       if (stat_nr(n).gt.0) then
          do kr=1,stat_nr(n)
             !write(*,*) n, k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))
             hbflag(:)=0 ! If this guy is HB, we should have hbflag=2 for each element!
             ! Loop over each oxygen
-            do l=1,k
+            do l=1,n
                ! Loop over every other oxygen
-               do m=l+1,k
+               do m=l+1,n
                   !! M-L
                   if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group . It can only receive HB!
                      dummy=0
@@ -468,22 +468,22 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                enddo
             enddo 
             !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
-            !write(*,*) (hbflag(l), l=1,k)
+            !write(*,*) (hbflag(l), l=1,n)
             ! HERE !
             !! stat_nr contains the number of rings / n-member. if all hbflags = 2 , this is HB - DONE
             !! so we count a stat_nr_HB, average that as well, and output that as well - DONE
             !! also, we should fix the color - DONE 
             !! also, we should fix OW and O3, different options! - DONE. the O of MDHE will have to be implemented separately...
             !! 
-            if (sum(hbflag).eq.(2*k)) then
-               !write(*,*) k, sum(hbflag)
+            if (sum(hbflag).eq.(2*n)) then
+               !write(*,*) n, sum(hbflag)
                stat_nr_HB(n)=stat_nr_HB(n)+1
                stat_wr_HB%stat_wr_size(n)%mrings(stat_nr_HB(n),:) = stat_wr%stat_wr_size(n)%mrings(kr,:)
                ! fix the color!
-               if (wcol.eq.k) then
-                  r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=k*100 
+               if (wcol.eq.n) then
+                  r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n*100 
                endif 
-               !if (k.eq.6) then
+               !if (n.eq.6) then
                !   write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
                !endif
             endif
