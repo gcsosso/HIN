@@ -84,8 +84,8 @@ endif
 
 end subroutine rings_alloc
 
-subroutine rings(kto,r_ns,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
-                 sym,rings_exe,r_color,time,STEP,counter,natformat, &
+subroutine rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
+                 sym,resname,rings_exe,r_color,time,STEP,counter,natformat, &
                  nat,icell,rcut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS, &
                  switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                  patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
@@ -132,7 +132,9 @@ real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbangle, tangle
 real, allocatable :: pos(:,:), stat_nr_AVE(:), stat_nr_HB_AVE(:)
 character*3 :: switch_cages, switch_hex, switch_r_cls, r_cls_W, switch_r_idx, switch_ffss, switch_hbck
 character*4, allocatable :: sym(:)
+character*5, allocatable :: resname(:)
 character*100 :: rings_exe, natformat
+character*4, allocatable :: r_wh(:)
 
 ! DFS stuff
 integer :: ncr, mxvic, nat_cls, iat, jat, nnf, vol_count, voltot, ncrit, patch

@@ -8,6 +8,18 @@
   - Still don't know whether ri-n or r-n... 
   -> MAXR and n- rings -> (4->6 | 5-> (up to 9) | ). Use 4 to save time when we are interested in 6-membered rings only.
      Use 5 when we are interested in a ring statistics up to 7,8 or 9-membered rings
+  DEFINIING SPECIES FOR RINGS: there are now three parameters to set, R_WS and R_WR are required for all
+  rings analysis, these are respectively the atom name and residue name from the gro file.
+  - If running HBCK, must also set R_WH, this tells HIN where to find the hydrogens. It uses one digit per hydrogen,
+    (modulo 10), i.e. (0,1,2,3,4,5,6,7,8,9)->(0,+1,+2,+3,+4,+5,-4,-3,-2,-1).
+  - Usage examples for a system with oxygens: SOL:OW(OW,HW1,HW2), CHL1:O3(O3,H3'), RESX:OX(HX,OX,HY), DPPC:O12(O12)
+   -> R_NS  4
+   -> R_WS  OW   O3   OX   O12
+   -> R_WR  SOL  CHL1 RESX DPPC
+   -> RCUT  0.32
+   -> HBCK  yes
+   -> R_WH  12   1    91   0
+  - NB: order of digits in R_WH doesnt matter, i.e. 19=91
 
 * As the same atom can belong to rings of different size - not to mention DDC/HC cages and hexagons! - we have to choose
   which particular size/cage/hex we want to color for VMD purposes. Set WCOL as:
@@ -41,8 +53,10 @@ R_ZMIN     0.0                                                                 #
 R_ZMAX     0.0                                                                 # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
 R_NS       2                                                                   # n. of species for which we want to get the rings [1]
 R_WS       OW O3                                                               # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+R_WR       HO4 CHL1                                                            # Which residues these species are from
 RCUT       0.32                                                                # nearest neighbor cutoff [nm]
 HBCK       yes                                                                 # Consider only hydrogen-bonded rings
+R_WH       12 1                                                                # Where hydrogens are indexed relative to R_WS (mod 10) 0=no Hydrogen
 HB_DIST    0.25                                                                # O-H distance criteria for HB [nm]         
 HB_ANGLE   30.0                                                                # O-H-O angle criteria for HB [deg] (deviation from pi)
 MAXR       9                                                                   # Will get up to MAXR-membered rings [min=6, max=9]

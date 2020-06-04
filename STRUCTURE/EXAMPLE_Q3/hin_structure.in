@@ -30,10 +30,13 @@ R_EXE      '/home/molases/maungn/rings-code-v1.3.3/BIN/bin/rings'              #
 R_CLS_ONLY no 				                                       # Consider the atoms in the largest cluster only, reading indexes from an external file (idx.dat) - TBF
 R_ZMIN     0.0 #13.0	           			           	               # lower bound of the region for which we'll get the rings
 R_ZMAX     30.0 #17.0            					               # upper bound ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
-R_NS       1							               # n. of species for which we want to get the rings [1]
-R_WS       OW       			        		               # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+R_NS       2							               # n. of species for which we want to get the rings [1]
+R_WS       OW O3                                        # which species -> e.g. 'OW', 'HW', as specified in the .gro file [OW] 
+R_WR       SOL CHL1                     # Which residues these species are from
 RCUT       0.32                                                                # nearest neighbor cutoff [nm]
+R_WH       12 1         # Where hydrogens are indexed relative to R_WS (mod 10) 0=no Hydrogen
 HBCK       yes                                                                  # Consider only hydrogen-bonded rings
+R_WH       12 1         # Where hydrogens are indexed relative to R_WS (mod 10) 0=no Hydrogen
 HB_DIST    0.3 								       # O-H distance criteria for HB [nm]	   
 HB_ANGLE   30.0								       # O-H-O angle criteria for HB [deg] (deviation from pi)
 MAXR       6              						       # Will get up to MAXR-membered rings [min=6, max=9]

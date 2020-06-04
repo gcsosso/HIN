@@ -3,7 +3,7 @@ module MOD_read_input
 contains
 
 subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, & 
-                      switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,n_r_ws,rcut,switch_cls,plumed_exe, &
+                      switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,r_wr,r_wh,n_r_ws,rcut,switch_cls,plumed_exe, &
                       switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
                       switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
@@ -30,7 +30,7 @@ character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
-character*4, allocatable, intent(out) :: ws(:), r_ws(:) 
+character*4, allocatable, intent(out) :: ws(:), r_ws(:), r_wr(:), r_wh(:) 
 
 ! Read input file...
 open(unit=100, file='hin_structure.in', status='old')
@@ -69,10 +69,12 @@ read(100,*) buffer, switch_r_idx          ; if (trim(adjustl(buffer)).ne.'R_CLS_
 read(100,*) buffer, r_zmin                ; if (trim(adjustl(buffer)).ne.'R_ZMIN') eflag=1
 read(100,*) buffer, r_zmax                ; if (trim(adjustl(buffer)).ne.'R_ZMAX') eflag=1
 read(100,*) buffer, r_ns                  ; if (trim(adjustl(buffer)).ne.'R_NS')   eflag=1
-allocate(r_ws(r_ns),n_r_ws(r_ns)) ; n_r_ws(:)=0
+allocate(r_ws(r_ns),r_wr(r_ns),r_wh(r_ns),n_r_ws(r_ns)) ; n_r_ws(:)=0
 read(100,*) buffer, (r_ws(i), i=1,r_ns)   ; if (trim(adjustl(buffer)).ne.'R_WS')   eflag=1
+read(100,*) buffer, (r_wr(i), i=1,r_ns)   ; if (trim(adjustl(buffer)).ne.'R_WR')   eflag=1
 read(100,*) buffer, rcut                  ; if (trim(adjustl(buffer)).ne.'RCUT')   eflag=1
 read(100,*) buffer, switch_hbck           ; if (trim(adjustl(buffer)).ne.'HBCK')   eflag=1
+read(100,*) buffer, (r_wh(i), i=1,r_ns)   ; if (trim(adjustl(buffer)).ne.'R_WH')   eflag=1
 read(100,*) buffer, hbdist                ; if (trim(adjustl(buffer)).ne.'HB_DIST')   eflag=1
 read(100,*) buffer, hbangle               ; if (trim(adjustl(buffer)).ne.'HB_ANGLE')  eflag=1
 read(100,*) buffer, maxr                  ; if (trim(adjustl(buffer)).ne.'MAXR')   eflag=1
@@ -181,7 +183,7 @@ return
 
 end subroutine read_input
 
-subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
+subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
                     natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
 
 implicit none
@@ -194,7 +196,7 @@ real :: dummyp
 character*3 :: hw_ex, switch_zdens, switch_rings, switch_f3, switch_f4, switch_qorder
 character*5,allocatable :: resname(:)
 character*100 :: sfile, natformat
-character*4, allocatable :: sym(:), ws(:), r_ws(:)
+character*4, allocatable :: sym(:), ws(:), r_ws(:), r_wr(:)
 
 ! Read structure file...
 open(unit=101, file=trim(adjustl(sfile)), status='old')
@@ -228,7 +230,7 @@ do i=1,nat
          !!   write(99,*) "You'll have to implement yet another type of HB check!"
          !!   stop
          !!endif
-         if (trim(adjustl(sym(i))).eq.trim(adjustl(r_ws(j)))) then
+         if ((trim(adjustl(sym(i))).eq.trim(adjustl(r_ws(j)))).and.(trim(adjustl(resname(i))).eq.trim(adjustl(r_wr(j))))) then
             n_r_ws(j)=n_r_ws(j)+1
             list_r_ws(j,n_r_ws(j))=i
          endif
