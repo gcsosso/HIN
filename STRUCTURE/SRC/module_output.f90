@@ -18,11 +18,12 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
 implicit none
 
 ! Local
-integer :: i, j, k, ibin, l, rmin
-real :: rstep, h, rsum, gr_int, norm, n_bins, density, cn_r_summed
+integer :: i, j, k, ibin, l, width
+real :: rstep, h, rsum, gr_int, norm, n_bins, density, cn_r_summed, rmin
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
-real, allocatable :: efield(:), epot(:), g_r_average(:), cn_running(:)
+real, allocatable :: efield(:), epot(:), gr_average(:), smgr_average(:), cn_running(:)
 character*100 :: wformat
+logical :: min
 
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
@@ -241,31 +242,65 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
 
   ! N. of bins
   n_bins=size(rad)
-  allocate(g_r_average(n_bins), cn_running(n_bins))
+  allocate(gr_average(n_bins), smgr_average(n_bins), cn_running(n_bins))
 
-  ! g_r (averaged over the n. of frames)
+  ! gr (averaged over the n. of frames)
   do i=1,n_bins
-     g_r_average(i)=gr_norm(i)/dble(lframe-fframe+1)
+     gr_average(i)=gr_norm(i)/dble(lframe-fframe+1)
+  enddo
+
+  ! smooth - could combine this with the loop above to save some time...
+  do i=1,n_bins
+    if (i.le.2) then
+      smgr_average(i)=gr_average(3)
+    elseif (i.ge.n_bins-2) then
+      smgr_average(i)=gr_average(n_bins)
+    else
+      smgr_average(i)=(gr_average(i-2)+2.0d0*gr_average(i-1)+3.0d0*gr_average(i)+2.0d0*gr_average(i+1)+gr_average(i+2))/9.0d0
+    endif
+  enddo
+
+  ! Find first minimum with search width parameter
+  width=2 !! Hard coded
+  min=.false.
+  rmin=0.0
+  do i=1, n_bins
+    if (i.le.width .or. i.ge.n_bins-width) then
+      cycle ! skip - otherwise will go out of bounds at next conditional statement
+    else
+      do j=1, width
+        if (smgr_average(i-j).gt.smgr_average(i) .and. smgr_average(i+j).gt.smgr_average(i-1)) then
+          min=.true.
+        else
+          min=.false.
+          exit ! rad(i) not the minimum - exit the inner loop
+        endif
+      enddo
+      if (min.eqv..true.) then
+        rmin=rad(i)
+        exit ! minimum found - exit outer loop
+      endif
+    endif
   enddo
 
   ! Running coordination number
   cn_running(:)=0.0d0
   cn_r_summed=0.0d0
-  density=34.34375 ! hardcoded...
+  density=34.34375 !! hardcoded...
 
   do i=1,n_bins
-     cn_running(i)=cn_running(i)+(g_r_average(i)*rad(i)*rad(i)*dr) ! integration
+     cn_running(i)=cn_running(i)+(gr_average(i)*rad(i)*rad(i)*dr) ! integration
   enddo
 
   cn_running(:)=cn_running(:)*4.0d0*2.D0*DASIN(1.D0)*density ! normalisation
 
   ! Write to file
-  do i=1,size(rad(:))
+  do i=1,n_bins
     cn_r_summed=cn_r_summed+cn_running(i)
-    write(163,*) rad(i), g_r_average(i), cn_r_summed
+    write(163,*) rad(i), gr_average(i), smgr_average(i), cn_r_summed
   enddo
 
-  deallocate(g_r_average,cn_running)
+  deallocate(gr_average,cn_running)
 
 endif
 

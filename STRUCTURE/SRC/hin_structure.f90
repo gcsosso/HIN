@@ -130,7 +130,7 @@ endif
 
 ! Cryo stuff - alloc
 if (trim(adjustl(switch_cryo)).eq.'yes') then
-   call cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
+   call cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
 endif
 
 

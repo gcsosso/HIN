@@ -2,15 +2,15 @@ module MOD_cryo
 
 contains
 
-subroutine cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
+subroutine cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
 
 implicit none
 
 ! Arguments
-real :: o_rad_count, dr, half_dr
+real :: icell(cart*cart), o_rad_count, dr, half_dr
 real, allocatable :: pos(:,:), o_dist(:), rad(:), gr_norm(:)
 character*4, allocatable :: sym(:)
-integer :: nat, ns, o_ns, n_nw, nr
+integer :: nat, ns, cart, o_ns, n_nw, nr
 integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:)
 
 ! Local
@@ -28,7 +28,7 @@ do i=1,ns
    !enddo
 enddo
 
-n_nw=nat-n_ws(o_ns)*4 ! n_nw = number of non-water species. If using TIP4P water model i.e. 4 particles/molecule
+n_nw=nat-n_ws(o_ns)*4 ! n_nw = number of non-water species. If using TIP4P water model i.e. 4 particles/molecule !! Hard-coded
 allocate(list_nw(n_nw))
 
 pairs=((n_ws(o_ns)-1)**2.0+(n_ws(o_ns)-1))/2.0 ! Number of O-O pairs
@@ -48,7 +48,7 @@ enddo
 n_nw=size(list_nw) ! n_nw = number of non-water species
 
 ! Pair correlation functions: build mesh
-l_box=4.0 ! TBE
+l_box=icell(1)
 allocate(rad(nr))
 dr=l_box/(real(2.0*nr))
 half_dr=dr/2.0
@@ -114,7 +114,7 @@ gr(:)=0.0d0
 ! enddo
 
 ! Mol-O Pair correlation functions: count atoms, assign to bins
-do i=1,n_nw
+do i=4,4
   i_spc=list_nw(i)
   i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
 
@@ -146,7 +146,8 @@ enddo
 ! volume=icell(1)**3.0d0
 
 ! Mol-O PCF normalisation
-num_i=dble(n_nw)
+!num_i=dble(n_nw)
+num_i=1.0d0
 num_j=dble(n_ws(o_ns))
 volume=icell(1)**3.0d0
 
