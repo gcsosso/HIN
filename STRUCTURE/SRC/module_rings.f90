@@ -387,7 +387,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                             write(99,*) "Duplicate index found in R_WH!"
                             duplicate_hydrogen_logged = .true.
                         endif
-                    else if (j.ne.0) then
+                    else if ((j.ne.0).and.(hbflag(l).ne.m).and.(hbflag(l).ne.-1)) then
                       duplicate_hydrogen(j) = .true.
                       if (j.gt.5) j=j-10
                       r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
@@ -400,7 +400,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         db = r2(1)**2.0+r2(2)**2.0+r2(3)**2.0
                         th = acos((r1(1)*r2(1)+r1(2)*r2(2)+r1(3)*r2(3))/(sqrt(db*d_sq)))*rad2deg
                         if (th.lt.hbangle) then
-                            if ((hbflag(l).eq.m).or.(hbflag(l).eq.0)) then
+                            if (hbflag(l).eq.0) then
                                 hbflag(l) = m
                             else
                                 hbflag(l) = -1
