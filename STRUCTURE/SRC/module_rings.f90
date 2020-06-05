@@ -391,12 +391,12 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                       duplicate_hydrogen(j) = .true.
                       if (j.gt.5) j=j-10
                       r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                      call images(cart,0,1,1,icell,xdf,ydf,zdf)
+                      call images(cart,0,1,1,icell,r1(1),r1(2),r1(3))
                       d_sq=r1(1)**2.0+r1(2)**2.0+r1(3)**2.0
                       if (d_sq.lt.(hbdist**2.0)) then
                         ! Check the O-H-O angle
                         r2=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                        call images(cart,0,1,1,icell,xb,yb,zb)
+                        call images(cart,0,1,1,icell,r2(1),r2(2),r2(3))
                         db = r2(1)**2.0+r2(2)**2.0+r2(3)**2.0
                         th = acos((r1(1)*r2(1)+r1(2)*r2(2)+r1(3)*r2(3))/(sqrt(db*d_sq)))*rad2deg
                         if (th.lt.hbangle) then
