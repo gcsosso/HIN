@@ -45,7 +45,7 @@ character*3 :: switch_f3, switch_f4, switch_f_cls
 character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt, switch_qorder, switch_t4
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
-character*4, allocatable :: ws(:), r_ws(:), r_wr(:), r_wh(:), sym(:)
+character*4, allocatable :: ws(:), r_ws(:), r_wr(:), r_wh(:), sym(:), kto_h(:)
 character*4, allocatable :: atq(:)
 character*100 :: sfile, tfile, xtcOfile, wformat, natformat, rings_exe, command, plumed_exe
 character*100 :: pstring, pstring_C, command1, command2, fcommand, vmd_exe, buffer
@@ -71,7 +71,7 @@ if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q4)).eq.'yes').o
 		switch_qorder = 'yes'
 else ; switch_qorder = 'no' ; end if
 
-call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
+call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,kto_h,n_ws,hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
 
 allocate(qlb_io(n_f_ow))
@@ -186,7 +186,7 @@ do while ( STAT==0 )
 
       ! Rings statistics...  
       if (trim(adjustl(switch_rings)).eq.'yes') then
-          call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax,sym,resname,rings_exe,r_color,time,STEP, &
+          call rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax,sym,resname,rings_exe,r_color,time,STEP, &
                      counter,natformat,nat,icell,rcut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS, &
                      switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                      patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &

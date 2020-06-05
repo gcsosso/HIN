@@ -84,7 +84,7 @@ endif
 
 end subroutine rings_alloc
 
-subroutine rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
+subroutine rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  sym,resname,rings_exe,r_color,time,STEP,counter,natformat, &
                  nat,icell,rcut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS, &
                  switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
@@ -111,15 +111,17 @@ integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_sur
 ! JPCL
 integer, allocatable :: w_rings(:,:),r_array(:),p_rings(:,:,:),r_nper(:)
 integer, allocatable :: stat_nr(:), stat_nr_HB(:)
-real :: posi(cart), posj(cart), posk(cart), xdf, ydf, zdf, dist, a_thr
+real :: posi(cart), posj(cart), posk(cart), xdf, ydf, zdf, xb, yb, zb, dist, a_thr
 real :: pol1(cart), pol2(cart), rcm(cart), tin(cart,cart), v1(cart), v2(cart), v1m, v2m
-real :: rij(cart), rkj(cart), rij_M , rkj_M, hex_angle, z_ext
+real :: rij(cart), rkj(cart), rij_M , rkj_M, hex_angle, z_ext, d_sq, db, th
 real, parameter :: rad2deg=57.2958, ref_angle=120.0, pi=4.0*atan(1.0)
 double precision, allocatable :: work(:)
 double precision :: mtemp(cart,cart), eigen(cart), delta, esse, rog, trt, trt2, lambda, delta1
 character*100 :: command, command2, rst, rst2, fcommand, stat_format, arname
 logical :: cknn, exist
 type(ragged_array) :: stat_wr, stat_wr_HB
+character*4 :: hydrogens
+logical :: duplicate_hydrogen(9), duplicate_hydrogen_logged
 
 ! Arguments
 integer :: r_ns, STEP, counter, six, nat, wcol, nsurf, nbulk, hbflag(cart*cart) ! no more than 9-membered rings in any case...
@@ -134,7 +136,7 @@ character*3 :: switch_cages, switch_hex, switch_r_cls, r_cls_W, switch_r_idx, sw
 character*4, allocatable :: sym(:)
 character*5, allocatable :: resname(:)
 character*100 :: rings_exe, natformat
-character*4, allocatable :: r_wh(:)
+character*4, allocatable :: r_wh(:), kto_h(:)
 
 ! DFS stuff
 integer :: ncr, mxvic, nat_cls, iat, jat, nnf, vol_count, voltot, ncrit, patch
@@ -155,6 +157,7 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
    open(unit=70, file='tmp.dat', status='unknown')
    nxyz=0
    kto(:)=0
+   kto_h(:)=''
    do i=1,r_ns
       do j=1,n_r_ws(i)
          if (pos(cart,list_r_ws(i,j)).ge.r_zmin.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
@@ -162,6 +165,7 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
             ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
             ! Store this information for visualisation purposes
             kto(nxyz)=list_r_ws(i,j)
+            kto_h(nxyz)=r_wh(i)
          endif
       enddo 
    enddo 
@@ -196,6 +200,7 @@ else ! we have already read the indexes of the atoms we are interested in - typi
       ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
       ! Store this information for visualisation purposes
       kto(nxyz)=C_idx(counter+1,i)+1
+      kto_h(nxyz)=r_wh(i)
 
       !write(*,*) kto(nxyz)-1      
 
@@ -364,6 +369,7 @@ enddo
 
 ! We want to know the fraction of each n-membered category that are actually wholly hydrogen bonded
 if (trim(adjustl(switch_hbck)).eq.'yes') then
+   duplicate_hydrogen_logged = .false.
    allocate(stat_wr_HB%stat_wr_size(3:maxr))
    do n=3,maxr
       allocate(stat_wr_HB%stat_wr_size(n)%mrings(stat_nr(n),n))
@@ -371,104 +377,40 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
          do kr=1,stat_nr(n)
             !write(*,*) n, k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))
             hbflag(:)=0 ! If this guy is HB, we should have hbflag=2 for each element!
-            ! Loop over each oxygen
-            do l=1,n
-               ! Loop over every other oxygen
-               do m=l+1,n
-                  !! M-L
-                  if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group . It can only receive HB!
-                     dummy=0
-                  else ! water-water or water-OH TIP4P/Ice, OW HW1 HW2 MW
-                     ! H1
-                     xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                     ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                     zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                     call images(cart,0,1,1,icell,xdf,ydf,zdf)
-                     rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
-!                     ! DEBUG
-!                     if (kto(stat_wr%stat_wr_size(n)%mrings(kr,l))-1.eq.5008.and.kr.eq.13.and.k.eq.6) then
-!                        write(*,*) k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,l)), kto(stat_wr%stat_wr_size(n)%mrings(kr,m))-1, rij_M
-!                        !write(*,*) k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
-!                     endif
-                     ! END DEBUG
-                     if (rij_M.lt.hbdist) then
-                     ! Check the O-H-O angle
-                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                     v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+1)
-                     v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
-                     tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
-                        if (abs(tangle).lt.hbangle) then
-                           hbflag(l)=hbflag(l)+1
-                           hbflag(m)=hbflag(m)+1
+            do l=1,n ; do m=1,n ; if (l.ne.m) then ! Loop over every pair
+                 duplicate_hydrogen(:) = .false.
+                 hydrogens = kto_h(stat_wr%stat_wr_size(n)%mrings(kr,l))
+                 do i=1,len(trim(adjustl(hydrogens)))
+                    read(hydrogens(i:i),'(i1)') j
+                    if (duplicate_hydrogen(j)) then
+                        if (.not.duplicate_hydrogen_logged) then
+                            write(99,*) "Duplicate index found in R_WH!"
+                            duplicate_hydrogen_logged = .true.
                         endif
-                     endif
-                     ! H2
-                     if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,l))).ne."O3") then ! if .eq. it means that's a OH...
-                        xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                        ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                        zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                        call images(cart,0,1,1,icell,xdf,ydf,zdf)
-                        rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
-                        if (rij_M.lt.hbdist) then
+                    else if (j.ne.0) then
+                      duplicate_hydrogen(j) = .true.
+                      if (j.gt.5) j=j-10
+                      xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                      ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                      zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                      call images(cart,0,1,1,icell,xdf,ydf,zdf)
+                      d_sq=xdf**2.0+ydf**2.0+zdf**2.0
+                      if (d_sq.lt.(hbdist**2.0)) then
                         ! Check the O-H-O angle
-                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                        v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+2)
-                        v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
-                        tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
-                           if (abs(tangle).lt.hbangle) then
-                              hbflag(l)=hbflag(l)+1
-                              hbflag(m)=hbflag(m)+1
-                           endif
+                        xb=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        yb=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        zb=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        call images(cart,0,1,1,icell,xb,yb,zb)
+                        db = sqrt(xb**2.0+yb**2.0+zb**2.0)
+                        th = acos((xdf*xb+ydf*yb+zdf*zb)/(db*sqrt(d_sq)))*rad2deg
+                        if ((180-th).lt.hbangle) then
+                            hbflag(l) = hbflag(l)+1
+                            hbflag(m) = hbflag(m)+1
                         endif
-                     endif
-                  endif
-                  !! L-M
-                  if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR1".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR2".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR3".or.sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).eq."OR4") then ! l is metaldehide - or an oxygen beloging to an etheric group
-                     dummy=dummy
-                  else ! water-water or water-OH
-                     ! H1
-                     xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                     ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                     zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                     call images(cart,0,1,1,icell,xdf,ydf,zdf)
-                     rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
-                     if (rij_M.lt.hbdist) then
-                     ! Check the O-H-O angle
-                     v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                     v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                     v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+1)
-                     v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
-                     tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
-                        if (abs(tangle).lt.hbangle) then
-                           hbflag(l)=hbflag(l)+1
-                           hbflag(m)=hbflag(m)+1
-                        endif
-                     endif
-                     ! H2
-                     if (sym(kto(stat_wr%stat_wr_size(n)%mrings(kr,m))).ne."O3") then ! if .eq. it means that's a OH...
-                        xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                        ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                        zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))
-                        call images(cart,0,1,1,icell,xdf,ydf,zdf)
-                        rij(1)=xdf ; rij(2)=ydf ; rij(3)=zdf; rij_M=sqrt(rij(1)**2.0+rij(2)**2.0+rij(3)**2.0)
-                        if (rij_M.lt.hbdist) then
-                        ! Check the O-H-O angle
-                        v1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
-                        v1m=sqrt(v1(1)**2.0+v1(2)**2.0+v1(3)**2.0)
-                        v2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m))+2)
-                        v2m=sqrt(v2(1)**2.0+v2(2)**2.0+v2(3)**2.0)
-                        tangle=acos(((v1(1)*v2(1)+v1(2)*v2(2)+v1(3)*v2(3))/(v1m*v2m)))*rad2deg
-                           if (abs(tangle).lt.hbangle) then
-                              hbflag(l)=hbflag(l)+1
-                              hbflag(m)=hbflag(m)+1
-                           endif
-                        endif
-                     endif
-                  endif     
-               enddo
-            enddo 
+                      endif
+                    endif
+                 end do
+            endif ; end do ; end do
             !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
             !write(*,*) (hbflag(l), l=1,n)
             ! HERE !

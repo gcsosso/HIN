@@ -183,7 +183,7 @@ return
 
 end subroutine read_input
 
-subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
+subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,kto_h,n_ws,hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
                     natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_f3,switch_f4,switch_qorder)
 
 implicit none
@@ -196,14 +196,14 @@ real :: dummyp
 character*3 :: hw_ex, switch_zdens, switch_rings, switch_f3, switch_f4, switch_qorder
 character*5,allocatable :: resname(:)
 character*100 :: sfile, natformat
-character*4, allocatable :: sym(:), ws(:), r_ws(:), r_wr(:)
+character*4, allocatable :: sym(:), ws(:), r_ws(:), r_wr(:), kto_h(:)
 
 ! Read structure file...
 open(unit=101, file=trim(adjustl(sfile)), status='old')
 read(101,*)
 read(101,*) nat
 write(natformat,*) nat
-allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat))
+allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),kto_h(nat),resname(nat),resnum(nat))
 allocate(list_f_ow(nat))
 n_ws(:)=0
 n_f_ow = 0
