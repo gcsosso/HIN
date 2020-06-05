@@ -376,7 +376,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
       if (stat_nr(n).gt.0) then
          do kr=1,stat_nr(n)
             !write(*,*) n, k, kr, kto(stat_wr%stat_wr_size(n)%mrings(kr,:))
-            hbflag(:)=0 ! If this guy is HB, we should have hbflag=2 for each element!
+            hbflag(:)=0 ! If this guy is HB, we should have hbflag=-1 for each element!
             do l=1,n ; do m=1,n ; if (l.ne.m) then ! Loop over every pair
                  duplicate_hydrogen(:) = .false.
                  hydrogens = kto_h(stat_wr%stat_wr_size(n)%mrings(kr,l))
@@ -404,8 +404,10 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         db = sqrt(xb**2.0+yb**2.0+zb**2.0)
                         th = acos((xdf*xb+ydf*yb+zdf*zb)/(db*sqrt(d_sq)))*rad2deg
                         if ((180-th).lt.hbangle) then
-                            hbflag(l) = hbflag(l)+1
-                            hbflag(m) = hbflag(m)+1
+                            if ((hbflag(l).eq.m).or.(hbflag(l).eq.0)) hbflag(l) = m
+                            else: hbflag(l) = -1
+                            if ((hbflag(m).eq.l).or.(hbflag(m).eq.0)) hbflag(m) = l
+                            else: hbflag(m) = -1
                         endif
                       endif
                     endif
@@ -419,7 +421,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
             !! also, we should fix the color - DONE 
             !! also, we should fix OW and O3, different options! - DONE. the O of MDHE will have to be implemented separately...
             !! 
-            if (sum(hbflag).eq.(2*n)) then
+            if (sum(hbflag).eq.(-1*n)) then
                !write(*,*) n, sum(hbflag)
                stat_nr_HB(n)=stat_nr_HB(n)+1
                stat_wr_HB%stat_wr_size(n)%mrings(stat_nr_HB(n),:) = stat_wr%stat_wr_size(n)%mrings(kr,:)
