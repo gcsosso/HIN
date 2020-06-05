@@ -111,7 +111,7 @@ integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_sur
 ! JPCL
 integer, allocatable :: w_rings(:,:),r_array(:),p_rings(:,:,:),r_nper(:)
 integer, allocatable :: stat_nr(:), stat_nr_HB(:)
-real :: posi(cart), posj(cart), posk(cart), xdf, ydf, zdf, xb, yb, zb, dist, a_thr
+real :: posi(cart), posj(cart), posk(cart), xdf, ydf, zdf, r1(cart), r2(cart), dist, a_thr
 real :: pol1(cart), pol2(cart), rcm(cart), tin(cart,cart), v1(cart), v2(cart), v1m, v2m
 real :: rij(cart), rkj(cart), rij_M , rkj_M, hex_angle, z_ext, d_sq, db, th
 real, parameter :: rad2deg=57.2958, ref_angle=120.0, pi=4.0*atan(1.0)
@@ -390,20 +390,16 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                     else if (j.ne.0) then
                       duplicate_hydrogen(j) = .true.
                       if (j.gt.5) j=j-10
-                      xdf=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                      ydf=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                      zdf=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                      r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                       call images(cart,0,1,1,icell,xdf,ydf,zdf)
-                      d_sq=xdf**2.0+ydf**2.0+zdf**2.0
+                      d_sq=r1(1)**2.0+r1(2)**2.0+r1(3)**2.0
                       if (d_sq.lt.(hbdist**2.0)) then
                         ! Check the O-H-O angle
-                        xb=pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(1,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                        yb=pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(2,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                        zb=pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(3,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        r2=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
                         call images(cart,0,1,1,icell,xb,yb,zb)
-                        db = sqrt(xb**2.0+yb**2.0+zb**2.0)
-                        th = acos((xdf*xb+ydf*yb+zdf*zb)/(db*sqrt(d_sq)))*rad2deg
-                        if ((180-th).lt.hbangle) then
+                        db = r2(1)**2.0+r2(2)**2.0+r2(3)**2.0
+                        th = acos((r1(1)*r2(1)+r1(2)*r2(2)+r1(3)*r2(3))/(sqrt(db*d_sq)))*rad2deg
+                        if (th.lt.hbangle) then
                             if ((hbflag(l).eq.m).or.(hbflag(l).eq.0)) then
                                 hbflag(l) = m
                             else
