@@ -3,7 +3,7 @@ FFLAGS_MAC=-ffree-line-length-512  #-mmacosx-version-min=10.9.5 -ftrace=full # -
 # Gabriele's path
 # LDLIBS_MAC=-L/Users/wolf/Work/LIBS/LIBXDR/xdrfile-1.1.4/BIN/lib -lxdrfile
 # Matt's path
-LDLIBS_MAC=-L/Users/matt/HIN/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib # -L/usr/lib required on MacOS Catalina
+LDLIBS_MAC=-L/Users/matt/Git/HIN/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib # -L/usr/lib required on MacOS Catalina
 EXE_MAC=hin_structure_MaCoS.x
 
 SRC_DIR=../SRC

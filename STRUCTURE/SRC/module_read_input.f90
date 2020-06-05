@@ -8,7 +8,7 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
-                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr)
+                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr,switch_hydration)
 
 implicit none
 
@@ -21,7 +21,7 @@ real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
-character*3 :: switch_water, switch_hbck, switch_cryo
+character*3 :: switch_water, switch_hbck, switch_cryo, switch_hydration
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
@@ -142,6 +142,7 @@ read(100,*) ; read(100,*)
 read(100,*) buffer, switch_cryo            ; if (trim(adjustl(buffer)).ne.'CRYO') eflag=1
 read(100,*) buffer, c_rcut                 ; if (trim(adjustl(buffer)).ne.'C_RCUT') eflag=1
 read(100,*) buffer, nr                     ; if (trim(adjustl(buffer)).ne.'NR') eflag=1
+read(100,*) buffer, switch_hydration       ; if (trim(adjustl(buffer)).ne.'HYDRATION') eflag=1
 
 if (eflag.eq.1) then
    write(99,*) "Something is wrong with the input file..."

@@ -1,11 +1,11 @@
 # This input file is fixed format. Do not mess with the keywords order or line numbers!
 
 # Trajectory section
-SFILE  i001.gro            # structure file -> .gro file
-TFILE  i001.xtc            # trajectory file -> .xtc file
+SFILE  sucrose.gro            # structure file -> .gro file
+TFILE  sucrose.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
-LFRAME 2                   # last frame to be taken into account -> n.
+LFRAME 999                  # last frame to be taken into account -> n.
 OUTXTC no                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     2                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in the .gro file
@@ -79,6 +79,7 @@ O_ZMAX   16.0
 O_DZ     0.1
 
 # Cryo
-CRYO     yes
-C_RCUT   0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
-NR       100                   # number of bins for pair correlation functions
+CRYO       yes
+C_RCUT     0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
+NR         300                   # number of bins for pair correlation functions
+HYDRATION  yes                   # calculate hydration number -> yes or no.

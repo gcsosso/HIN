@@ -34,11 +34,11 @@ real :: c_rcut, o_rad_count, dr, half_dr, fact
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: o_dist(:), rad(:), gr_norm(:)
+real, allocatable :: o_dist(:), rad(:), gr_norm(:,:)
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
-character*3 :: switch_electro, switch_order, switch_water, switch_hbck, switch_cryo
+character*3 :: switch_electro, switch_order, switch_water, switch_hbck, switch_cryo, switch_hydration
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -58,7 +58,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
-                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr)
+                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr,switch_hydration)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -210,6 +210,10 @@ do while ( STAT==0 )
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
 enddo
 
+if (trim(adjustl(switch_hydration)).eq.'yes') then
+   ! Will have to average
+endif
+
 ! Output...
 call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_trans, &
             switch_rings,r_ns,r_ws,n_r_ws,maxr,stat_nr_AVE,switch_cages,n_ddc_AVE,n_hc_AVE, &
@@ -220,7 +224,7 @@ call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
             switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-            switch_cryo,rad,dr,gr_norm,fact)
+            switch_cryo,n_nw,list_nw,sym,rad,dr,gr_norm,fact)
 
 STAT=xdrfile_close(xd)
 
