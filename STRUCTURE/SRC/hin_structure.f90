@@ -31,7 +31,7 @@ real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
-real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
+real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbdist2, hbangle
 real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin, q_zmin, q_zmax, q_cut, qd_cut, qt_cut
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
@@ -66,6 +66,8 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
 					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,max_coord)
+
+hbdist2 = hbdist**2.0
 
 if ((trim(adjustl(switch_q3)).eq.'yes').or.(trim(adjustl(switch_q4)).eq.'yes').or.(trim(adjustl(switch_q6)).eq.'yes')) then
 		switch_qorder = 'yes'
@@ -194,7 +196,7 @@ do while ( STAT==0 )
                      n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                      delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
                      rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,mflag,switch_hbck, &
-                     hbdist,hbangle,stat_nr_HB_AVE,thrSS)
+                     hbdist,hbdist2,hbangle,stat_nr_HB_AVE,thrSS)
 
       endif
 

@@ -92,7 +92,7 @@ subroutine rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                  delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
                  rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,mflag,switch_hbck, &
-                 hbdist,hbangle,stat_nr_HB_AVE,thrSS)
+                 hbdist,hbdist2,hbangle,stat_nr_HB_AVE,thrSS)
 
 use dfs
 use MOD_vector3
@@ -130,7 +130,7 @@ real :: r_zmin, r_zmax, time, icell(cart*cart), rcut, thrS, minz, cell_ORTO(cart
 real ::  n_ddc_AVE, n_hc_AVE, n_hex_AVE, box_trans(cart,cart)
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbangle, tangle
+real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbdist2, hbangle, tangle
 real, allocatable :: pos(:,:), stat_nr_AVE(:), stat_nr_HB_AVE(:)
 character*3 :: switch_cages, switch_hex, switch_r_cls, r_cls_W, switch_r_idx, switch_ffss, switch_hbck
 character*4, allocatable :: sym(:)
@@ -387,25 +387,26 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                             write(99,*) "Duplicate index found in R_WH!"
                             duplicate_hydrogen_logged = .true.
                         endif
-                    else if ((j.ne.0).and.(hbflag(l).ne.m).and.(hbflag(l).ne.-1)) then
-                      duplicate_hydrogen(j) = .true.
+                    else if ((j.ne.0).and.(hbflag(l).ne.m).and.((hbflag(l).ne.-1).or.(hbflag(m).ne.-1))) then
                       if (j.gt.5) j=j-10
                       r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                       call images(cart,0,1,1,icell,r1(1),r1(2),r1(3))
                       d_sq=r1(1)**2.0+r1(2)**2.0+r1(3)**2.0
-                      if (d_sq.lt.(hbdist**2.0)) then
+                      if (d_sq.lt.hbdist2) then
                         ! Check the O-H-O angle
-                        r2=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
-                        call images(cart,0,1,1,icell,r2(1),r2(2),r2(3))
+                        r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                        r2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        !call images(cart,0,1,1,icell,r2(1),r2(2),r2(3))
+                        d_sq=r1(1)**2.0+r1(2)**2.0+r1(3)**2.0
                         db = r2(1)**2.0+r2(2)**2.0+r2(3)**2.0
                         th = acos((r1(1)*r2(1)+r1(2)*r2(2)+r1(3)*r2(3))/(sqrt(db*d_sq)))*rad2deg
-                        if (abs(th).lt.hbangle) then
+                        if (th.lt.hbangle) then
                             if (hbflag(l).eq.0) then
                                 hbflag(l) = m
                             else
                                 hbflag(l) = -1
                             endif
-                            if ((hbflag(m).eq.l).or.(hbflag(m).eq.0)) then
+                            if (hbflag(m).eq.0) then
                                 hbflag(m) = l
                             else
                                 hbflag(m) = -1
@@ -413,6 +414,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         endif
                       endif
                     endif
+                    duplicate_hydrogen(j) = .true.
                  end do
             endif ; end do ; end do
             !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
@@ -423,7 +425,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
             !! also, we should fix the color - DONE 
             !! also, we should fix OW and O3, different options! - DONE. the O of MDHE will have to be implemented separately...
             !! 
-            if (sum(hbflag).eq.(-1*n)) then
+            if (sum(hbflag).eq.(-n)) then
                !write(*,*) n, sum(hbflag)
                stat_nr_HB(n)=stat_nr_HB(n)+1
                stat_wr_HB%stat_wr_size(n)%mrings(stat_nr_HB(n),:) = stat_wr%stat_wr_size(n)%mrings(kr,:)
