@@ -404,10 +404,16 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         db = sqrt(xb**2.0+yb**2.0+zb**2.0)
                         th = acos((xdf*xb+ydf*yb+zdf*zb)/(db*sqrt(d_sq)))*rad2deg
                         if ((180-th).lt.hbangle) then
-                            if ((hbflag(l).eq.m).or.(hbflag(l).eq.0)) hbflag(l) = m
-                            else: hbflag(l) = -1
-                            if ((hbflag(m).eq.l).or.(hbflag(m).eq.0)) hbflag(m) = l
-                            else: hbflag(m) = -1
+                            if ((hbflag(l).eq.m).or.(hbflag(l).eq.0)) then
+                                hbflag(l) = m
+                            else
+                                hbflag(l) = -1
+                            endif
+                            if ((hbflag(m).eq.l).or.(hbflag(m).eq.0)) then
+                                hbflag(m) = l
+                            else
+                                hbflag(m) = -1
+                            endif
                         endif
                       endif
                     endif
