@@ -13,17 +13,16 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_cryo,n_nw,list_nw,sym,rad,dr,gr_norm,fact)
+                  switch_cryo,n_nw,list_nw,sym,rad,gr_average,smgr_average,cn_running,rmin)
 
 implicit none
 
 ! Local
-integer :: i, j, k, ibin, l, width
-real :: rstep, h, rsum, gr_int, norm, n_bins, density, cn_r_summed
+integer :: i, j, k, ibin, l, n_bins
+real :: rstep, h, rsum, cn_r_summed
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
-real, allocatable :: efield(:), epot(:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:)
+real, allocatable :: efield(:), epot(:)
 character*100 :: wformat
-logical :: min
 
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
@@ -34,9 +33,9 @@ real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK,
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: dr, fact
 real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_AVE(:,:), stat_nr_HB_AVE(:)
-real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:), rad(:), gr_norm(:,:)
+real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
+real, allocatable :: rad(:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:)
 character*3 :: outxtc, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes, switch_hbck
 character*3 :: switch_hex, switch_cages, switch_r_cls, r_cls_W, switch_ffss, switch_electro
 character*3 :: switch_order, switch_water, switch_cryo
@@ -242,65 +241,6 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
 
   ! N. of bins
   n_bins=size(rad)
-  allocate(gr_average(n_nw,n_bins), smgr_average(n_nw,n_bins), cn_running(n_nw,n_bins), rmin(n_nw))
-
-  ! gr (averaged over the n. of frames)
-  do i=1,n_nw
-    do j=1,n_bins
-      gr_average(i,j)=gr_norm(i,j)/dble(lframe-fframe+1)
-    enddo
-  enddo
-
-  ! smooth - could combine this with the loop above to save some time...
-  do i=1,n_nw
-    do j=1,n_bins
-      if (j.le.2) then
-        smgr_average(i,j)=gr_average(i,3)
-      elseif (j.ge.n_bins-2) then
-        smgr_average(i,j)=gr_average(i,n_bins)
-      else
-        smgr_average(i,j)=(gr_average(i,j-2)+2.0d0*gr_average(i,j-1)+3.0d0*gr_average(i,j)+2.0d0*gr_average(i,j+1)+gr_average(i,j+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
-      endif
-    enddo
-  enddo
-
-  ! Find first minimum with search width parameter
-  width=2 !! Hard coded
-  min=.false.
-  rmin(:)=0.0d0
-  do i=1,n_nw
-    do j=1,n_bins
-      if (j.le.width .or. j.ge.n_bins-width) then
-        cycle ! skip - otherwise will go out of bounds at next conditional statement
-      else
-        do k=1, width
-          if (smgr_average(i,j-k).gt.smgr_average(i,j) .and. smgr_average(i,j+k).gt.smgr_average(i,j)) then
-            min=.true.
-          else
-            min=.false.
-            exit ! rad(i) not the minimum - exit the inner loop
-          endif
-        enddo
-        if (min.eqv..true.) then
-          rmin(i)=rad(j)
-          min=.false.
-          exit ! minimum found - exit middle loop
-        endif
-      endif
-    enddo
-  enddo
-
-  ! Running coordination number
-  cn_running(:,:)=0.0d0
-  density=34.34375 !! hardcoded...
-
-  do i=1,n_nw
-    do j=1,n_bins
-     cn_running(i,j)=cn_running(i,j)+(gr_average(i,j)*rad(j)*rad(j)*dr) ! integration
-   enddo
-  enddo
-
-  cn_running(:,:)=cn_running(:,:)*4.0d0*2.D0*DASIN(1.D0)*density ! normalisation
 
   ! Write to file
   do i=1,n_nw
@@ -308,12 +248,10 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
     write(163,*) "Atom:", sym(list_nw(i)), "First minimum:", rmin(i)
     do j=1,n_bins
       cn_r_summed=cn_r_summed+cn_running(i,j)
-      write(163,*) rad(j), gr_average(i,j), smgr_average(i,j), cn_r_summed
+      write(163,*) rad(j), gr_average(i,j), smgr_average(i,j), cn_running(i,j), cn_r_summed
     enddo
-      write(163,*)
+    write(163,*)
   enddo
-
-  deallocate(gr_average,cn_running)
 
 endif
 

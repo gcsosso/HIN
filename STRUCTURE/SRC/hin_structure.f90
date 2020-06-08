@@ -34,7 +34,7 @@ real :: c_rcut, o_rad_count, dr, half_dr, fact
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: o_dist(:), rad(:), gr_norm(:,:)
+real, allocatable :: o_dist(:), rad(:), gr_norm(:,:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:)
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
@@ -210,8 +210,13 @@ do while ( STAT==0 )
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
 enddo
 
+! Additional cryo
+if (trim(adjustl(switch_cryo)).eq.'yes') then
+  call cryo_workup(fframe,lframe,n_nw,rad,dr,gr_norm,gr_average,smgr_average,cn_running,rmin)
+endif
+
 if (trim(adjustl(switch_hydration)).eq.'yes') then
-   ! Will have to average
+   ! call hydration()
 endif
 
 ! Output...
@@ -224,7 +229,7 @@ call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
             switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-            switch_cryo,n_nw,list_nw,sym,rad,dr,gr_norm,fact)
+            switch_cryo,n_nw,list_nw,sym,rad,gr_average,smgr_average,cn_running,rmin)
 
 STAT=xdrfile_close(xd)
 

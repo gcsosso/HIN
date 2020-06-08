@@ -165,10 +165,83 @@ enddo
 
 end subroutine cryo
 
-! subroutine cryo_workup
-!
-! end subroutine cryo_workup
-!
+
+subroutine cryo_workup(fframe,lframe,n_nw,rad,dr,gr_norm,gr_average,smgr_average,cn_running,rmin)
+
+! Arguments
+real :: dr
+real, allocatable :: rad(:), gr_norm(:,:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:)
+integer :: fframe, lframe, n_nw
+
+! Local
+real :: density
+integer :: i, j, k, n_bins, width
+logical :: min
+
+allocate(gr_average(n_nw,n_bins), smgr_average(n_nw,n_bins), cn_running(n_nw,n_bins), rmin(n_nw))
+n_bins=size(rad)
+
+! gr (averaged over the n. of frames)
+gr_average(:,:)=0.0d0
+do i=1,n_nw
+  do j=1,n_bins
+    gr_average(i,j)=gr_norm(i,j)/dble(lframe-fframe+1)
+  enddo
+enddo
+
+! Running coordination number
+cn_running(:,:)=0.0d0
+density=34.34375 !! hardcoded...
+do i=1,n_nw
+  do j=1,n_bins
+   cn_running(i,j)=cn_running(i,j)+(gr_average(i,j)*rad(j)*rad(j)*dr) ! integration
+ enddo
+enddo
+
+cn_running(:,:)=cn_running(:,:)*4.0d0*2.D0*DASIN(1.D0)*density ! normalisation
+
+! smooth
+smgr_average(:,:)=0.0d0
+do i=1,n_nw
+  do j=1,n_bins
+    if (j.le.2) then
+      smgr_average(i,j)=gr_average(i,3)
+    elseif (j.ge.n_bins-2) then
+      smgr_average(i,j)=gr_average(i,n_bins)
+    else
+      smgr_average(i,j)=(gr_average(i,j-2)+2.0d0*gr_average(i,j-1)+3.0d0*gr_average(i,j)+2.0d0*gr_average(i,j+1)+gr_average(i,j+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
+    endif
+  enddo
+enddo
+
+! Find first minimum with search width parameter
+rmin(:)=0.0d0
+width=2 !! Hard coded
+min=.false.
+do i=1,n_nw
+  do j=1,n_bins
+    if (j.le.width .or. j.ge.n_bins-width) then
+      cycle ! skip - otherwise will go out of bounds at next conditional statement
+    else
+      do k=1, width
+        if (smgr_average(i,j-k).gt.smgr_average(i,j) .and. smgr_average(i,j+k).gt.smgr_average(i,j)) then
+          min=.true.
+        else
+          min=.false.
+          exit ! rad(i) not the minimum - exit the inner loop
+        endif
+      enddo
+      if (min.eqv..true.) then
+        rmin(i)=rad(j)
+        min=.false.
+        exit ! minimum found - exit middle loop
+      endif
+    endif
+  enddo
+enddo
+
+end subroutine cryo_workup
+
 ! subroutine hydration
 !
 ! end subroutine hydration
