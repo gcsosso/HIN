@@ -174,6 +174,8 @@ logical :: min
 allocate(gr_average(n_nw,n_bins), smgr_average(n_nw,n_bins), cn_running(n_nw,n_bins), rmin(n_nw))
 n_bins=size(rad)
 
+write(*,*) "DEBUG", n_nw, n_bins
+
 ! gr (averaged over the n. of frames)
 gr_average(:,:)=0.0d0
 do i=1,n_nw
@@ -235,16 +237,22 @@ enddo
 
 end subroutine cryo_workup
 
-subroutine hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv)
+subroutine hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv,rmin,icell)
+
+! Local
+real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
+integer :: i, j, k, i_spc, j_spc
+integer, parameter :: cart=3
 
 ! Arguments
 real, allocatable :: pos(:,:), rmin(:)
 integer :: o_ns, n_nw
 integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), o_solv(:)
+real :: icell(cart*cart)
 
-! Local
-real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
-integer :: i, j, k, i_spc, j_spc
+!do i=1,n_nw
+!   write(*,*) "DEBUG", rmin(i)
+!enddo
 
 do i=1,n_nw
   i_spc=list_nw(i)
@@ -258,8 +266,10 @@ do i=1,n_nw
     ydf=i_pos(2)-j_pos(2)
     zdf=i_pos(3)-j_pos(3)
 
+    !write(*,*) "DEBUG_1", i, cart, icell(:), xdf, ydf, zdf 
     call images(cart,0,1,1,icell,xdf,ydf,zdf)
     r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
+    !write(*,*) "DEBUG_2",i
 
     if (r_ij.lt.rmin(i)) then
         o_solv(j)=1

@@ -90,7 +90,9 @@ if (trim(adjustl(switch_zdens)).eq.'yes') then
    call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
 endif
 
+write(*,*) "STEP", STEP
 call read_first_xtc(tfile,outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
+write(*,*) "STEP", STEP
 
 if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes') then
    call read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
@@ -207,6 +209,7 @@ do while ( STAT==0 )
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
+   write(*,*) "STEP", STEP
 enddo
 
 ! Additional cryo
@@ -218,7 +221,9 @@ endif
 if (trim(adjustl(switch_hydration)).eq.'yes') then
   write(*,*) "HYDRATION"
   deallocate(pos)
+  write(*,*) "STEP_2", STEP
   call read_first_xtc(tfile,outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
+  write(*,*) "STEP_2", STEP
   counter=0
   dostuff=0
 
@@ -227,13 +232,14 @@ if (trim(adjustl(switch_hydration)).eq.'yes') then
      if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
         dostuff=dostuff+1
         !call cryo(pos,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,c_rcut,nr,dr,half_dr,rad,gr_norm,fact)
-        call hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv)
+        call hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv,rmin,icell)
 
      endif
      counter=counter+1
      if (counter.gt.lframe) exit
      ! Read .xtc frame...
      STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
+     write(*,*) "STEP_2", STEP
   enddo
 endif
 
