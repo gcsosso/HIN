@@ -7,23 +7,23 @@ dimension cell(9),rcell(9)
 
    call invert(cell,rcell,det)
    if(abs(det).lt.1.d-6) stop "zero determinant cell matrix"
-   
+
    do i=idnode+1,natm,mxnode
-      
+
       ssx=(rcell(1)*xxx(i)+rcell(4)*yyy(i)+rcell(7)*zzz(i))
       ssy=(rcell(2)*xxx(i)+rcell(5)*yyy(i)+rcell(8)*zzz(i))
       ssz=(rcell(3)*xxx(i)+rcell(6)*yyy(i)+rcell(9)*zzz(i))
-      
+
       xss=ssx-nint(ssx)
       yss=ssy-nint(ssy)
       zss=ssz-nint(ssz)
-      
+
       xxx(i)=(cell(1)*xss+cell(4)*yss+cell(7)*zss)
       yyy(i)=(cell(2)*xss+cell(5)*yss+cell(8)*zss)
       zzz(i)=(cell(3)*xss+cell(6)*yss+cell(9)*zss)
-      
+
    enddo
-   
+
 return
 end
 

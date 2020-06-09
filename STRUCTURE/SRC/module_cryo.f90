@@ -2,22 +2,20 @@ module MOD_cryo
 
 contains
 
-subroutine cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,o_rad_count,nr,dr,half_dr,rad,gr_norm)
+subroutine cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,o_solv,n_solv)
 
 implicit none
 
 ! Arguments
-real :: icell(cart*cart), o_rad_count, dr, half_dr
-real, allocatable :: pos(:,:), o_dist(:), rad(:), gr_norm(:,:)
+real :: icell(cart*cart), dr, half_dr
+real, allocatable :: pos(:,:), rad(:), gr_norm(:,:)
 character*4, allocatable :: sym(:)
-integer :: nat, ns, cart, o_ns, n_nw, nr
-integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:)
+integer :: nat, ns, cart, o_ns, n_nw, nr, n_solv
+integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), o_solv(:)
 
 ! Local
 integer :: i, j, pairs, counter, ir
 real :: l_box
-
-o_rad_count=0
 
 do i=1,ns
    if (sym(list_ws(i,1)).eq.'OW') then
@@ -32,7 +30,6 @@ n_nw=nat-n_ws(o_ns)*4 ! n_nw = number of non-water species. If using TIP4P water
 allocate(list_nw(n_nw))
 
 pairs=((n_ws(o_ns)-1)**2.0+(n_ws(o_ns)-1))/2.0 ! Number of O-O pairs
-allocate(o_dist(pairs))
 
 ! Get indexes of all non-water species (list_nw)
 counter=1
@@ -57,32 +54,33 @@ do ir=1,nr
   rad(ir)=(real(ir-1)+0.5)*dr
 enddo
 
-allocate(gr_norm(n_nw,nr))
+allocate(gr_norm(n_nw,nr),o_solv(n_ws(o_ns)))
 gr_norm(:,:)=0.0d0
+o_solv(:)=0
+n_solv=0
 
 end subroutine cryo_alloc
 
 
-subroutine cryo(pos,sym,ns,n_ws,list_ws,o_dist,o_ns,cart,icell,list_nw,n_nw,c_rcut,o_rad_count,nr,dr,half_dr,rad,gr_norm,fact)
+subroutine cryo(pos,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,c_rcut,nr,dr,half_dr,rad,gr_norm,fact)
 
 implicit none
 
 ! Arguments
-real :: icell(cart*cart), c_rcut, o_rad_count, dr, half_dr, fact
-real, allocatable :: pos(:,:), o_dist(:), rad(:), gr_norm(:,:)
+real :: icell(cart*cart), c_rcut, dr, half_dr, fact
+real, allocatable :: pos(:,:), rad(:), gr_norm(:,:)
 character*4, allocatable :: sym(:)
 integer :: ns, o_ns, cart, n_nw, nr
 integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:)
 
 ! Local
 integer :: i, j, counter, i_spc, j_spc, ir
-integer, allocatable :: o_rad(:), gr(:,:)
+integer, allocatable :: gr(:,:)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij, vol
 real :: rho, r2, num_i, num_j, volume, gr_tmp
 real(8), parameter :: pi=4.0*datan(1.d0), pi4=4.0*pi
 
-allocate(o_rad(n_ws(o_ns)),gr(n_nw,nr))
-o_rad(:)=0 ! Vector of 0s corresponding to O water atoms - to be 'coloured in' when atoms are counted
+allocate(gr(n_nw,nr))
 gr(:,:)=0.0d0
 gr_tmp=0.0d0
 
@@ -103,8 +101,6 @@ gr_tmp=0.0d0
 !     call images(cart,0,1,1,icell,xdf,ydf,zdf)
 !     r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
 !
-!     !if (r_ij.lt.c_rcut) then
-!       !o_rad(j)=1 ! 'colour in' the corresponding cell
 !
 !     do ir=1,nr
 !       if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
@@ -129,9 +125,6 @@ do i=1,n_nw
 
     call images(cart,0,1,1,icell,xdf,ydf,zdf)
     r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
-
-    !if (r_ij.lt.c_rcut) then
-      !o_rad(j)=1 ! 'colour in' the corresponding cell
 
     do ir=1,nr
       if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
@@ -242,8 +235,40 @@ enddo
 
 end subroutine cryo_workup
 
-! subroutine hydration
-!
-! end subroutine hydration
+subroutine hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv)
+
+! Arguments
+real, allocatable :: pos(:,:), rmin(:)
+integer :: o_ns, n_nw
+integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), o_solv(:)
+
+! Local
+real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
+integer :: i, j, k, i_spc, j_spc
+
+do i=1,n_nw
+  i_spc=list_nw(i)
+  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+
+  do j=1,n_ws(o_ns)
+    j_spc=list_ws(o_ns,j)
+    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+
+    xdf=i_pos(1)-j_pos(1)
+    ydf=i_pos(2)-j_pos(2)
+    zdf=i_pos(3)-j_pos(3)
+
+    call images(cart,0,1,1,icell,xdf,ydf,zdf)
+    r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
+
+    if (r_ij.lt.rmin(i)) then
+        o_solv(j)=1
+    endif
+  enddo
+enddo
+
+n_solv=n_solv+sum(o_solv)
+
+end subroutine hydration
 
 end module MOD_cryo
