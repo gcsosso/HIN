@@ -325,7 +325,6 @@ call system(rings_exe // "rings.in > log 2>&1")
 
 if (trim(adjustl(switch_r_split)).eq.'yes') then
    call chdir('.right')
-   call system('pwd')
    command="cat conf.xyz >> tmp.dat ; mv tmp.dat conf.xyz"
    call system(command)
    command="n_xyz=`wc -l conf.xyz | awk '{print $1-2}'` ; cat rings.in_TEMPLATE | sed ""s/NAT/$n_xyz/"" > rings.in"
@@ -348,7 +347,6 @@ if (trim(adjustl(switch_r_split)).eq.'yes') then
    call system(command)
    call system(rings_exe // "rings.in > log 2>&1")
    call chdir('..')
-   call system('pwd')
 endif
 
 ! DEBUG
