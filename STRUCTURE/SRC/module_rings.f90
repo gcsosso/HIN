@@ -195,9 +195,11 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
    
    if (trim(adjustl(switch_r_split)).eq.'yes') then
       nleft = nxyz
-      call system("mkdir right")
-      open(unit=69, file='right/conf.xyz', status='unknown')
-      open(unit=70, file='right/tmp.dat', status='unknown')
+      call system("mkdir -p .right")
+      call system("cp rings.in_TEMPLATE .right/.")
+      call system("cp options_TEMPLATE .right/.")
+      open(unit=69, file='.right/conf.xyz', status='unknown')
+      open(unit=70, file='.right/tmp.dat', status='unknown')
       do i=1,r_ns
          do j=1,n_r_ws(i)
             if (pos(cart,list_r_ws(i,j)).gt.r_split.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
@@ -322,7 +324,8 @@ call system(rings_exe // "rings.in > log 2>&1")
 !call system(rings_exe // "rings.in")
 
 if (trim(adjustl(switch_r_split)).eq.'yes') then
-   call system('cd right')
+   call chdir('.right')
+   call system('pwd')
    command="cat conf.xyz >> tmp.dat ; mv tmp.dat conf.xyz"
    call system(command)
    command="n_xyz=`wc -l conf.xyz | awk '{print $1-2}'` ; cat rings.in_TEMPLATE | sed ""s/NAT/$n_xyz/"" > rings.in"
@@ -344,7 +347,8 @@ if (trim(adjustl(switch_r_split)).eq.'yes') then
    command="rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat r7-5.dat r8-5.dat r9-5.dat"
    call system(command)
    call system(rings_exe // "rings.in > log 2>&1")
-   call system('cd ..')
+   call chdir('..')
+   call system('pwd')
 endif
 
 ! DEBUG
@@ -403,7 +407,7 @@ do n=3,maxr
    if (trim(adjustl(switch_r_split)).eq.'yes') then
       stat_nr_left(n) = stat_nr(n)
       ! if non-primitive rings, substitute liste-5 with liste-1
-      command="./right/rstat/liste-5/r"
+      command="./.right/rstat/liste-5/r"
       ! if non-primitive rings, substitute -5.dat with -1.dat
       rst="-5.dat"
       write(rst2,*) n
@@ -411,7 +415,7 @@ do n=3,maxr
       fcommand=trim(command)//trim(rst2)//trim(rst)
       inquire(file=fcommand, exist=exist)
       if (exist) then
-         command="cp ./right/rstat/liste-5/r"
+         command="cp ./.right/rstat/liste-5/r"
          ! if non-primitive rings, substitute -5.dat with -1.dat
          rst="-5.dat ."
          write(rst2,*) n
@@ -419,7 +423,7 @@ do n=3,maxr
          fcommand=trim(command)//trim(rst2)//trim(rst)
          call system(fcommand) 
 
-         command="right/r"
+         command=".right/r"
          ! if non-primitive rings, substitute -5.dat with -1.dat
          rst="-5.dat"
          fcommand=trim(command)//trim(rst2)//trim(rst)
@@ -466,7 +470,7 @@ do n=3,maxr
       endif
       if (trim(adjustl(switch_r_split)).eq.'yes') then
          if (stat_nr(n).gt.stat_nr_left(n)) then
-            command="right/r"
+            command=".right/r"
             write(rst2,*) n
             rst2=trim(adjustl(rst2))
             ! if non-primitive rings, substitute -5.dat with -1.dat
