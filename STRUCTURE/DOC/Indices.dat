@@ -1,8 +1,8 @@
 This is a record of the file indices used in Fortran.  Please update with any new files.
 
     1-68 : ***unused***
-      69 : temporary files (should be closed immediately after use)
-      70 : temporary files (should be closed immediately after use)
+   69-70 : temporary files (should be closed immediately after use)
+   71-98 : ***unused***
       99 : hin_structure.log
      100 : hin_structure.in (read) 							[module_read_input.f90]
      101 : .gro structure file (read) 						[module_read_input.f90]

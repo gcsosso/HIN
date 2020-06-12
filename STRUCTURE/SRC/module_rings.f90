@@ -3,7 +3,7 @@ module MOD_rings
 contains
 
 subroutine rings_alloc(switch_rings,switch_cages,switch_hex,outxtc, &
-                       stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE, &
+                       stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE,switch_r_split,r_split,switch_r_idx, &
                        switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                        n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                        delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
@@ -21,7 +21,14 @@ real :: n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE,ze_AVE_BULK,ze_AVE_SURF
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: stat_nr_AVE(:), stat_nr_HB_AVE(:)
-character*3 :: switch_rings, switch_cages, switch_hex, outxtc, switch_r_cls, r_cls_W, switch_hbck
+character*3 :: switch_rings, switch_cages, switch_hex, outxtc, switch_r_cls, r_cls_W, switch_hbck,switch_r_idx
+character*6 :: switch_r_split
+real :: r_split
+
+if ((trim(adjustl(switch_r_idx)).eq.'no').and.(trim(adjustl(switch_r_split)).ne.'no')) then
+   read(switch_r_split,*) r_split
+   switch_r_split = 'yes'
+endif
 
 ! If we're doing rings, make the tmp dir and open the output files...
 if (trim(adjustl(switch_rings)).eq.'yes') then
@@ -86,7 +93,7 @@ end subroutine rings_alloc
 
 subroutine rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  sym,resname,rings_exe,r_color,time,STEP,counter,natformat, &
-                 nat,icell,rcut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS, &
+                 nat,icell,rcut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
                  switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                  patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
                  n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
@@ -101,7 +108,7 @@ implicit none
 
 ! Local
 integer, parameter :: osix=6
-integer :: i, j, k, l, m, n, nxyz, nl, endf, iostat, id, nsix, n_hex, cart
+integer :: i, j, k, l, m, n, nxyz, nleft, nl, endf, iostat, id, nsix, n_hex, cart
 integer :: r_flag, r_flag2, r_flag3, tr(osix), tr6(osix), nper, ckr, ck
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13
 integer :: r15, r24, r26, n_ddc, n_hc, maxr, maxr_RINGS, info
@@ -110,7 +117,7 @@ integer :: ti, tj, tk, tri, kr, surfF, lwork, dummy
 integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_surf_madeit, hc_surf_madeit, ddc_surf_dead, hc_surf_dead
 ! JPCL
 integer, allocatable :: w_rings(:,:),r_array(:),p_rings(:,:,:),r_nper(:)
-integer, allocatable :: stat_nr(:), stat_nr_HB(:)
+integer, allocatable :: stat_nr(:), stat_nr_HB(:), stat_nr_left(:)
 real :: posi(cart), posj(cart), posk(cart), xdf, ydf, zdf, r1(cart), r2(cart), dist, a_thr
 real :: pol1(cart), pol2(cart), rcm(cart), tin(cart,cart), v1(cart), v2(cart), v1m, v2m
 real :: rij(cart), rkj(cart), rij_M , rkj_M, hex_angle, z_ext, d_sq, db, th
@@ -122,6 +129,7 @@ logical :: cknn, exist
 type(ragged_array) :: stat_wr, stat_wr_HB
 character*4 :: hydrogens
 logical :: duplicate_hydrogen(9), duplicate_hydrogen_logged
+real, allocatable :: tmp_pos(:,:)
 
 ! Arguments
 integer :: r_ns, STEP, counter, six, nat, wcol, nsurf, nbulk, hbflag(cart*cart) ! no more than 9-membered rings in any case...
@@ -133,6 +141,8 @@ real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbdist2, hbangle, tangle
 real, allocatable :: pos(:,:), stat_nr_AVE(:), stat_nr_HB_AVE(:)
 character*3 :: switch_cages, switch_hex, switch_r_cls, r_cls_W, switch_r_idx, switch_ffss, switch_hbck
+character*6 :: switch_r_split
+real :: r_split
 character*4, allocatable :: sym(:)
 character*5, allocatable :: resname(:)
 character*100 :: rings_exe, natformat
@@ -155,33 +165,58 @@ r_color(:)=0
 if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some z-slice
    open(unit=69, file='conf.xyz', status='unknown')
    open(unit=70, file='tmp.dat', status='unknown')
+   if (trim(adjustl(switch_r_split)).eq.'yes') then
+      r_split = r_zmax
+   endif
    nxyz=0
    kto(:)=0
    kto_h(:)=''
+   allocate(tmp_pos(cart,nat))
    do i=1,r_ns
       do j=1,n_r_ws(i)
-         if (pos(cart,list_r_ws(i,j)).ge.r_zmin.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
+         if (pos(cart,list_r_ws(i,j)).ge.r_zmin.and.pos(cart,list_r_ws(i,j)).le.r_split) then
             nxyz=nxyz+1
             ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
+            ! Index nleft will be the final index on the "left" side of the system
             ! Store this information for visualisation purposes
             kto(nxyz)=list_r_ws(i,j)
             kto_h(nxyz)=r_wh(i)
+            tmp_pos(:,nxyz) = pos(:,list_r_ws(i,j))*10.0
          endif
       enddo 
-   enddo 
+   enddo
    write(70,*) nxyz
    write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, rcut*10.0, maxr_RINGS
-   do i=1,r_ns
-      do j=1,n_r_ws(i)
-         if (pos(cart,list_r_ws(i,j)).ge.r_zmin.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
-            !write(69,'(1a5,3f20.10)') sym(list_r_ws(i,j)), pos(:,list_r_ws(i,j))*10.0
-            ! We write down everything as oxygen atoms!! 
-            write(69,'(1a5,3f20.10)') "O", pos(:,list_r_ws(i,j))*10.0
-         endif
-      enddo
+   do i=1,nxyz
+      write(69,'(1a5,3f20.10)') "O", tmp_pos(:,i)
    enddo
    close(69)
    close(70)
+   
+   if (trim(adjustl(switch_r_split)).eq.'yes') then
+      nleft = nxyz
+      call system("mkdir right")
+      open(unit=69, file='right/conf.xyz', status='unknown')
+      open(unit=70, file='right/tmp.dat', status='unknown')
+      do i=1,r_ns
+         do j=1,n_r_ws(i)
+            if (pos(cart,list_r_ws(i,j)).gt.r_split.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
+               nxyz=nxyz+1
+               kto(nxyz)=list_r_ws(i,j)
+               kto_h(nxyz)=r_wh(i)
+               tmp_pos(:,nxyz) = pos(:,list_r_ws(i,j))*10.0
+            endif
+         enddo
+      enddo
+      write(70,*) nxyz-nleft
+      write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, rcut*10.0, maxr_RINGS
+      do i=nleft+1,nxyz
+         write(69,'(1a5,3f20.10)') "O", tmp_pos(:,i)
+      enddo
+      close(69)
+      close(70)
+      deallocate(tmp_pos)
+   endif
 else ! we have already read the indexes of the atoms we are interested in - typically some ice cluster...
      ! this number changes in time! TBF
 
@@ -281,10 +316,36 @@ command="mv tmp.dat rings.in"
 call system(command)
 command="mv conf.xyz data ; cp options_TEMPLATE options"
 call system(command)
-command="rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat"
+command="rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat r7-5.dat r8-5.dat r9-5.dat"
 call system(command)
 call system(rings_exe // "rings.in > log 2>&1")
 !call system(rings_exe // "rings.in")
+
+if (trim(adjustl(switch_r_split)).eq.'yes') then
+   call system('cd right')
+   command="cat conf.xyz >> tmp.dat ; mv tmp.dat conf.xyz"
+   call system(command)
+   command="n_xyz=`wc -l conf.xyz | awk '{print $1-2}'` ; cat rings.in_TEMPLATE | sed ""s/NAT/$n_xyz/"" > rings.in"
+   call system(command)
+   command="c1=`head -2 conf.xyz | tail -1 | awk '{print $1}'` ; cat rings.in | sed ""s/ICELL1/$c1/"" > tmp.dat"
+   call system(command)
+   command="c2=`head -2 conf.xyz | tail -1 | awk '{print $2}'` ; cat tmp.dat | sed ""s/ICELL2/$c2/"" > rings.in"
+   call system(command)
+   command="c3=`head -2 conf.xyz | tail -1 | awk '{print $3}'` ; cat rings.in | sed ""s/ICELL3/$c3/"" > tmp.dat"
+   call system(command)
+   command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/RCUT/$rc/"" > rings.in"
+   call system(command)
+   command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed ""s/MAXR/$mr/"" > tmp.dat"
+   call system(command)
+   command="mv tmp.dat rings.in"
+   call system(command)
+   command="mv conf.xyz data ; cp options_TEMPLATE options"
+   call system(command)
+   command="rm -r -f rings.out tmp rstat bonds Walltime rings.dat r3-5.dat r4-5.dat r5-5.dat r6-5.dat r7-5.dat r8-5.dat r9-5.dat"
+   call system(command)
+   call system(rings_exe // "rings.in > log 2>&1")
+   call system('cd ..')
+endif
 
 ! DEBUG
 !write(*,*) rings_exe
@@ -296,6 +357,7 @@ call system(rings_exe // "rings.in > log 2>&1")
 ! Allocate stuff for stat
 allocate(stat_nr(3:maxr)) ! this guy contains the number of rings of each n-membered type
                           ! e.g. if maxr=9, n. of 3,4,5,6,7,8 or 9 membered rings
+allocate(stat_nr_left(3:maxr))
 ! HB
 allocate(stat_nr_HB(3:maxr))
 
@@ -336,9 +398,45 @@ do n=3,maxr
       stat_nr(n)=nl
       close(69)
    else
-      write(99,*) "Achtung! At time ", time, "no ", n, "-membered rings were found!"
       stat_nr(n)=0
-   endif  
+   endif
+   if (trim(adjustl(switch_r_split)).eq.'yes') then
+      stat_nr_left(n) = stat_nr(n)
+      ! if non-primitive rings, substitute liste-5 with liste-1
+      command="./right/rstat/liste-5/r"
+      ! if non-primitive rings, substitute -5.dat with -1.dat
+      rst="-5.dat"
+      write(rst2,*) n
+      rst2=trim(adjustl(rst2))
+      fcommand=trim(command)//trim(rst2)//trim(rst)
+      inquire(file=fcommand, exist=exist)
+      if (exist) then
+         command="cp ./right/rstat/liste-5/r"
+         ! if non-primitive rings, substitute -5.dat with -1.dat
+         rst="-5.dat ."
+         write(rst2,*) n
+         rst2=trim(adjustl(rst2))
+         fcommand=trim(command)//trim(rst2)//trim(rst)
+         call system(fcommand) 
+
+         command="right/r"
+         ! if non-primitive rings, substitute -5.dat with -1.dat
+         rst="-5.dat"
+         fcommand=trim(command)//trim(rst2)//trim(rst)
+         open(unit=69, file=trim(adjustl(fcommand)), status='old')
+         nl=0
+         endf=0
+         do
+         read(69,*,iostat=endf)
+           if (endf==-1) exit
+           nl=nl+1
+         enddo     
+         rewind(69)
+         stat_nr(n)=stat_nr(n)+nl
+         close(69)
+      endif
+   endif
+   if (stat_nr(n).eq.0) write(99,*) "Achtung! At time ", time, "no ", n, "-membered rings were found!"
 enddo
 
 ! Allocate this rather cumbersome array...
@@ -347,23 +445,46 @@ do n=3,maxr
    allocate(stat_wr%stat_wr_size(n)%mrings(stat_nr(n),n)) ! Apparently no need to deallocate
    ! Get the atoms belonging to each ring size
    if (stat_nr(n).gt.0) then
-      command="r"
-      write(rst2,*) n
-      rst2=trim(adjustl(rst2))
-      ! if non-primitive rings, substitute -5.dat with -1.dat
-      rst="-5.dat"
-      fcommand=trim(command)//trim(rst2)//trim(rst)
-      open(unit=69, file=trim(adjustl(fcommand)), status='old')
-      do kr=1,stat_nr(n)
-         ! Get the atoms involved in each ring... 
-         read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
-         ! Colors
-         if (wcol.eq.n) then
-            r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
-            !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
-         endif   
-      enddo 
-      close(69)
+      if (stat_nr_left(n).gt.0) then
+         command="r"
+         write(rst2,*) n
+         rst2=trim(adjustl(rst2))
+         ! if non-primitive rings, substitute -5.dat with -1.dat
+         rst="-5.dat"
+         fcommand=trim(command)//trim(rst2)//trim(rst)
+         open(unit=69, file=trim(adjustl(fcommand)), status='old')
+         do kr=1,stat_nr_left(n)
+            ! Get the atoms involved in each ring... 
+            read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
+            ! Colors
+            if (wcol.eq.n) then
+               r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
+               !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
+            endif   
+         enddo 
+         close(69)
+      endif
+      if (trim(adjustl(switch_r_split)).eq.'yes') then
+         if (stat_nr(n).gt.stat_nr_left(n)) then
+            command="right/r"
+            write(rst2,*) n
+            rst2=trim(adjustl(rst2))
+            ! if non-primitive rings, substitute -5.dat with -1.dat
+            rst="-5.dat"
+            fcommand=trim(command)//trim(rst2)//trim(rst)
+            open(unit=69, file=trim(adjustl(fcommand)), status='old')
+            do kr=stat_nr_left(n)+1,stat_nr(n)
+               ! Get the atoms involved in each ring... 
+               read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
+               ! Colors
+               if (wcol.eq.n) then
+                  r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
+                  !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
+               endif   
+            enddo 
+            close(69)
+         endif
+      endif
    endif
 enddo
 
@@ -778,7 +899,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                                                    if (r_flag3.eq.0) then ! we finally have a proper DDC cage
                                                        n_ddc=n_ddc+1 
                                                        if (wcol.eq.1) then
-                                                               r_color(kto(w_rings(k,:)))=15 
+                                                          r_color(kto(w_rings(k,:)))=15 
                                                           r_color(kto(p_rings(1,per1,:)))=15 
                                                           r_color(kto(p_rings(3,per3,:)))=15
                                                           r_color(kto(p_rings(5,per5,:)))=15

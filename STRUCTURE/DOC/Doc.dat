@@ -8,8 +8,8 @@
   - Still don't know whether ri-n or r-n... 
   -> MAXR and n- rings -> (4->6 | 5-> (up to 9) | ). Use 4 to save time when we are interested in 6-membered rings only.
      Use 5 when we are interested in a ring statistics up to 7,8 or 9-membered rings
-  DEFINIING SPECIES FOR RINGS: there are now three parameters to set, R_WS and R_WR are required for all
-  rings analysis, these are respectively the atom name and residue name from the gro file.
+  DEFINIING SPECIES FOR RINGS: there are now four parameters to set, R_NS, R_WS and R_WR are required for all
+  rings analysis, these are respectively the number of donor atoms, atom name and residue name from the gro file.
   - If running HBCK, must also set R_WH, this tells HIN where to find the hydrogens. It uses one digit per hydrogen,
     (modulo 10), i.e. (0,1,2,3,4,5,6,7,8,9)->(0,+1,+2,+3,+4,+5,-4,-3,-2,-1).
   - Usage examples for a system with oxygens: SOL:OW(OW,HW1,HW2), CHL1:O3(O3,H3'), RESX:OX(HX,OX,HY), DPPC:O12(O12)

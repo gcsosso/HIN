@@ -41,6 +41,8 @@ character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
 character*3 :: switch_electro, switch_order, switch_water, switch_hbck
+character*6 :: switch_r_split
+real :: r_split
 character*3 :: switch_f3, switch_f4, switch_f_cls
 character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt, switch_qorder, switch_t4
 character*5, allocatable :: resname(:)
@@ -58,8 +60,8 @@ real(dp), allocatable :: qlb_io(:)
 open(unit=99, file='hin_structure.log', status='unknown')
 
 call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, & 
-                switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,r_wr,r_wh,n_r_ws,rcut,switch_cls,plumed_exe, &
-                switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
+                switch_rings,rings_exe,r_zmin,r_zmax,switch_r_split,r_ns,r_ws,r_wr,r_wh,n_r_ws,rcut,switch_cls, &
+                plumed_exe,switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
@@ -116,7 +118,7 @@ endif
 
 if (trim(adjustl(switch_rings)).eq.'yes') then
         call rings_alloc(switch_rings,switch_cages,switch_hex,outxtc, &
-                 stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE, &
+                 stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE,switch_r_split,r_split,switch_r_idx, &
                  switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                  n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,delta_AVE,delta_AVE_BULK, &
                  delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF,rog_AVE,rog_AVE_BULK,rog_AVE_SURF, &
@@ -189,7 +191,7 @@ do while ( STAT==0 )
       ! Rings statistics...  
       if (trim(adjustl(switch_rings)).eq.'yes') then
           call rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax,sym,resname,rings_exe,r_color,time,STEP, &
-                     counter,natformat,nat,icell,rcut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS, &
+                     counter,natformat,nat,icell,rcut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
                      switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                      patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
                      n_hc_AVE_SURF,n_hex_AVE_SURF, &

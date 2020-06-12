@@ -3,14 +3,14 @@ module MOD_read_input
 contains
 
 subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens,ns,ws,n_ws,zmin,zmax,dz, & 
-                      switch_rings,rings_exe,r_zmin,r_zmax,r_ns,r_ws,r_wr,r_wh,n_r_ws,rcut,switch_cls,plumed_exe, &
-                      switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
+                      switch_rings,rings_exe,r_zmin,r_zmax,switch_r_split,r_ns,r_ws,r_wr,r_wh,n_r_ws,rcut,switch_cls, &
+                      plumed_exe,switch_bonds,b_zmin,b_zmax,b_dz,b_rcut,npairs,b_bins,b_bmin,b_bmax,npairs_cn,maxr, &
                       switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                       switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-							 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,max_coord)
+				      switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,max_coord)
 
 implicit none
                    
@@ -25,6 +25,7 @@ character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
 character*3 :: switch_water, switch_hbck
+character*6 :: switch_r_split
 character*3 :: switch_f3, switch_f4, switch_f_cls
 character*3 :: switch_q3, switch_q4, switch_q6, switch_ql, switch_qd, switch_qt
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
@@ -68,6 +69,7 @@ read(100,*) buffer, rings_exe             ; if (trim(adjustl(buffer)).ne.'R_EXE'
 read(100,*) buffer, switch_r_idx          ; if (trim(adjustl(buffer)).ne.'R_CLS_ONLY')  eflag=1
 read(100,*) buffer, r_zmin                ; if (trim(adjustl(buffer)).ne.'R_ZMIN') eflag=1
 read(100,*) buffer, r_zmax                ; if (trim(adjustl(buffer)).ne.'R_ZMAX') eflag=1
+read(100,*) buffer, switch_r_split        ; if (trim(adjustl(buffer)).ne.'R_SPLIT') eflag=1
 read(100,*) buffer, r_ns                  ; if (trim(adjustl(buffer)).ne.'R_NS')   eflag=1
 allocate(r_ws(r_ns),r_wr(r_ns),r_wh(r_ns),n_r_ws(r_ns)) ; n_r_ws(:)=0
 read(100,*) buffer, (r_ws(i), i=1,r_ns)   ; if (trim(adjustl(buffer)).ne.'R_WS')   eflag=1
