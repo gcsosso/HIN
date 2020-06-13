@@ -165,7 +165,7 @@ r_color(:)=0
 if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some z-slice
    open(unit=69, file='conf.xyz', status='unknown')
    open(unit=70, file='tmp.dat', status='unknown')
-   if (trim(adjustl(switch_r_split)).eq.'yes') then
+   if (trim(adjustl(switch_r_split)).eq.'no') then
       r_split = r_zmax
    endif
    nxyz=0
