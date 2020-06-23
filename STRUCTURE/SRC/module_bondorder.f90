@@ -118,8 +118,12 @@ subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_o
 				
 				! Compute t4 if appropriate
 				if ((trim(adjustl(switch_t4)).eq.'yes').and.(l.eq.6)) then
-						t4_mol(tot_atoms) = (1/Pi)*acos((qlb_io(tot_atoms)-0.36)/&
+                        if (qlb_io(tot_atoms).eq.-2) then
+						      t4_mol(tot_atoms) = (1/Pi)*acos((qlb_io(tot_atoms)-0.36)/&
 												  sqrt((qlb_io(tot_atoms)-0.36)**2+(qlb_mol(tot_atoms)-0.16)**2))
+                        else
+                            t4_mol(tot_atoms) = -2
+                        endif
 						t4_col(i) = t4_mol(tot_atoms)
 				end if
         end if
