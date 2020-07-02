@@ -8,15 +8,16 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                       vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
-                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr,switch_hydration)
+                      o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
+                      switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta)
 
 implicit none
 
 integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy
-integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS, nr
+integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS, nr, min_npts
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
-real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, c_rcut
+real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, c_rcut, min_delta
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
@@ -143,6 +144,8 @@ read(100,*) buffer, switch_cryo            ; if (trim(adjustl(buffer)).ne.'CRYO'
 read(100,*) buffer, c_rcut                 ; if (trim(adjustl(buffer)).ne.'C_RCUT') eflag=1
 read(100,*) buffer, nr                     ; if (trim(adjustl(buffer)).ne.'NR') eflag=1
 read(100,*) buffer, switch_hydration       ; if (trim(adjustl(buffer)).ne.'HYDRATION') eflag=1
+read(100,*) buffer, min_npts               ; if (trim(adjustl(buffer)).ne.'MIN_NPOINTS') eflag=1
+read(100,*) buffer, min_delta              ; if (trim(adjustl(buffer)).ne.'MIN_DELTA') eflag=1
 
 if (eflag.eq.1) then
    write(99,*) "Something is wrong with the input file..."

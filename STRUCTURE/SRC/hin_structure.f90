@@ -21,20 +21,20 @@ integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck,
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
-integer :: o_ns, n_nw, nr, n_solv
+integer :: o_ns, n_nw, nr, min_npts
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:), list_nw(:)
-integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:), o_solv(:)
+integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:), o_solv_mol(:), o_solv_atm(:), n_solv(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: c_rcut, dr, half_dr, fact
+real :: c_rcut, dr, half_dr, fact, min_delta
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: rad(:), gr_norm(:,:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:)
+real, allocatable :: rad(:), gr_norm(:,:), gr_average(:,:), smgr_average(:,:), cn_running(:,:), rmin(:), delta_gr_p(:), delta_gr_m(:)
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
@@ -58,7 +58,8 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_hex,switch_r_cls,r_cls_W,a_thr,maxr_RINGS,switch_cages,wcol,ohstride, &
                 vmd_exe,pmpi,cls_stat,switch_xyfes,xymin,xymax,nxy,switch_r_idx,switch_ffss,thrS, &
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
-                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS,switch_cryo,c_rcut,nr,switch_hydration)
+                o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
+                switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -90,9 +91,7 @@ if (trim(adjustl(switch_zdens)).eq.'yes') then
    call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
 endif
 
-write(*,*) "STEP", STEP
 call read_first_xtc(tfile,outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
-write(*,*) "STEP", STEP
 
 if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes') then
    call read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
@@ -132,7 +131,7 @@ endif
 
 ! Cryo stuff - alloc
 if (trim(adjustl(switch_cryo)).eq.'yes') then
-   call cryo_alloc(pos,nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,o_solv,n_solv)
+   call cryo_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,o_solv_mol,o_solv_atm,n_solv)
 endif
 
 ! Read the whole thing
@@ -201,7 +200,7 @@ do while ( STAT==0 )
 
       ! Cryo...
       if (trim(adjustl(switch_cryo)).eq.'yes') then
-         call cryo(pos,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,c_rcut,nr,dr,half_dr,rad,gr_norm,fact)
+         call cryo(pos,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,fact)
       endif
 
    endif
@@ -209,21 +208,17 @@ do while ( STAT==0 )
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
-   write(*,*) "STEP", STEP
 enddo
 
 ! Additional cryo
 if (trim(adjustl(switch_cryo)).eq.'yes') then
-  call cryo_workup(fframe,lframe,n_nw,rad,dr,gr_norm,gr_average,smgr_average,cn_running,rmin)
+  call cryo_workup(fframe,lframe,n_nw,rad,dr,gr_norm,gr_average,smgr_average,cn_running,rmin,min_npts,min_delta,delta_gr_p,delta_gr_m)
 endif
 
 ! Hydation number
 if (trim(adjustl(switch_hydration)).eq.'yes') then
-  write(*,*) "HYDRATION"
   deallocate(pos)
-  write(*,*) "STEP_2", STEP
   call read_first_xtc(tfile,outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
-  write(*,*) "STEP_2", STEP
   counter=0
   dostuff=0
 
@@ -231,15 +226,14 @@ if (trim(adjustl(switch_hydration)).eq.'yes') then
   do while (STAT==0)
      if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
         dostuff=dostuff+1
-        !call cryo(pos,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,c_rcut,nr,dr,half_dr,rad,gr_norm,fact)
-        call hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv,n_solv,rmin,icell)
+        !call cryo(pos,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,fact)
+        call hydration(pos,n_ws,list_ws,o_ns,list_nw,n_nw,o_solv_mol,o_solv_atm,n_solv,rmin,icell)
 
      endif
      counter=counter+1
      if (counter.gt.lframe) exit
      ! Read .xtc frame...
      STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
-     write(*,*) "STEP_2", STEP
   enddo
 endif
 
@@ -253,7 +247,7 @@ call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
             switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-            switch_cryo,switch_hydration,n_nw,list_nw,sym,rad,gr_average,smgr_average,cn_running,rmin,n_solv)
+            switch_cryo,switch_hydration,n_nw,list_nw,sym,rad,gr_average,smgr_average,cn_running,rmin,n_solv,delta_gr_p,delta_gr_m)
 
 STAT=xdrfile_close(xd)
 

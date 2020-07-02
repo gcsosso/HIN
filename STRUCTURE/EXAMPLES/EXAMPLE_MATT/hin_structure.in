@@ -5,8 +5,8 @@ SFILE  sucrose.gro            # structure file -> .gro file
 TFILE  sucrose.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
-LFRAME 9                  # last frame to be taken into account -> n.
-OUTXTC yes                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
+LFRAME 999                  # last frame to be taken into account -> n.
+OUTXTC no                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     2                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in the .gro file
 HW_EXC yes                 # if this keyword is active, HW2 and considered along with HW1 atoms [recommended: yes]
@@ -79,7 +79,9 @@ O_ZMAX   16.0
 O_DZ     0.1
 
 # Cryo
-CRYO       yes
-C_RCUT     0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
-NR         300                   # number of bins for pair correlation functions
-HYDRATION  yes                   # calculate hydration number -> yes or no.
+CRYO         yes
+C_RCUT       0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
+NR           300                   # number of bins for pair correlation functions
+HYDRATION    yes                   # calculate hydration number -> yes or no.
+MIN_NPOINTS  2                     # Adjacent points considered when searching for gr minimum. If gr(min) > gr(min±MIN_NPOINTS) then keep searching
+MIN_DELTA    0.0001                  # Threshold when searching for minimum. If gr(min)-gr(min±MIN_NPOINTS) < MIN_DELTA then keep searching
