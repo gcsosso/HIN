@@ -402,8 +402,8 @@ do n=3,maxr
    else
       stat_nr(n)=0
    endif
+   stat_nr_left(n) = stat_nr(n)
    if (trim(adjustl(switch_r_split)).eq.'yes') then
-      stat_nr_left(n) = stat_nr(n)
       ! if non-primitive rings, substitute liste-5 with liste-1
       command="./.right/rstat/liste-5/r"
       ! if non-primitive rings, substitute -5.dat with -1.dat
