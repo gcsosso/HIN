@@ -217,8 +217,8 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
       enddo
       close(69)
       close(70)
-      deallocate(tmp_pos)
    endif
+   deallocate(tmp_pos)
 else ! we have already read the indexes of the atoms we are interested in - typically some ice cluster...
      ! this number changes in time! TBF
 
