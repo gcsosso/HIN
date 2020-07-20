@@ -7,11 +7,18 @@ subroutine hydration_alloc()
 
 implicit none
 
+write(*,*) "HYD_ALLOC"
+
 end subroutine hydration_alloc
 
 
-subroutine hydration()
+subroutine hydration2()
 
 implicit none
 
-end subroutine hydration
+write(*,*) "HYD_MAIN"
+
+end subroutine hydration2
+
+
+end module MOD_hydration

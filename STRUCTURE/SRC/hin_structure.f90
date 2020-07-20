@@ -12,6 +12,8 @@ use MOD_electro
 use MOD_output
 use MOD_order
 use MOD_cryo
+use MOD_gr
+use MOD_hydration
 
 implicit none
 
@@ -135,6 +137,15 @@ if (trim(adjustl(switch_cryo)).eq.'yes') then
    call cryo_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,o_solv_mol,o_solv_atm,n_solv,o_dist,n_hyd)
 endif
 
+if (trim(adjustl(switch_gr)).eq.'yes') then
+   call gr_alloc()
+endif
+
+if (trim(adjustl(switch_nh)).eq.'yes') then
+   call hydration_alloc()
+endif
+
+
 ! Read the whole thing
 counter=0
 dostuff=0
@@ -202,6 +213,16 @@ do while ( STAT==0 )
       ! Cryo...
       if (trim(adjustl(switch_cryo)).eq.'yes') then
          call cryo(pos,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,nr,dr,half_dr,rad,gr_norm,fact,o_dist,n_hyd)
+      endif
+
+      ! Gr...
+      if (trim(adjustl(switch_gr)).eq.'yes') then
+        call gr()
+      endif
+
+      ! Hydration...
+      if (trim(adjustl(switch_nh)).eq.'yes') then
+        call hydration2()
       endif
 
    endif
