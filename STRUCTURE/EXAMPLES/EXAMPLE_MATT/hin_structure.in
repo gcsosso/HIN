@@ -79,9 +79,18 @@ O_ZMAX   16.0
 O_DZ     0.1
 
 # Cryo
-CRYO         yes
+CRYO         no
 C_RCUT       0.3                   # cutoff (nm, distance between species in molecule and water oxygen)
 NR           300                   # number of bins for pair correlation functions
-HYDRATION    yes                   # calculate hydration number -> yes or no.
+HYDRATION    no                   # calculate hydration number -> yes or no.
 MIN_NPOINTS  2                     # Adjacent points considered when searching for gr minimum. If gr(min) > gr(min±MIN_NPOINTS) then keep searching
-MIN_DELTA    0.0001                  # Threshold when searching for minimum. If gr(min)-gr(min±MIN_NPOINTS) < MIN_DELTA then keep searching
+MIN_DELTA    0.0001                # Threshold when searching for minimum. If gr(min)-gr(min±MIN_NPOINTS) < MIN_DELTA then keep searching
+
+# Pair correlation functions, gr
+GR            yes
+GR_BINS       300
+GR_MIN_DX     2
+GR_MIN_DY     0.0001
+
+# Hydration
+H_NUMBER     yes

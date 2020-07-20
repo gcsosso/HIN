@@ -98,5 +98,5 @@
  Time (ps):         388.000000  Step: 194000 Frame: 97
  Time (ps):         392.000000  Step: 196000 Frame: 98
  Time (ps):         396.000000  Step: 198000 Frame: 99
- We have taken into account          100 frames, from frame            0  to frame           99  with stride            1
- We have calculated some hydration parameters. See: hin_structure.out.cryo
+ Something's wrong with the number of frames!
+ We've taken into account          100 frames, but you have specified         1000

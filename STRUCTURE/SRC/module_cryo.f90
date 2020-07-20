@@ -133,28 +133,28 @@ gr_tmp=0.0d0
 ! enddo
 
 ! M-O PCF: whole molecule
-do i=1,n_nw
-  i_spc=list_nw(i)
-  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
-
-  do j=1,n_ws(o_ns)
-    j_spc=list_ws(o_ns,j)
-    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-
-    xdf=i_pos(1)-j_pos(1)
-    ydf=i_pos(2)-j_pos(2)
-    zdf=i_pos(3)-j_pos(3)
-
-    call images(cart,0,1,1,icell,xdf,ydf,zdf)
-    r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
-
-    do ir=1,nr
-      if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
-        gr_mol(1,ir)=gr_mol(1,ir)+1
-      endif
-    enddo
-  enddo
-enddo
+! do i=1,n_nw
+!   i_spc=list_nw(i)
+!   i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+!
+!   do j=1,n_ws(o_ns)
+!     j_spc=list_ws(o_ns,j)
+!     j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+!
+!     xdf=i_pos(1)-j_pos(1)
+!     ydf=i_pos(2)-j_pos(2)
+!     zdf=i_pos(3)-j_pos(3)
+!
+!     call images(cart,0,1,1,icell,xdf,ydf,zdf)
+!     r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
+!
+!     do ir=1,nr
+!       if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
+!         gr_mol(1,ir)=gr_mol(1,ir)+1
+!       endif
+!     enddo
+!   enddo
+! enddo
 
 ! Minimum M-Ow distances
 do i=1,n_nw
