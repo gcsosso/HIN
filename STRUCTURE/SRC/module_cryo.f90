@@ -73,13 +73,13 @@ integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), n_hyd(:)
 
 ! Local
 integer :: i, j, i_spc, j_spc, ir
-integer, allocatable :: gr(:,:)
+integer, allocatable :: gr(:)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
 real :: r2, num_i, num_j, volume, gr_tmp
 real(8), parameter :: pi=4.0*datan(1.d0), pi4=4.0*pi
 
-allocate(gr(n_nw,nr))
-gr(:,:)=0.0d0
+allocate(gr(nr))
+gr(:)=0.0d0
 gr_tmp=0.0d0
 
 ! O-O PCF
@@ -207,7 +207,7 @@ do i=1,n_nw
   do ir=1,nr
     r2=(rad(ir))**2.0d0
     gr_tmp=0.0d0 ! Reset
-    gr_tmp=gr(i,ir)/(fact*r2*num_i)
+    gr_tmp=gr(ir)/(fact*r2*num_i)
     gr_norm(i,ir)=gr_norm(i,ir)+gr_tmp
     !write(88,*) rad(ir), gr_norm(ir)
   enddo
