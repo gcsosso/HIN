@@ -6,7 +6,7 @@ FFLAGS_LINUX=-ffree-line-length-512 -fbacktrace  -g -C -fbounds-check -Wall -fin
 # Gabriele's path
 LDLIBS_LINUX=-L/home/chem/mssnkt/LIBS/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib -llapack -lblas
 # Chris' path
-# LDLIBS_LINUX=-L/storage/molases/maungn/analysis/HIN/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib64 -llapack -lblas
+# LDLIBS_LINUX=-L/storage/molases/maungn/analysis/HIN/LIBXDR/build/lib -lxdrfile -L/usr/lib64 -llapack -lblas
 EXE_LINUX=hin_structure_LiNuX.x
 
 SRC_DIR=../SRC

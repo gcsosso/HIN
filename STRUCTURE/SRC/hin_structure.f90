@@ -16,6 +16,9 @@ use MOD_bondorder
 
 implicit none
 
+integer :: NFRAMES, EST_NFRAMES
+type(C_PTR) :: OFFSETS
+
 integer, parameter :: dp = kind(1.d0)
 integer,parameter :: cart=3, six=6
 integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, fframe, stride, lframe, nz, e_nz, b_bins, nz_bAVE, io, nm
@@ -67,7 +70,17 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_f3,switch_f4,f_zmin,f_zmax,f_cut,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin, &
-					 switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,max_coord)
+			    switch_q3,switch_q4,switch_q6,switch_ql,switch_qd,switch_qt,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,max_coord)
+          
+if (lframe.eq.-1) then
+   STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
+   if (STAT.ne.0) then 
+      write(99,*) "Something is wrong with the trajectory file..."
+      stop
+   else
+      lframe = NFRAMES-1
+   end if
+end if
 
 hbdist2 = hbdist**2.0
 
@@ -126,7 +139,7 @@ if (trim(adjustl(switch_rings)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_cls)).eq.'yes') then
-   call clusters_alloc(switch_cls,outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
+   call clusters_alloc(outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
 endif
 
 if (trim(adjustl(switch_f3)).eq.'yes'.or.trim(adjustl(switch_f4)).eq.'yes') then
@@ -180,12 +193,12 @@ do while ( STAT==0 )
 
       ! Number density profile along z...
       if (trim(adjustl(switch_zdens)).eq.'yes') then
-         call zdens(switch_zdens,ns,n_ws,nz,zmin,dz,pos,cart,list_ws,dens)
+         call zdens(ns,n_ws,nz,zmin,dz,pos,cart,list_ws,dens)
       endif
 
       ! 2D FES in the xy plane...
       if (trim(adjustl(switch_xyfes)).eq.'yes') then
-         call xyfes(switch_xyfes,ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
+         call xyfes(ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
       endif
 
       ! Rings statistics...  
@@ -286,3 +299,16 @@ if (trim(adjustl(switch_rings)).eq.'yes'.and.trim(adjustl(switch_r_idx)).eq.'yes
 endif
 
 end program hin_structure
+
+subroutine progress(j)
+   implicit none
+   integer :: k
+   real :: j
+   character(57) :: bar="???% |                                                  |"
+   write(unit=bar(1:3),fmt="(i3)") int(100*j)
+   do k=1, int(50*j)
+      bar(6+k:6+k)="*"
+   end do
+   ! print the progress bar.
+   write(unit=6,fmt="(a1,a60,$)") char(13), bar
+end subroutine progress

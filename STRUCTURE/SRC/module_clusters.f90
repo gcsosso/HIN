@@ -2,25 +2,23 @@ module MOD_clusters
 
 contains
 
-subroutine clusters_alloc(switch_cls,outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
+subroutine clusters_alloc(outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
 
-implicit none
+   implicit none
 
-! Local
-integer :: i, j, k, flag, tmplist
-character*1 :: ch
-character*100 :: command, command1, command2, fcommand, pstring, pstring_C
+   ! Local
+   integer :: i, j, k, flag, tmplist
+   character*1 :: ch
+   character*100 :: command, command1, command2, fcommand, pstring, pstring_C
 
-! Arguments
-integer :: ns, ohstride
-integer, allocatable :: n_ws(:), list_ws(:,:)
-real :: n_cls_AVE
-character*3 :: switch_cls, outxtc, hw_ex
-character*4, allocatable :: ws(:)
-character*100 :: sfile, vmd_exe
+   ! Arguments
+   integer :: ns, ohstride
+   integer, allocatable :: n_ws(:), list_ws(:,:)
+   real :: n_cls_AVE
+   character*3 :: outxtc, hw_ex
+   character*4, allocatable :: ws(:)
+   character*100 :: sfile, vmd_exe
 
-! If we are doing clusters
-if (trim(adjustl(switch_cls)).eq.'yes') then
    ! Check whether we are writing down the .xtc(s). If not, no way, plumed need
    ! them on a frame-2-frame basis
    if (trim(adjustl(outxtc)).ne.'yes') then
@@ -134,94 +132,93 @@ if (trim(adjustl(switch_cls)).eq.'yes') then
    open(unit=109, file='hin_structure.out.cls.color', status='unknown')
    open(unit=110, file='hin_structure.out.cls.lambda', status='unknown')
    write(110,*) "# Time [ps] | N. of mol. into the biggest ice-like cluster"
-endif
 
 end subroutine clusters_alloc
 
 subroutine clusters(outxtc,plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
                     box_trans,pos,prec,cart,pmpi,cls_stat,r_color,natformat,nat,n_cls_AVE)
 
-use, intrinsic :: iso_c_binding, only: C_NULL_CHAR, C_PTR, c_f_pointer
-use xtc
+   use, intrinsic :: iso_c_binding, only: C_NULL_CHAR, C_PTR, c_f_pointer
+   use xtc
 
-implicit none
+   implicit none
 
-! Local
-integer :: i, k, STAT_OUT, n_cls, endf, iostat
-integer, allocatable :: a_cls(:)
-type(C_PTR) :: xd_c_out
-type(xdrfile), pointer :: xd_out
-character*100 :: xtcOfile, command1, command2, command3
-character*500 :: fcommand
-
-
-! Arguments
-integer :: cart, pmpi, nat
-integer :: ns, NATOMS, STEP 
-integer, allocatable :: list_ws(:,:), r_color(:)
-real :: time, box_trans(cart,cart), prec, n_cls_AVE
-real, allocatable :: pos(:,:)
-character*4, allocatable :: ws(:)
-character*3 :: outxtc, cls_stat
-character*100 :: plumed_exe, command, natformat
+   ! Local
+   integer :: i, k, STAT_OUT, n_cls, endf, iostat
+   integer, allocatable :: a_cls(:)
+   type(C_PTR) :: xd_c_out
+   type(xdrfile), pointer :: xd_out
+   character*100 :: xtcOfile, command1, command2, command3
+   character*500 :: fcommand
 
 
-! Shitloads of parameters can be tuned when dealing with plumed. However, in here we keep the template fixed,
-! changing only the indexes of oxygens and hydrogens. If you want to modify plumed behavior, edit plumed.dat_TEMPLATE
+   ! Arguments
+   integer :: cart, pmpi, nat
+   integer :: ns, NATOMS, STEP 
+   integer, allocatable :: list_ws(:,:), r_color(:)
+   real :: time, box_trans(cart,cart), prec, n_cls_AVE
+   real, allocatable :: pos(:,:)
+   character*4, allocatable :: ws(:)
+   character*3 :: outxtc, cls_stat
+   character*100 :: plumed_exe, command, natformat
 
-! Write down the xtc frame of interest for plumed
-xtcOfile='plumed.xtc'
-xtcOfile=trim(xtcOfile)//C_NULL_CHAR
-xd_c_out = xdrfile_open(xtcOfile,"w")
-call c_f_pointer(xd_c_out,xd_out)
-STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
-STAT_OUT=xdrfile_close(xd_out)
 
-! Call plumed executable
-command1="mpirun -np "
-command1=trim(command1)
-write(command2,*) pmpi
-command2=trim(adjustl(command2))
-command3=" --pdb conf.pdb --mf_xtc plumed.xtc > plumed.log 2>&1"
-command3=trim(command3)
-fcommand=trim(command1)//' '//trim(command2)//' '//trim(plumed_exe)//trim(command3)
-call system(fcommand)
-fcommand="tail -1 dfs_surf.dat | cut -d"":"" -f2 | tr ' ' '\n' | sed '/^$/d'  > tmp.dat"
-call system(fcommand)
-open(unit=69, file='tmp.dat', status='old')
-n_cls=0
-endf=0
-do
-read(69,*,iostat=endf)
-  if (endf==-1) exit
-  n_cls=n_cls+1
-enddo
-allocate(a_cls(n_cls))
-rewind(69)
-do i=1,n_cls
-   read(69,*) a_cls(i) ! VMD indexes ! I guess... check ?!
-   ! Color ON TOP OF THE RINGS. In hin_structure.out.rings.color you have colors for the rings,
-   ! in hin_structure.out.cls.color you have colors for the rings AND for the clusters
-   r_color(a_cls(i)+1)=30
-enddo
-close(69)
+   ! Shitloads of parameters can be tuned when dealing with plumed. However, in here we keep the template fixed,
+   ! changing only the indexes of oxygens and hydrogens. If you want to modify plumed behavior, edit plumed.dat_TEMPLATE
 
-! Analysis of the cluster
-if (trim(adjustl(cls_stat)).eq.'yes') then ! Get asphericity, z-plot...
-endif
+   ! Write down the xtc frame of interest for plumed
+   xtcOfile='plumed.xtc'
+   xtcOfile=trim(xtcOfile)//C_NULL_CHAR
+   xd_c_out = xdrfile_open(xtcOfile,"w")
+   call c_f_pointer(xd_c_out,xd_out)
+   STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
+   STAT_OUT=xdrfile_close(xd_out)
 
-! Write down the colors for VMD
-write(109,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
+   ! Call plumed executable
+   command1="mpirun -np "
+   command1=trim(command1)
+   write(command2,*) pmpi
+   command2=trim(adjustl(command2))
+   command3=" --pdb conf.pdb --mf_xtc plumed.xtc > plumed.log 2>&1"
+   command3=trim(command3)
+   fcommand=trim(command1)//' '//trim(command2)//' '//trim(plumed_exe)//trim(command3)
+   call system(fcommand)
+   fcommand="tail -1 dfs_surf.dat | cut -d"":"" -f2 | tr ' ' '\n' | sed '/^$/d'  > tmp.dat"
+   call system(fcommand)
+   open(unit=69, file='tmp.dat', status='old')
+   n_cls=0
+   endf=0
+   do
+   read(69,*,iostat=endf)
+     if (endf==-1) exit
+     n_cls=n_cls+1
+   enddo
+   allocate(a_cls(n_cls))
+   rewind(69)
+   do i=1,n_cls
+      read(69,*) a_cls(i) ! VMD indexes ! I guess... check ?!
+      ! Color ON TOP OF THE RINGS. In hin_structure.out.rings.color you have colors for the rings,
+      ! in hin_structure.out.cls.color you have colors for the rings AND for the clusters
+      r_color(a_cls(i)+1)=30
+   enddo
+   close(69)
 
-! Writeout
-write(110,'(1e10.4,1i10)') time, n_cls
+   ! Analysis of the cluster
+   if (trim(adjustl(cls_stat)).eq.'yes') then ! Get asphericity, z-plot...
+   endif
 
-! Update average quantities for the cluster
-n_cls_AVE=n_cls_AVE+real(n_cls)
+   ! Write down the colors for VMD
+   write(109,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
 
-deallocate(a_cls)
+   ! Writeout
+   write(110,'(1e10.4,1i10)') time, n_cls
 
-return
+   ! Update average quantities for the cluster
+   n_cls_AVE=n_cls_AVE+real(n_cls)
+
+   deallocate(a_cls)
+
+   return
 
 end subroutine clusters
 

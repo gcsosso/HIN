@@ -8,7 +8,7 @@ module xtc
 
     implicit none
     private
-    public xdrfile_open, xdrfile_close, read_xtc_natoms, read_xtc, write_xtc
+    public xdrfile_open, xdrfile_close, read_xtc_natoms, read_xtc, write_xtc, read_xtc_n_frames
 
     ! the data type located in libxdrfile
     type, public, bind(C) :: xdrfile
@@ -49,6 +49,13 @@ module xtc
         integer(C_INT), intent(in), value :: NATOMS, STEP
         real(C_FLOAT), intent(in), value :: time, prec
         real(C_FLOAT), intent(in) :: box(*), x(*)
+      end function
+
+      integer(C_INT) function read_xtc_n_frames(filename, N_FRAMES, EST_NFRAMES, OFFSETS) bind(C,name="read_xtc_n_frames")
+        import
+        character(kind=C_CHAR), intent(in) :: filename(*)
+        integer(C_INT), intent(out) :: N_FRAMES, EST_NFRAMES
+        type(C_PTR) :: OFFSETS
       end function
 
     end interface
