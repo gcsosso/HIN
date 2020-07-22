@@ -5,7 +5,7 @@ SFILE  sucrose.gro            # structure file -> .gro file
 TFILE  sucrose.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
-LFRAME 9                  # last frame to be taken into account -> n.
+LFRAME 999                  # last frame to be taken into account -> n.
 OUTXTC no                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     2                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in the .gro file
@@ -88,6 +88,7 @@ MIN_DELTA    0.0001                # Threshold when searching for minimum. If gr
 
 # Pair correlation functions, gr
 GR            yes
+GR_WS	      1		# Species for which PCF is being calculated. 0=Ow-Ow; 1=Mx-Ow ; 2=M-Ow (averaged) ; 3=M-Ow (not averaged)
 GR_BINS       300
 GR_MIN_DX     2
 GR_MIN_DY     0.0001

@@ -11,7 +11,7 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
                   delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
                   switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_gr,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy)
+                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy)
 
 implicit none
 
@@ -25,7 +25,7 @@ logical :: found_min
 
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
-integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk, n_nw, gr_min_dx
+integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk, n_nw, gr_ws, gr_min_dx
 integer, allocatable :: n_ws(:), list_nw(:), n_r_ws(:), n_solv(:), n_hyd(:)
 real :: box_trans(cart,cart), zmin, zmax, r_zmin, r_zmax, dz, zop_AVE
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK, ze_AVE_SURF
@@ -237,46 +237,99 @@ if (trim(adjustl(switch_order)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_gr)).eq.'yes') then
-  write(99,*) "We have calculated some pair correlation functions(s). See: hin_structure.out.gr"
+  write(99,*) "We have calculated some pair correlation function(s). See: hin_structure.out.gr"
   open(unit=163, file='hin_structure.out.gr', status='unknown')
 
   n_bins=size(rad)
   gr_dy_p=0.0d0
   gr_dy_m=0.0d0
   found_min=.false.
-  
-  ! Average over frames and smooth: Use for M-O PCF (individual atoms [II])
+
+  ! Needed for M-O PCF (individual atoms [1])
   allocate(gr_atm_avg(n_nw,n_bins),smgr_atm(n_nw,n_bins),rmin_atm(n_nw))
   gr_atm_avg(:,:)=0.0d0
   smgr_atm(:,:)=0.0d0
   rmin_atm(:)=0.0d0
 
-  do i=1,n_nw
-    do j=1,n_bins
-      gr_atm_avg(i,j)=gr_atm_norm(i,j)/dble(lframe-fframe+1)
-    enddo
-  enddo
+  ! Needed for O-O PCF [0] or M-O PCF [2]/[3]
+  allocate(gr_mol_avg(n_bins),smgr_mol(n_bins))
+  gr_mol_avg(:)=0.0d0
+  smgr_mol(:)=0.0d0
+  rmin_mol=0.0d0
 
-  do i=1,n_nw
-    do j=1,n_bins
-      if (j.le.2) then
-        smgr_atm(i,j)=gr_atm_avg(i,3)
-      elseif (j.ge.n_bins-2) then
-        smgr_atm(i,j)=gr_atm_avg(i,n_bins)
+  if (gr_ws.eq.1) then ! For M-O PCF (individual atoms [1])
+    ! Average over frames and smooth
+    do i=1,n_nw
+      do j=1,n_bins
+        gr_atm_avg(i,j)=gr_atm_norm(i,j)/dble(lframe-fframe+1)
+      enddo
+    enddo
+    do i=1,n_nw
+      do j=1,n_bins
+        if (j.le.2) then
+          smgr_atm(i,j)=gr_atm_avg(i,3)
+        elseif (j.ge.n_bins-2) then
+          smgr_atm(i,j)=gr_atm_avg(i,n_bins)
+        else
+          smgr_atm(i,j)=(gr_atm_avg(i,j-2)+2.0d0*gr_atm_avg(i,j-1)+3.0d0*gr_atm_avg(i,j)+2.0d0*gr_atm_avg(i,j+1)+gr_atm_avg(i,j+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
+        endif
+      enddo
+    enddo
+    ! Find distance of first hydration shell (first minimum in g(r))
+    do i=1,n_nw
+      do j=1,n_bins
+        if (j.le.gr_min_dx .or. j.ge.n_bins-gr_min_dx) then
+          cycle ! skip - otherwise will go out of bounds at next conditional statement
+        else
+          do k=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
+            if (smgr_atm(i,j-k).gt.smgr_atm(i,j) .and. smgr_atm(i,j+k).gt.smgr_atm(i,j)) then
+              found_min=.true.
+            else
+              found_min=.false.
+              exit ! rad(i) not the minimum - exit the inner loop
+            endif
+          enddo
+          if (found_min.eqv..true.) then
+            gr_dy_p=smgr_atm(i,j-gr_min_dx)-smgr_atm(i,j)
+            gr_dy_m=smgr_atm(i,j+gr_min_dx)-smgr_atm(i,j)
+            if (gr_dy_p.gt.gr_min_dy .and. gr_dy_m.gt.gr_min_dy) then ! The 'depth' of the minimum must be greater than user selected gr_min_dy
+              rmin_atm(i)=rad(j)
+              exit ! minimum found - exit middle loop
+            endif
+          endif
+        endif
+      enddo
+    enddo
+    ! Write to file
+    do i=1,n_nw
+      write(163,*) "Atom: ", sym(list_nw(i)), "First minimum:", rmin_atm(i)
+      do j=1,n_bins
+        write(163,'(f12.5,f12.5,f12.5)') rad(j), gr_atm_avg(i,j), smgr_atm(i,j)
+      enddo
+      write(163,*) ""
+    enddo
+
+  elseif ((gr_ws.eq.0).or.(gr_ws.eq.2).or.(gr_ws.eq.3)) then! For O-O PCF [0] or M-O PCF [2]/[3]
+    ! Average over frames and smooth:
+    do i=1,n_bins
+      gr_mol_avg(i)=gr_mol_norm(i)/dble(lframe-fframe+1)
+    enddo
+    do i=1,n_bins
+      if (i.le.2) then
+        smgr_mol(i)=gr_mol_avg(3)
+      elseif (i.ge.n_bins-2) then
+        smgr_mol(i)=gr_mol_avg(n_bins)
       else
-        smgr_atm(i,j)=(gr_atm_avg(i,j-2)+2.0d0*gr_atm_avg(i,j-1)+3.0d0*gr_atm_avg(i,j)+2.0d0*gr_atm_avg(i,j+1)+gr_atm_avg(i,j+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
+        smgr_mol(i)=(gr_mol_avg(i-2)+2.0d0*gr_mol_avg(i-1)+3.0d0*gr_mol_avg(i)+2.0d0*gr_mol_avg(i+1)+gr_mol_avg(i+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
       endif
     enddo
-  enddo
-
-  ! Find distance of first hydration shell (first minimum in g(r))
-  do i=1,n_nw
-    do j=1,n_bins
-      if (j.le.gr_min_dx .or. j.ge.n_bins-gr_min_dx) then
+    ! Find distance of first hydration shell (first minimum in g(r))
+    do i=1,n_bins
+      if (i.le.gr_min_dx .or. i.ge.n_bins-gr_min_dx) then
         cycle ! skip - otherwise will go out of bounds at next conditional statement
       else
-        do k=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
-          if (smgr_atm(i,j-k).gt.smgr_atm(i,j) .and. smgr_atm(i,j+k).gt.smgr_atm(i,j)) then
+        do j=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
+          if (smgr_mol(i-j).gt.smgr_mol(i) .and. smgr_mol(i+j).gt.smgr_mol(i)) then
             found_min=.true.
           else
             found_min=.false.
@@ -284,72 +337,22 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
           endif
         enddo
         if (found_min.eqv..true.) then
-          gr_dy_p=smgr_atm(i,j-gr_min_dx)-smgr_atm(i,j)
-          gr_dy_m=smgr_atm(i,j+gr_min_dx)-smgr_atm(i,j)
+          gr_dy_p=smgr_mol(i-gr_min_dx)-smgr_mol(i)
+          gr_dy_m=smgr_mol(i+gr_min_dx)-smgr_mol(i)
           if (gr_dy_p.gt.gr_min_dy .and. gr_dy_m.gt.gr_min_dy) then ! The 'depth' of the minimum must be greater than user selected gr_min_dy
-            rmin_atm(i)=rad(j)
+            rmin_mol=rad(i)
             exit ! minimum found - exit middle loop
           endif
         endif
       endif
     enddo
-  enddo
-
-  ! Write to file
-  do i=1,n_nw
-    write(163,*) "Atom: ", sym(list_nw(i)), "First minimum:", rmin_atm(i)
-    do j=1,n_bins
-      write(163,'(f12.5,f12.5,f12.5)') rad(j), gr_atm_avg(i,j), smgr_atm(i,j)
+    ! Write to file
+    write(163,*) "First minimum:", rmin_mol
+    do i=1,n_bins
+      write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
     enddo
-    write(163,*) ""
-  enddo
 
-  ! ! Average over frames and smooth: Use for O-O PCF [I] or M-O PCF [III]/[IV]
-  ! allocate(gr_mol_avg(n_bins),smgr_mol(n_bins))
-  ! gr_mol_avg(:)=0.0d0
-  ! smgr_mol(:)=0.0d0
-  ! rmin_mol=0.0d0
-  ! do i=1,n_bins
-  !   gr_mol_avg(i)=gr_mol_norm(i)/dble(lframe-fframe+1)
-  ! enddo
-  ! do i=1,n_bins
-  !   if (i.le.2) then
-  !     smgr_mol(i)=gr_mol_avg(3)
-  !   elseif (i.ge.n_bins-2) then
-  !     smgr_mol(i)=gr_mol_avg(n_bins)
-  !   else
-  !     smgr_mol(i)=(gr_mol_avg(i-2)+2.0d0*gr_mol_avg(i-1)+3.0d0*gr_mol_avg(i)+2.0d0*gr_mol_avg(i+1)+gr_mol_avg(i+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
-  !   endif
-  ! enddo
-  !
-  ! ! Find distance of first hydration shell (first minimum in g(r))
-  ! do i=1,n_bins
-  !   if (i.le.gr_min_dx .or. i.ge.n_bins-gr_min_dx) then
-  !     cycle ! skip - otherwise will go out of bounds at next conditional statement
-  !   else
-  !     do j=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
-  !       if (smgr_mol(i-j).gt.smgr_mol(i) .and. smgr_mol(i+j).gt.smgr_mol(i)) then
-  !         found_min=.true.
-  !       else
-  !         found_min=.false.
-  !         exit ! rad(i) not the minimum - exit the inner loop
-  !       endif
-  !     enddo
-  !     if (found_min.eqv..true.) then
-  !       gr_dy_p=smgr_mol(i-gr_min_dx)-smgr_mol(i)
-  !       gr_dy_m=smgr_mol(i+gr_min_dx)-smgr_mol(i)
-  !       if (gr_dy_p.gt.gr_min_dy .and. gr_dy_m.gt.gr_min_dy) then ! The 'depth' of the minimum must be greater than user selected gr_min_dy
-  !         rmin_mol=rad(i)
-  !         exit ! minimum found - exit middle loop
-  !       endif
-  !     endif
-  !   endif
-  ! enddo
-  ! ! Write to file
-  ! write(163,*) "First minimum:", rmin_mol
-  ! do i=1,n_bins
-  !   write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
-  ! enddo
+  endif
 
 endif
 

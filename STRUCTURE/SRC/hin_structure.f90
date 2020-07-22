@@ -23,7 +23,7 @@ integer ::  eflag, ns, r_ns, idx, nat, dostuff, counter, nl, endf, nxyz, id, ck,
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs, npairs_cn, flag, patch, o_nz
 integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
-integer :: o_ns, n_nw, n_ow, nr, min_npts, gr_bins, gr_min_dx
+integer :: o_ns, n_nw, n_ow, nr, min_npts, gr_ws, gr_bins, gr_min_dx
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:), list_nw(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:), o_solv_mol(:), o_solv_atm(:), n_solv(:), n_hyd(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
@@ -63,7 +63,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta, &
-                switch_gr,gr_bins,gr_min_dx,gr_min_dy,switch_nh)
+                switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy,switch_nh)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -218,7 +218,7 @@ do while ( STAT==0 )
 
       ! Gr...
       if (trim(adjustl(switch_gr)).eq.'yes') then
-        call gr(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,fact,o_dist)
+        call gr(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_ws,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,fact,o_dist)
       endif
 
       ! Hydration...
@@ -271,7 +271,7 @@ call output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
             switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-            switch_gr,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy)
+            switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy)
 
 STAT=xdrfile_close(xd)
 
