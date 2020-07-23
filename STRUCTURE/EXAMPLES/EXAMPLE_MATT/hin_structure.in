@@ -5,7 +5,7 @@ SFILE  sucrose.gro            # structure file -> .gro file
 TFILE  sucrose.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
-LFRAME 999                  # last frame to be taken into account -> n.
+LFRAME 9                  # last frame to be taken into account -> n.
 OUTXTC no                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     2                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in the .gro file
@@ -86,12 +86,15 @@ HYDRATION    no                   # calculate hydration number -> yes or no.
 MIN_NPOINTS  2                     # Adjacent points considered when searching for gr minimum. If gr(min) > gr(min±MIN_NPOINTS) then keep searching
 MIN_DELTA    0.0001                # Threshold when searching for minimum. If gr(min)-gr(min±MIN_NPOINTS) < MIN_DELTA then keep searching
 
-# Pair correlation functions, gr
-GR            yes
+# Pair correlation functions, g(r)
+GR            no	# Calculate g(r) -> yes or no
 GR_WS	      1		# Species for which PCF is being calculated. 0=Ow-Ow; 1=Mx-Ow ; 2=M-Ow (averaged) ; 3=M-Ow (not averaged)
-GR_BINS       300
-GR_MIN_DX     2
-GR_MIN_DY     0.0001
+GR_BINS       300	# Number of bins for calculating PCF. Bin size = (Cell_length/2)/GR_BINS
+GR_MIN_DX     2		# Number of points to consider in x-direction when searching for minimum
+GR_MIN_DY     0.0001	# Minimum depth of minimum to be considered
 
 # Hydration
-H_NUMBER     no
+NH     	     yes	# Calculate hydration number -> yes or no
+NH_BINS	     40		# Number of bins for calculating nH (use 1 if want single hydration number)
+RMAX	     2		# Maximum distance cutoff from solute to Ow (in nm)
+

@@ -7,11 +7,11 @@ subroutine gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr
 implicit none
 
 ! Arguments
+integer :: nat, ns, cart, o_ns, n_nw, n_ow, gr_bins
+integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:)
 real :: icell(cart*cart), dr, half_dr
 real, allocatable :: rad(:), gr_mol_norm(:), gr_atm_norm(:,:), o_dist(:)
 character*4, allocatable :: sym(:)
-integer :: nat, ns, cart, o_ns, n_nw, n_ow, gr_bins
-integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:)
 
 ! Local
 integer :: i, n_oo, counter

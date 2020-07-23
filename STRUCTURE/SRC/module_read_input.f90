@@ -10,15 +10,16 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2, &
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                       switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta, &
-                      switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy,switch_nh)
+                      switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy, &
+                      switch_nh,nh_bins,nh_rmax)
 
 implicit none
 
 integer :: stride, lframe, eflag, wcol, ohstride, pmpi, nxy
-integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS, nr, min_npts, gr_ws, gr_bins, gr_min_dx
+integer :: ns, r_ns, fframe, i, npairs, npairs_cn, b_bins, maxr, maxr_RINGS, nr, min_npts, gr_ws, gr_bins, gr_min_dx, nh_bins
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, b_zmin, e_zmin, e_zmax, e_dz
 real :: b_zmax, b_dz, b_bmin, b_bmax, a_thr, xymin, xymax, thrS, thrSS
-real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, c_rcut, min_delta, gr_min_dy
+real :: o_zmin, o_zmax, o_dz, hbdist, hbangle, c_rcut, min_delta, gr_min_dy, nh_rmax
 real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
@@ -158,7 +159,10 @@ read(100,*) buffer, gr_min_dy            ; if (trim(adjustl(buffer)).ne.'GR_MIN_
 
 ! Hydration section
 read(100,*) ; read(100,*)
-read(100,*) buffer, switch_nh        ; if (trim(adjustl(buffer)).ne.'H_NUMBER') eflag=1
+read(100,*) buffer, switch_nh        ; if (trim(adjustl(buffer)).ne.'NH') eflag=1
+read(100,*) buffer, nh_bins          ; if (trim(adjustl(buffer)).ne.'NH_BINS') eflag=1
+read(100,*) buffer, nh_rmax          ; if (trim(adjustl(buffer)).ne.'RMAX') eflag=1
+
 
 if (eflag.eq.1) then
    write(99,*) "Something is wrong with the input file..."

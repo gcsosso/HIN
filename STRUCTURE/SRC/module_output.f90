@@ -11,7 +11,8 @@ subroutine output(dostuff,lframe,fframe,stride,outxtc,ns,ws,n_ws,zmesh,dens,nz,d
                   delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
                   switch_electro,e_nz,e_zmesh,switch_order,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy)
+                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy, &
+                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
 
 implicit none
 
@@ -19,14 +20,14 @@ implicit none
 integer :: i, j, k, ibin, l, n_bins, n_ow
 real :: rstep, h, rsum, gr_dy_p, gr_dy_m, rmin_mol
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
-real, allocatable :: efield(:), epot(:), n_solv_avg(:), n_hyd_avg(:), gr_mol_avg(:), gr_atm_avg(:,:), smgr_mol(:), smgr_atm(:,:), rmin_atm(:)
+real, allocatable :: efield(:), epot(:), n_solv_avg(:), n_hyd_avg(:), gr_mol_avg(:), gr_atm_avg(:,:), smgr_mol(:), smgr_atm(:,:), rmin_atm(:), nh_mol_avg(:), nh_atm_avg(:,:)
 character*100 :: wformat
 logical :: found_min
 
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
-integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk, n_nw, gr_ws, gr_min_dx
-integer, allocatable :: n_ws(:), list_nw(:), n_r_ws(:), n_solv(:), n_hyd(:)
+integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk, n_nw, gr_ws, gr_min_dx, nh_bins
+integer, allocatable :: n_ws(:), list_nw(:), n_r_ws(:), n_solv(:), n_hyd(:), nh_mol(:), nh_atm(:,:)
 real :: box_trans(cart,cart), zmin, zmax, r_zmin, r_zmax, dz, zop_AVE
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK, ze_AVE_SURF
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
@@ -36,10 +37,10 @@ real :: gr_min_dy
 real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_AVE(:,:), stat_nr_HB_AVE(:)
 real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
 real, allocatable :: rad(:), o_dist(:)
-real, allocatable :: gr_mol_norm(:), gr_atm_norm(:,:)
+real, allocatable :: gr_mol_norm(:), gr_atm_norm(:,:), nh_r(:)
 character*3 :: outxtc, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes, switch_hbck
 character*3 :: switch_hex, switch_cages, switch_r_cls, r_cls_W, switch_ffss, switch_electro
-character*3 :: switch_order, switch_water, switch_gr
+character*3 :: switch_order, switch_water, switch_gr, switch_nh
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
 
 if (dostuff.ne.((lframe-fframe)/stride)+1) then
@@ -233,7 +234,6 @@ if (trim(adjustl(switch_order)).eq.'yes') then
       write(99,*) "Average angle of the molecular axis of choice wrt the z-axis"
       write(99,*) zop_AVE/real(dostuff)
    endif
-
 endif
 
 if (trim(adjustl(switch_gr)).eq.'yes') then
@@ -261,7 +261,7 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
     ! Average over frames and smooth
     do i=1,n_nw
       do j=1,n_bins
-        gr_atm_avg(i,j)=gr_atm_norm(i,j)/dble(lframe-fframe+1)
+        gr_atm_avg(i,j)=gr_atm_norm(i,j)/real(dostuff)
       enddo
     enddo
     do i=1,n_nw
@@ -309,52 +309,61 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
       write(163,*) ""
     enddo
 
-  elseif ((gr_ws.eq.0).or.(gr_ws.eq.2).or.(gr_ws.eq.3)) then! For O-O PCF [0] or M-O PCF [2]/[3]
-    ! Average over frames and smooth:
-    do i=1,n_bins
-      gr_mol_avg(i)=gr_mol_norm(i)/dble(lframe-fframe+1)
-    enddo
-    do i=1,n_bins
-      if (i.le.2) then
-        smgr_mol(i)=gr_mol_avg(3)
-      elseif (i.ge.n_bins-2) then
-        smgr_mol(i)=gr_mol_avg(n_bins)
-      else
-        smgr_mol(i)=(gr_mol_avg(i-2)+2.0d0*gr_mol_avg(i-1)+3.0d0*gr_mol_avg(i)+2.0d0*gr_mol_avg(i+1)+gr_mol_avg(i+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
-      endif
-    enddo
-    ! Find distance of first hydration shell (first minimum in g(r))
-    do i=1,n_bins
-      if (i.le.gr_min_dx .or. i.ge.n_bins-gr_min_dx) then
-        cycle ! skip - otherwise will go out of bounds at next conditional statement
-      else
-        do j=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
-          if (smgr_mol(i-j).gt.smgr_mol(i) .and. smgr_mol(i+j).gt.smgr_mol(i)) then
-            found_min=.true.
-          else
-            found_min=.false.
-            exit ! rad(i) not the minimum - exit the inner loop
-          endif
-        enddo
-        if (found_min.eqv..true.) then
-          gr_dy_p=smgr_mol(i-gr_min_dx)-smgr_mol(i)
-          gr_dy_m=smgr_mol(i+gr_min_dx)-smgr_mol(i)
-          if (gr_dy_p.gt.gr_min_dy .and. gr_dy_m.gt.gr_min_dy) then ! The 'depth' of the minimum must be greater than user selected gr_min_dy
-            rmin_mol=rad(i)
-            exit ! minimum found - exit middle loop
+    elseif ((gr_ws.eq.0).or.(gr_ws.eq.2).or.(gr_ws.eq.3)) then! For O-O PCF [0] or M-O PCF [2]/[3]
+      ! Average over frames and smooth:
+      do i=1,n_bins
+        gr_mol_avg(i)=gr_mol_norm(i)/real(dostuff)
+      enddo
+      do i=1,n_bins
+        if (i.le.2) then
+          smgr_mol(i)=gr_mol_avg(3)
+        elseif (i.ge.n_bins-2) then
+          smgr_mol(i)=gr_mol_avg(n_bins)
+        else
+          smgr_mol(i)=(gr_mol_avg(i-2)+2.0d0*gr_mol_avg(i-1)+3.0d0*gr_mol_avg(i)+2.0d0*gr_mol_avg(i+1)+gr_mol_avg(i+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
+        endif
+      enddo
+      ! Find distance of first hydration shell (first minimum in g(r))
+      do i=1,n_bins
+        if (i.le.gr_min_dx .or. i.ge.n_bins-gr_min_dx) then
+          cycle ! skip - otherwise will go out of bounds at next conditional statement
+        else
+          do j=1, gr_min_dx ! Check that we are in a local minimum i.e. adjacent (±gr_min_dx) bin values are greater than current one
+            if (smgr_mol(i-j).gt.smgr_mol(i) .and. smgr_mol(i+j).gt.smgr_mol(i)) then
+              found_min=.true.
+            else
+              found_min=.false.
+              exit ! rad(i) not the minimum - exit the inner loop
+            endif
+          enddo
+          if (found_min.eqv..true.) then
+            gr_dy_p=smgr_mol(i-gr_min_dx)-smgr_mol(i)
+            gr_dy_m=smgr_mol(i+gr_min_dx)-smgr_mol(i)
+            if (gr_dy_p.gt.gr_min_dy .and. gr_dy_m.gt.gr_min_dy) then ! The 'depth' of the minimum must be greater than user selected gr_min_dy
+              rmin_mol=rad(i)
+              exit ! minimum found - exit middle loop
+            endif
           endif
         endif
-      endif
-    enddo
-    ! Write to file
-    write(163,*) "First minimum:", rmin_mol
-    do i=1,n_bins
-      write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
-    enddo
-
+      enddo
+      ! Write to file
+      write(163,*) "First minimum:", rmin_mol
+      do i=1,n_bins
+        write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
+      enddo
+    endif
   endif
 
-endif
+  if (trim(adjustl(switch_nh)).eq.'yes') then
+    write(99,*) "We have calculated some hydration parameters. See: hin_structure.out.hyd"
+    open(unit=164, file='hin_structure.out.hyd', status='unknown')
+
+    allocate(nh_mol_avg(nh_bins),nh_atm_avg(n_nw,nh_bins))
+    do i=1,nh_bins
+      nh_mol_avg(i)=real(nh_mol(i))/real(dostuff)
+      write(164,'(f10.3,f10.3)') nh_r(i), nh_mol_avg(i)
+    enddo
+  endif
 
 end subroutine output
 
