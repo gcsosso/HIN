@@ -42,8 +42,6 @@ integer, allocatable :: n_ws(:), list_ws(:,:)
 real :: zmin, dz
 real, allocatable :: pos(:,:), dens(:,:)
 
-character*3 :: switch_zdens
-
 ! Number density profile along z...
 do i=1,ns
    do j=1,n_ws(i)

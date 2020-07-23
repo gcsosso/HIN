@@ -3,202 +3,198 @@ module MOD_clathrates
 contains
 
 ! Creates output directories and files for F3 and/or F4 calculations 
-subroutine clathrates_alloc(switch_f3,switch_f4,switch_f_cls)
+subroutine clathrates_alloc(switch_f,switch_f_cls)
 
     implicit none
 
-    character*3 :: switch_f3, switch_f4, switch_f_cls
+    logical(1) :: switch_f(3:4), switch_f_cls
 
     ! Make the tmp dir and open output files
     !call system("rm -r -f data-c ; mkdir data-c")
     open(unit=200, file='hin_structure.out.f.stats', status='unknown')
     open(unit=234, file='hin_structure.out.f_order', status='unknown')
-    if (trim(adjustl(switch_f3)).eq.'yes') then
+    if (switch_f(3)) then
         write(99,*) "We are calculating the clathrate F3 order parameter."
-        open(unit=231, file='hin_structure.out.f.f3.color', status='unknown')
-        open(unit=230, file='hin_structure.out.f.f3', status='unknown')
+        !open(unit=231, file='hin_structure.out.f.f3.color', status='unknown')
+        !open(unit=230, file='hin_structure.out.f.f3', status='unknown')
         
-        if (trim(adjustl(switch_f4)).eq.'yes') then
+        if (switch_f(4)) then
             write(99,*) "We are also calculating the clathrate F4 order parameter."
-            open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
-            open(unit=240, file='hin_structure.out.f.f4', status='unknown')
-            write(234,*) "Z F3 F4" 
-            if (trim(adjustl(switch_f_cls)).eq.'yes') then
+            !open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
+            !open(unit=240, file='hin_structure.out.f.f4', status='unknown')
+            if (switch_f_cls) then
                 write(99,*) "We are also calculating clustering of ice and clathrate."
                 open(unit=201, file='hin_structure.out.f.ice.patch', status='unknown')
                 open(unit=202, file='hin_structure.out.f.ice.patch.color', status='unknown')
                 open(unit=203, file='hin_structure.out.f.clathrate.patch', status='unknown')
                 open(unit=204, file='hin_structure.out.f.clathrate.patch.color', status='unknown')
-            endif
+            end if
             
             write(200,*) "# Time [ps] | Average F3 | Average F4 "
         else
             write(234,*) "Z F3"
             write(200,*) "# Time [ps] | Average F3 "
-        endif
+        end if
     else
         write(99,*) "We are calculating the clathrate F4 order parameter."
         open(unit=241, file='hin_structure.out.f.f4.color', status='unknown')
-        open(unit=240, file='hin_structure.out.f.f4', status='unknown')
+        !open(unit=240, file='hin_structure.out.f.f4', status='unknown')
         write(234,*) "Z F4"
         write(200,*) "# Time [ps] | Average F4 "
-    endif
+    end if
 
 end subroutine clathrates_alloc
 
-subroutine clathrates(switch_f3,switch_f4,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
+subroutine clathrates(switch_f,f_zmin,f_zmax,f_cut,n_f_ow,list_f_ow,counter, &
                       time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
 
-    implicit none
-	 
-	 integer, parameter :: dp = kind(1.d0)
-    character*3 :: switch_f3, switch_f4, switch_f_cls
-    real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
-    real :: time
-    integer :: i, j, cart, nat
-    integer :: counter                      ! Frame
-    integer :: n_f_ow                       ! Number of OW atoms
-    real :: icell(cart*cart)
-    integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
-    integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
-    real :: first_coord_shell(20,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
-    integer :: size_first_coord_shell       ! Size of first coordination shell
-    real(dp) :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
-    real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
-    real, allocatable :: pos(:,:)
-    real :: F3_col(nat), F4_col(nat)
-    character*100 :: natformat, n_mol_format
-    integer :: f_zbins
-    integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
-    real :: F3_zbin(f_zbins,nat), F4_zbin(f_zbins,nat)
-    real :: w_oz(n_f_ow)
-	 real(dp) :: F3_mol(n_f_ow), F4_mol(n_f_ow)
+   implicit none
 
-    tot_atoms = 0
-    F3_avg = 0
-    F4_avg = 0
-    F3_col(:) = 0.0
-    F4_col(:) = 0.0
-    F3_mol(:) = 0.0
-    F4_mol(:) = 0.0
-    F3_zbin_len(:) = 0
-    F4_zbin_len(:) = 0
-    w_oz(:) = 0.0
+   integer, parameter :: dp = kind(1.d0)
+   logical(1) :: switch_f(3:4), switch_f_cls
+   real :: f_zmin, f_zmax, f_cut, f3_imax, f3_cmax, f4_imax, f4_cmin
+   real :: time
+   integer :: i, j, cart, nat
+   integer :: counter                      ! Frame
+   integer :: n_f_ow                       ! Number of OW atoms
+   real :: icell(cart*cart)
+   integer, allocatable :: list_f_ow(:)    ! Atom indices of OW
+   integer :: tot_atoms                    ! Count of number of atoms for which F3 is calculated
+   real :: first_coord_shell(20,4)      ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+   integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
+   integer :: size_first_coord_shell       ! Size of first coordination shell
+   real(dp) :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
+   real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
+   real, allocatable :: pos(:,:)
+   real :: F3_col(nat), F4_col(nat)
+   character*100 :: natformat, n_mol_format
+   integer :: f_zbins
+   integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
+   real :: F3_zbin(f_zbins,nat), F4_zbin(f_zbins,nat)
+   real :: w_oz(n_f_ow)
+   real(dp) :: F3_mol(n_f_ow), F4_mol(n_f_ow)
+     
+   tot_atoms = 0
+   F3_avg = 0
+   F4_avg = 0
+   F3_col(:) = 0.0
+   F4_col(:) = 0.0
+   F3_mol(:) = 0.0
+   F4_mol(:) = 0.0
+   F3_zbin_len(:) = 0
+   F4_zbin_len(:) = 0
+   w_oz(:) = 0.0
 
-    do i=1,n_f_ow ! Iterate through OW atoms
-        if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
-            ! Count how many atoms of interest are in the Z-range
-            tot_atoms = tot_atoms + 1
-            w_oz(tot_atoms) = pos(cart,list_f_ow(i))
-            
-            ! If atom is in Z-region of interest, calculate it's first coordination shell
-            call compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell,n_f_ow, &
-                                           f_zmin,f_zmax,f_cut,cart,icell,counter,pos,list_f_ow)
-            
-            if (trim(adjustl(switch_f3)).eq.'yes') then
-                ! Compute the F3 parameter for the atom
-                call compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
+   do i=1,n_f_ow ! Iterate through OW atoms
+     if (pos(cart,list_f_ow(i)).ge.f_zmin.and.pos(cart,list_f_ow(i)).le.f_zmax) then
+         ! Count how many atoms of interest are in the Z-range
+         tot_atoms = tot_atoms + 1
+         w_oz(tot_atoms) = pos(cart,list_f_ow(i))
 
-                ! this is where you color
-                ! Calculate average F3 for the frame (per species)
-                !F3_avg = F3_avg + F3_atom
-                !F3_col(list_f_ow(i)) = F3_atom
-                F3_mol(tot_atoms) = F3_atom
-                !do j=1,f_zbins
-                !    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
-                !        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
-                !        F3_zbin_len(j) = F3_zbin_len(j) + 1
-                !        F3_zbin(j,F3_zbin_len(j)) = F3_atom
-                !        exit
-                !    endif
-                !enddo
-                ! later on - clustering
-            endif
-            if (trim(adjustl(switch_f4)).eq.'yes') then
-                ! Compute the F4 parameter for the atom
-                call compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                cart,icell,pos,list_f_ow)
-                
-                ! Calculate average F4 for the frame (per species)
-                !F4_avg = F4_avg + F4_atom
-                !F4_col(list_f_ow(i)) = F4_atom
-                F4_mol(tot_atoms) = F4_atom
-                !do j=1,f_zbins
-                !    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
-                !        F4_zbin_len(j) = F4_zbin_len(j) + 1
-                !        F4_zbin(j,F4_zbin_len(j)) = F4_atom
-                !        exit
-                !    endif
-                !enddo
-            endif
-        endif
-    enddo
+         ! If atom is in Z-region of interest, calculate it's first coordination shell
+         call compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell,n_f_ow, &
+                                        f_zmin,f_zmax,f_cut,cart,icell,counter,pos,list_f_ow)
 
-    !if (tot_atoms>0) then
-    !    F3_avg = F3_avg/tot_atoms
-    !    F4_avg = F4_avg/tot_atoms
-    !endif
+         if (switch_f(3)) then
+             ! Compute the F3 parameter for the atom
+             call compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
 
-    write(n_mol_format,*) tot_atoms
-    
-    write(234,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
-    
-    if (trim(adjustl(switch_f3)).eq.'yes') then
-        write(234,'('//adjustl(n_mol_format)//'F12.8)') (F3_mol(i), i=1,tot_atoms)
-    endif
-    if (trim(adjustl(switch_f4)).eq.'yes') then
-        write(234,'('//adjustl(n_mol_format)//'F12.8)') (F4_mol(i), i=1,tot_atoms)
-    endif
+             ! this is where you color
+             ! Calculate average F3 for the frame (per species)
+             !F3_avg = F3_avg + F3_atom
+             !F3_col(list_f_ow(i)) = F3_atom
+             F3_mol(tot_atoms) = F3_atom
+             !do j=1,f_zbins
+             !    if ((pos(cart,list_f_ow(i))>=(((f_zmax-f_zmin)*(j-1)/f_zbins)+f_zmin)) .and. &
+             !        (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin))) then
+             !        F3_zbin_len(j) = F3_zbin_len(j) + 1
+             !        F3_zbin(j,F3_zbin_len(j)) = F3_atom
+             !        exit
+             !    end if
+             !end do
+             ! later on - clustering
+         end if
+         if (switch_f(4)) then
+             ! Compute the F4 parameter for the atom
+             call compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                             cart,icell,pos,list_f_ow)
 
-    if (0.eq.1) then ; if (trim(adjustl(switch_f3)).eq.'yes'.and.trim(adjustl(switch_f4)).eq.'yes') then
-        ! If we are calculating both order parameters, write to output files
-        write(200,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
-        ! Write line to color files
-        write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
-        write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
-        ! Write lines to binned output files
-        do j=1,f_zbins
-            write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
-            write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
-        enddo
-    else if (trim(adjustl(switch_f3)).eq.'yes') then
-        ! If we are calculating only F3, write to output files
-        write(200,'(1E12.6,X,F12.7)') time, F3_avg
-        ! Write line to color file
-        write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
-        ! Write lines to binned output files
-        do j=1,f_zbins
-            write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
-        enddo
-    else
-        ! If we are calculating only F4, write to output files
-        write(200,'(1E12.6,X,F12.7)') time, F4_avg
-        ! Write line to color file
-        write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
-        ! Write lines to binned output files
-        do j=1,f_zbins
-            write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
-        enddo
-    
-    endif ; endif
+             ! Calculate average F4 for the frame (per species)
+             !F4_avg = F4_avg + F4_atom
+             !F4_col(list_f_ow(i)) = F4_atom
+             F4_mol(tot_atoms) = F4_atom
+             !do j=1,f_zbins
+             !    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
+             !        F4_zbin_len(j) = F4_zbin_len(j) + 1
+             !        F4_zbin(j,F4_zbin_len(j)) = F4_atom
+             !        exit
+             !    end if
+             !end do
+         end if
+     end if
+   end do
+   
+   !if (tot_atoms>0) then
+   !    F3_avg = F3_avg/tot_atoms
+   !    F4_avg = F4_avg/tot_atoms
+   !end if
 
-    ! Clustering
-    
-    if (trim(adjustl(switch_f_cls)).eq.'yes') then
-        
-        if (trim(adjustl(switch_f3)).ne.'yes'.or.trim(adjustl(switch_f4)).ne.'yes') then
-            write(99,*) "Clathrate clustering requires both F3 and F4!"
-        else
-            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_imax,-1.0,f4_imax,f_cut, &
-                              pos,icell,6,201,202,natformat,time) ! Cluster icy molecules
-            call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_cmax,f4_cmin,1.0,f_cut, &
-                              pos,icell,5,203,204,natformat,time) ! Cluster clathrate-like molecules
-        endif
-        
-    endif
-    
-            
+   write(n_mol_format,*) tot_atoms
+
+   write(234,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
+
+   if (switch_f(3)) then
+     write(234,'('//adjustl(n_mol_format)//'F12.8)') (F3_mol(i), i=1,tot_atoms)
+   end if
+   if (switch_f(4)) then
+     write(234,'('//adjustl(n_mol_format)//'F12.8)') (F4_mol(i), i=1,tot_atoms)
+   end if
+   
+   !if (switch_f(3).and.switch_f(4)) then
+   !  ! If we are calculating both order parameters, write to output files
+   !  write(200,'(1E12.6,2(X,F12.7))') time, F3_avg, F4_avg
+   !  ! Write line to color files
+   !  write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
+   !  write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+   !  ! Write lines to binned output files
+   !  do j=1,f_zbins
+   !      write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+   !      write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+   !  end do
+   !else if (switch_f(3)) then
+   !  ! If we are calculating only F3, write to output files
+   !  write(200,'(1E12.6,X,F12.7)') time, F3_avg
+   !  ! Write line to color file
+   !  write(231,'('//adjustl(natformat)//'F11.4)') (F3_col(i), i=1,nat)
+   !  ! Write lines to binned output files
+   !  do j=1,f_zbins
+   !      write(230,'('//adjustl(natformat)//'F11.4)') (F3_zbin(j,i), i=1,F3_zbin_len(j))
+   !  end do
+   !else
+   !  ! If we are calculating only F4, write to output files
+   !  write(200,'(1E12.6,X,F12.7)') time, F4_avg
+   !  ! Write line to color file
+   !  write(241,'('//adjustl(natformat)//'F11.4)') (F4_col(i), i=1,nat)
+   !  ! Write lines to binned output files
+   !  do j=1,f_zbins
+   !      write(240,'('//adjustl(natformat)//'F11.4)') (F4_zbin(j,i), i=1,F4_zbin_len(j))
+   !  end do
+   !end if
+
+   ! Clustering
+
+   if (switch_f_cls) then
+
+     if (.not.(switch_f(3).and.switch_f(4))) then
+         write(99,*) "Clathrate clustering requires both F3 and F4!"
+     else
+         call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_imax,-1.0,f4_imax,f_cut, &
+                           pos,icell,6,201,202,natformat,time) ! Cluster icy molecules
+         call f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,0.0,f3_cmax,f4_cmin,1.0,f_cut, &
+                           pos,icell,5,203,204,natformat,time) ! Cluster clathrate-like molecules
+     end if
+
+   end if
 
 end subroutine clathrates
 
@@ -237,15 +233,15 @@ subroutine compute_clath_coord_shell(i,first_coord_shell,first_coord_shell_ndx,s
                     write(99,*) "WARNING: (F3) first coordination shell for atom ", list_f_ow(i), &
                                 ", at frame ", counter, " exceeds 20 atoms!"
                     EXIT
-                endif
+                end if
                 first_coord_shell_ndx(size_first_coord_shell) = list_f_ow(j)
                 first_coord_shell(size_first_coord_shell,1) = dx
                 first_coord_shell(size_first_coord_shell,2) = dy
                 first_coord_shell(size_first_coord_shell,3) = dz
                 first_coord_shell(size_first_coord_shell,4) = dsq
-            endif
-        endif
-    enddo
+            end if
+        end if
+    end do
 
 end subroutine compute_clath_coord_shell
 
@@ -274,8 +270,8 @@ subroutine compute_f3(F3_atom,first_coord_shell,size_first_coord_shell)
             F3_part = (cos2_num/cos2_den + 0.1111)**2
             ! Add F3/#combinations to total F3
             F3_atom = F3_atom + F3_part
-        enddo
-    enddo
+        end do
+    end do
     
 !    F3_atom = 2*F3_atom/(size_first_coord_shell**2 - size_first_coord_shell)
     
@@ -332,7 +328,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
             h1y = pos(2,list_f_ow(i)+2)-pos(2,list_f_ow(i))
             h1z = pos(3,list_f_ow(i)+2)-pos(3,list_f_ow(i))
             call images(cart,0,1,1,icell,h1x,h1y,h1z)
-        endif
+        end if
         
         ! Choose Hydrogen from O2. I.e. furthest from O1.
         dx1 = pos(1,first_coord_shell_ndx(j)+1)-pos(1,list_f_ow(i))
@@ -351,7 +347,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
             h2x = dx2
             h2y = dy2
             h2z = dz2
-        endif
+        end if
         
         ! Calculate lambda, mu
         h1_dot_o2 = h1x*first_coord_shell(j,1) + h1y*first_coord_shell(j,2) + h1z*first_coord_shell(j,3)
@@ -374,7 +370,7 @@ subroutine compute_f4(i,F4_atom,first_coord_shell,first_coord_shell_ndx,size_fir
 
         ! Add F4/#combinations to total F4
         F4_atom = F4_atom + F4_part/size_first_coord_shell
-    enddo
+    end do
     else
         F4_atom = -2
     end if
@@ -395,7 +391,7 @@ subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,
     real :: f3_min, f3_max, f4_min, f4_max, f_cut
     real, allocatable :: pos(:,:)
     real :: posi(3), posj(3), icell(9), xdf, ydf, zdf, dist
-    logical :: cknn
+    logical(1) :: cknn
     integer :: patch_file, col_file
     character*100 :: natformat
     real :: time
@@ -413,8 +409,8 @@ subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,
             &.and.F4_col(list_f_ow(i)).ge.f4_min.and.F4_col(list_f_ow(i)).le.f4_max) then
             ncr = ncr + 1
             cr_list(ncr) = list_f_ow(i)
-        endif
-    enddo
+        end if
+    end do
     
     allocate(graph_solid_connect(ncr,20),followgraph(ncr),volume(ncr))
     allocate(neigh(ncr),predecessor(ncr))
@@ -435,10 +431,10 @@ subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,
                 if (cknn) then 
                     neigh(i) = neigh(i)+1
                     graph_solid_connect(i,neigh(i)) = j
-                endif
-            endif
-        enddo
-    enddo
+                end if
+            end if
+        end do
+    end do
     
     count_cls=0
     volume(:)=0
@@ -469,12 +465,12 @@ subroutine f_clustering(F3_col,F4_col,nat,n_f_ow,list_f_ow,f3_min,f3_max,f4_min,
         if (volume(i).gt.crit) then
             do j=1,volume(i)
                 dfs_color(lwho(i,j)) = i
-            enddo
+            end do
             count_cls = count_cls + 1
             voltot = voltot + volume(i)
             volume_crit(count_cls) = volume(i)
-        endif
-    enddo
+        end if
+    end do
 
     ncrit = count_cls
 

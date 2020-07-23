@@ -1,9 +1,11 @@
 subroutine images (imcon,idnode,mxnode,natm,cell,xxx,yyy,zzz)
 
-implicit real (a-h,o-z)
+implicit none
+
+integer :: imcon, idnode, mxnode, natm, i
+real :: cell(9), rcell(9), det, xxx, yyy, zzz, ssx, ssy, ssz, xss, yss, zss
 
 dimension xxx(*),yyy(*),zzz(*)
-dimension cell(9),rcell(9)
 
    call invert(cell,rcell,det)
    if(abs(det).lt.1.d-6) stop "zero determinant cell matrix"
@@ -30,9 +32,8 @@ end
 ! invert subroutine
 subroutine invert(a,b,d)
 
-real a,b,d,r
-
-dimension a(9),b(9)
+implicit none
+real a(9), b(9), d, r
 
 b(1)=a(5)*a(9)-a(6)*a(8)
 b(2)=a(3)*a(8)-a(2)*a(9)

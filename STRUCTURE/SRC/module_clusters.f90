@@ -2,30 +2,30 @@ module MOD_clusters
 
 contains
 
-subroutine clusters_alloc(outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
+subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
 
    implicit none
 
    ! Local
    integer :: i, j, k, flag, tmplist
-   character*1 :: ch
-   character*100 :: command, command1, command2, fcommand, pstring, pstring_C
+   character(1) :: ch
+   character(100) :: command, command1, command2, fcommand, pstring, pstring_C
 
    ! Arguments
    integer :: ns, ohstride
    integer, allocatable :: n_ws(:), list_ws(:,:)
    real :: n_cls_AVE
-   character*3 :: outxtc, hw_ex
-   character*4, allocatable :: ws(:)
-   character*100 :: sfile, vmd_exe
+   logical(1) :: switch_outxtc, switch_hw_ex
+   character(4), allocatable :: ws(:)
+   character(100) :: sfile, vmd_exe
 
    ! Check whether we are writing down the .xtc(s). If not, no way, plumed need
    ! them on a frame-2-frame basis
-   if (trim(adjustl(outxtc)).ne.'yes') then
-      write(99,*) "PLUMED2 needs the .xtc to be written (set OUTXTC yes in hin_structure.in)"
+   if (.not.switch_outxtc) then
+      write(99,*) "PLUMED2 needs the .xtc to be written (set --outxtc in hin_structure.in)"
       stop
    endif
-   ! Check whether we have both oxygens and hydrogens, and that the HW_EXC is yes
+   ! Check whether we have both oxygens and hydrogens, and that the switch_hw_ex is yes
    flag=0
    do i=1,ns
       if(ws(i).eq.'OW') flag=flag+1
@@ -35,8 +35,8 @@ subroutine clusters_alloc(outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe
       write(99,*) "In order to have clusters, you need to read both oxygens and hydrogens..."
       stop
    endif
-   if (trim(adjustl(hw_ex)).ne.'yes') then
-      write(99,*) "Set HW_EXC to yes, please..."
+   if (switch_hw_ex) then
+      write(99,*) "Set switch_hw_exC to yes, please..."
       stop
    endif
    ! Write the rigth atomic indexes in plumed.dat
@@ -135,7 +135,7 @@ subroutine clusters_alloc(outxtc,ns,ws,hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe
 
 end subroutine clusters_alloc
 
-subroutine clusters(outxtc,plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
+subroutine clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
                     box_trans,pos,prec,cart,pmpi,cls_stat,r_color,natformat,nat,n_cls_AVE)
 
    use, intrinsic :: iso_c_binding, only: C_NULL_CHAR, C_PTR, c_f_pointer
@@ -148,8 +148,8 @@ subroutine clusters(outxtc,plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
    integer, allocatable :: a_cls(:)
    type(C_PTR) :: xd_c_out
    type(xdrfile), pointer :: xd_out
-   character*100 :: xtcOfile, command1, command2, command3
-   character*500 :: fcommand
+   character(100) :: xtcOfile, command1, command2, command3
+   character(500) :: fcommand
 
 
    ! Arguments
@@ -158,9 +158,9 @@ subroutine clusters(outxtc,plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
    integer, allocatable :: list_ws(:,:), r_color(:)
    real :: time, box_trans(cart,cart), prec, n_cls_AVE
    real, allocatable :: pos(:,:)
-   character*4, allocatable :: ws(:)
-   character*3 :: outxtc, cls_stat
-   character*100 :: plumed_exe, command, natformat
+   character(4), allocatable :: ws(:)
+   character(3) :: cls_stat
+   character(100) :: plumed_exe, command, natformat
 
 
    ! Shitloads of parameters can be tuned when dealing with plumed. However, in here we keep the template fixed,

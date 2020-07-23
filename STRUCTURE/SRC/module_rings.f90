@@ -2,8 +2,8 @@ module MOD_rings
 
 contains
 
-subroutine rings_alloc(switch_rings,switch_cages,switch_hex,outxtc, &
-                       stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE,switch_r_split,r_split,switch_r_idx, &
+subroutine rings_alloc(switch_rings,switch_cages,switch_hex,switch_outxtc, &
+                       stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE,switch_r_idx, &
                        switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                        n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                        delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
@@ -21,44 +21,38 @@ real :: n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE,ze_AVE_BULK,ze_AVE_SURF
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: stat_nr_AVE(:), stat_nr_HB_AVE(:)
-character*3 :: switch_rings, switch_cages, switch_hex, outxtc, switch_r_cls, r_cls_W, switch_hbck,switch_r_idx
-character*6 :: switch_r_split
-real :: r_split
-
-if ((trim(adjustl(switch_r_idx)).eq.'no').and.(trim(adjustl(switch_r_split)).ne.'no')) then
-   read(switch_r_split,*) r_split
-   switch_r_split = 'yes'
-endif
+logical(1) :: switch_rings, switch_cages, switch_hex, switch_outxtc, switch_r_cls, switch_hbck,switch_r_idx
+character(3) :: r_cls_W
 
 ! If we're doing rings, make the tmp dir and open the output files...
-if (trim(adjustl(switch_rings)).eq.'yes') then
+if (switch_rings) then
    command="rm -r -f data ; mkdir data"
    call system(command)
-   if (trim(adjustl(switch_cages)).eq.'yes') then
+   if (switch_cages) then
       write(99,*) "We have looked into DDCs and HCs as well. See hin_structure.out.rings.cages"
       open(unit=103, file='hin_structure.out.rings.cages', status='unknown')
       write(103,*) "# Time [ps] | N. of 6-membered rings | N. of DDC cages | N. of HC cages"
    endif
-   if (trim(adjustl(switch_hex)).eq.'yes') then
+   if (switch_hex) then
       write(99,*) "We have looked into hexagonal rings as well. See hin_structure.out.rings.hex"
       open(unit=108, file='hin_structure.out.rings.hex', status='unknown')
       write(108,*) "! Time [ps] | N. of 6-membered rings | N. of proper hexagonal rings"
    endif
    close(108)
-   if (trim(adjustl(outxtc)).eq.'no') then
+   if (.not.switch_outxtc) then
       write(99,*) "hin_structure.out.rings.color could not match the .xtc traj!"
-      write(99,*) "switch OUTXTC to yes!"
+      write(99,*) "Remove '--noxtc' from the input file!"
       stop
    endif
    open(unit=104, file='hin_structure.out.rings.color', status='unknown')
    open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
    write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9))"
-   if (trim(adjustl(switch_hbck)).eq.'yes') then
+   if (switch_hbck) then
       open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
       write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
    endif
    ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
-   if (trim(adjustl(switch_r_cls)).eq.'yes') then
+   if (switch_r_cls) then
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
          open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
          open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
@@ -91,9 +85,9 @@ endif
 
 end subroutine rings_alloc
 
-subroutine rings(kto,kto_h,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
+subroutine rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  sym,resname,rings_exe,r_color,time,STEP,counter,natformat, &
-                 nat,icell,rcut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
+                 nat,icell,r_cut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
                  switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                  patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
                  n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
@@ -112,7 +106,8 @@ integer :: i, j, k, l, m, n, nxyz, nleft, nl, endf, iostat, id, nsix, n_hex, car
 integer :: r_flag, r_flag2, r_flag3, tr(osix), tr6(osix), nper, ckr, ck
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13
 integer :: r15, r24, r26, n_ddc, n_hc, maxr, maxr_RINGS, info
-integer :: ti, tj, tk, tri, kr, surfF, lwork, dummy
+integer :: ti, tj, tk, tri, kr, surfF, lwork, dummy, hydrogens(4)
+integer, allocatable :: kto_h(:,:)
 ! JPCL
 integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_surf_madeit, hc_surf_madeit, ddc_surf_dead, hc_surf_dead
 ! JPCL
@@ -125,28 +120,27 @@ real, parameter :: rad2deg=57.2958, ref_angle=120.0, pi=4.0*atan(1.0)
 double precision, allocatable :: work(:)
 double precision :: mtemp(cart,cart), eigen(cart), delta, esse, rog, trt, trt2, lambda, delta1
 character*100 :: command, command2, rst, rst2, fcommand, stat_format, arname
-logical :: cknn, exist
+logical(1) :: cknn, exist
 type(ragged_array) :: stat_wr, stat_wr_HB
-character*4 :: hydrogens
-logical :: duplicate_hydrogen(9), duplicate_hydrogen_logged
+logical(1) :: duplicate_hydrogen(9), duplicate_hydrogen_logged
 real, allocatable :: tmp_pos(:,:)
 
 ! Arguments
 integer :: r_ns, STEP, counter, six, nat, wcol, nsurf, nbulk, hbflag(cart*cart) ! no more than 9-membered rings in any case...
 integer, allocatable :: kto(:), n_r_ws(:), list_r_ws(:,:), r_color(:), C_size(:), C_idx(:,:), mflag(:)
-real :: r_zmin, r_zmax, time, icell(cart*cart), rcut, thrS, minz, cell_ORTO(cart), maxz, thrSS
+real :: r_zmin, r_zmax, time, icell(cart*cart), r_cut, thrS, minz, cell_ORTO(cart), maxz, thrSS
 real ::  n_ddc_AVE, n_hc_AVE, n_hex_AVE, box_trans(cart,cart)
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbdist2, hbangle, tangle
 real, allocatable :: pos(:,:), stat_nr_AVE(:), stat_nr_HB_AVE(:)
-character*3 :: switch_cages, switch_hex, switch_r_cls, r_cls_W, switch_r_idx, switch_ffss, switch_hbck
-character*6 :: switch_r_split
+logical(1) :: switch_cages, switch_hex, switch_r_cls, switch_r_idx, switch_ffss, switch_hbck, switch_r_split
+character(3) :: r_cls_W
 real :: r_split
-character*4, allocatable :: sym(:)
-character*5, allocatable :: resname(:)
-character*100 :: rings_exe, natformat
-character*4, allocatable :: r_wh(:), kto_h(:)
+character(4), allocatable :: sym(:)
+character(5), allocatable :: resname(:)
+character(100) :: rings_exe, natformat
+integer, allocatable :: r_wh(:,:)
 
 ! DFS stuff
 integer :: ncr, mxvic, nat_cls, iat, jat, nnf, vol_count, voltot, ncrit, patch
@@ -161,16 +155,18 @@ icell(7)=box_trans(3,1) ; icell(8)=box_trans(3,2) ; icell(9)=box_trans(3,3)
 ! Initialize the color array...
 r_color(:)=0
 
+i = 0 ; do j=1,r_ns ; i = i + n_r_ws(j) ; end do ; allocate(kto_h(i,4))
+
 ! Write down an .xyz with the region we have selected
-if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some z-slice
+if (.not.switch_r_idx) then ! pick up those atoms within some z-slice
    open(unit=69, file='conf.xyz', status='unknown')
    open(unit=70, file='tmp.dat', status='unknown')
-   if (trim(adjustl(switch_r_split)).eq.'no') then
+   if (.not.switch_r_split) then
       r_split = r_zmax
    endif
    nxyz=0
    kto(:)=0
-   kto_h(:)=''
+   kto_h(:,:)=0
    allocate(tmp_pos(cart,nat))
    do i=1,r_ns
       do j=1,n_r_ws(i)
@@ -180,20 +176,20 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
             ! Index nleft will be the final index on the "left" side of the system
             ! Store this information for visualisation purposes
             kto(nxyz)=list_r_ws(i,j)
-            kto_h(nxyz)=r_wh(i)
+            kto_h(nxyz,:)=r_wh(i,:)
             tmp_pos(:,nxyz) = pos(:,list_r_ws(i,j))*10.0
          endif
       enddo 
    enddo
    write(70,*) nxyz
-   write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, rcut*10.0, maxr_RINGS
+   write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, r_cut*10.0, maxr_RINGS
    do i=1,nxyz
       write(69,'(1a5,3f20.10)') "O", tmp_pos(:,i)
    enddo
    close(69)
    close(70)
    
-   if (trim(adjustl(switch_r_split)).eq.'yes') then
+   if (switch_r_split) then
       nleft = nxyz
       call system("mkdir -p .right")
       call system("cp rings.in_TEMPLATE .right/.")
@@ -205,13 +201,13 @@ if (trim(adjustl(switch_r_idx)).eq.'no') then ! pick up those atoms within some 
             if (pos(cart,list_r_ws(i,j)).gt.r_split.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
                nxyz=nxyz+1
                kto(nxyz)=list_r_ws(i,j)
-               kto_h(nxyz)=r_wh(i)
+               kto_h(nxyz,:)=r_wh(i,:)
                tmp_pos(:,nxyz) = pos(:,list_r_ws(i,j))*10.0
             endif
          enddo
       enddo
       write(70,*) nxyz-nleft
-      write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, rcut*10.0, maxr_RINGS
+      write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, r_cut*10.0, maxr_RINGS
       do i=nleft+1,nxyz
          write(69,'(1a5,3f20.10)') "O", tmp_pos(:,i)
       enddo
@@ -237,7 +233,7 @@ else ! we have already read the indexes of the atoms we are interested in - typi
       ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
       ! Store this information for visualisation purposes
       kto(nxyz)=C_idx(counter+1,i)+1
-      kto_h(nxyz)=r_wh(i)
+      kto_h(nxyz,:)=r_wh(i,:)
 
       !write(*,*) kto(nxyz)-1      
 
@@ -288,7 +284,7 @@ else ! we have already read the indexes of the atoms we are interested in - typi
    close(6254)
 
    write(70,*) nxyz
-   write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, rcut*10.0, maxr_RINGS
+   write(70,'(4f20.10,1i10)') icell(1)*10.0, icell(5)*10.0, icell(9)*10.0, r_cut*10.0, maxr_RINGS
    do i=1,C_size(counter+1)
       write(69,'(1a5,3f20.10)') "O", pos(:,C_idx(counter+1,i)+1)*10.0
    enddo
@@ -310,7 +306,7 @@ command="c2=`head -2 conf.xyz | tail -1 | awk '{print $2}'` ; cat tmp.dat | sed 
 call system(command)
 command="c3=`head -2 conf.xyz | tail -1 | awk '{print $3}'` ; cat rings.in | sed ""s/ICELL3/$c3/"" > tmp.dat"
 call system(command)
-command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/RCUT/$rc/"" > rings.in"
+command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/r_cut/$rc/"" > rings.in"
 call system(command)
 command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed ""s/MAXR/$mr/"" > tmp.dat"
 call system(command)
@@ -323,7 +319,7 @@ call system(command)
 call system(rings_exe // "rings.in > log 2>&1")
 !call system(rings_exe // "rings.in")
 
-if (trim(adjustl(switch_r_split)).eq.'yes') then
+if (switch_r_split) then
    call chdir('.right')
    command="cat conf.xyz >> tmp.dat ; mv tmp.dat conf.xyz"
    call system(command)
@@ -335,7 +331,7 @@ if (trim(adjustl(switch_r_split)).eq.'yes') then
    call system(command)
    command="c3=`head -2 conf.xyz | tail -1 | awk '{print $3}'` ; cat rings.in | sed ""s/ICELL3/$c3/"" > tmp.dat"
    call system(command)
-   command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/RCUT/$rc/"" > rings.in"
+   command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/r_cut/$rc/"" > rings.in"
    call system(command)
    command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed ""s/MAXR/$mr/"" > tmp.dat"
    call system(command)
@@ -403,7 +399,7 @@ do n=3,maxr
       stat_nr(n)=0
    endif
    stat_nr_left(n) = stat_nr(n)
-   if (trim(adjustl(switch_r_split)).eq.'yes') then
+   if (switch_r_split) then
       ! if non-primitive rings, substitute liste-5 with liste-1
       command="./.right/rstat/liste-5/r"
       ! if non-primitive rings, substitute -5.dat with -1.dat
@@ -466,7 +462,7 @@ do n=3,maxr
          enddo 
          close(69)
       endif
-      if (trim(adjustl(switch_r_split)).eq.'yes') then
+      if (switch_r_split) then
          if (stat_nr(n).gt.stat_nr_left(n)) then
             command=".right/r"
             write(rst2,*) n
@@ -491,7 +487,7 @@ do n=3,maxr
 enddo
 
 ! We want to know the fraction of each n-membered category that are actually wholly hydrogen bonded
-if (trim(adjustl(switch_hbck)).eq.'yes') then
+if (switch_hbck) then
    duplicate_hydrogen_logged = .false.
    allocate(stat_wr_HB%stat_wr_size(3:maxr))
    do n=3,maxr
@@ -502,22 +498,22 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
             hbflag(:)=0 ! If this guy is HB, we should have hbflag=-1 for each element!
             do l=1,n ; do m=1,n ; if (l.ne.m) then ! Loop over every pair
                  duplicate_hydrogen(:) = .false.
-                 hydrogens = kto_h(stat_wr%stat_wr_size(n)%mrings(kr,l))
-                 do i=1,len(trim(adjustl(hydrogens)))
-                    read(hydrogens(i:i),'(i1)') j
-                    if (duplicate_hydrogen(j)) then
+                 hydrogens = kto_h(stat_wr%stat_wr_size(n)%mrings(kr,l),:)
+                 do i=1,4 ; if (hydrogens(i).eq.0) cycle
+                    if (duplicate_hydrogen(hydrogens(i))) then
                         if (.not.duplicate_hydrogen_logged) then
-                            write(99,*) "Duplicate index found in R_WH!"
+                            write(99,*) "Duplicate hydrogen index found in hin_structure.rings.in!"
                             duplicate_hydrogen_logged = .true.
                         endif
-                    else if ((j.ne.0).and.(hbflag(l).ne.m).and.((hbflag(l).ne.-1).or.(hbflag(m).ne.-1))) then
-                      if (j.gt.5) j=j-10
-                      r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
+                    else if ((hbflag(l).ne.m).and.((hbflag(l).ne.-1).or.(hbflag(m).ne.-1))) then
+                      r1(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+hydrogens(i)) &
+                              - pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,m)))
                       call images(cart,0,1,1,icell,r1(1),r1(2),r1(3))
                       d_sq=r1(1)**2.0+r1(2)**2.0+r1(3)**2.0
                       if (d_sq.lt.hbdist2) then
                         ! Check the O-H-O angle
-                        r2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l)))-pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+j)
+                        r2(:)=pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))) &
+                              - pos(:,kto(stat_wr%stat_wr_size(n)%mrings(kr,l))+hydrogens(i))
                         call images(cart,0,1,1,icell,r2(1),r2(2),r2(3))
                         db = r2(1)**2.0+r2(2)**2.0+r2(3)**2.0
                         th = acos((r1(1)*r2(1)+r1(2)*r2(2)+r1(3)*r2(3))/(sqrt(db*d_sq)))*rad2deg
@@ -535,7 +531,7 @@ if (trim(adjustl(switch_hbck)).eq.'yes') then
                         endif
                       endif
                     endif
-                    duplicate_hydrogen(j) = .true.
+                    duplicate_hydrogen(hydrogens(i)) = .true.
                  end do
             endif ; end do ; end do
             !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
@@ -575,7 +571,7 @@ endif ! END OF HBCK
 !!   stop
 !!endif
 
-if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') then
+if (switch_cages.or.switch_hex) then
     ! Do some checks...
     if (maxr.lt.6) then
        write(99,*) "You need to get 6-membered rings in order to look at hexagons and/or DDCs and HCs..."
@@ -609,7 +605,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
       enddo
    enddo
 
-   if (trim(adjustl(switch_hex)).eq.'yes') then
+   if (switch_hex) then
       n_hex=0
       !! DEBUG
       !write(*,*) counter, nl
@@ -661,20 +657,20 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
 
    n_hex_AVE=n_hex_AVE+real(n_hex)
    ! Time [ps] | N. of 6-membered rings | N. of proper hexagonal rings
-   if (trim(adjustl(switch_hex)).eq.'yes') then
+   if (switch_hex) then
       open(unit=108, file='hin_structure.out.rings.hex', status='unknown', position='append')
       write(108,'(1E10.4,2i15)') time, nl, n_hex
       close(108)
    endif
 
    ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
-   if (trim(adjustl(switch_r_cls)).eq.'yes') then
-      if (trim(adjustl(switch_hex)).ne.'yes') then
+   if (switch_r_cls) then
+      if (switch_hex) then
          write(99,*) "You can only cluster regular hexagonal rings at the moment..."
          stop
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         if (trim(adjustl(switch_hbck)).eq.'yes') then
+         if (switch_hbck) then
             call clath_cages(stat_wr_HB,stat_nr_HB,time,nat,natformat,kto)
          else
             call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
@@ -711,7 +707,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                iat=cr_list(j)
                jat=cr_list(k)
                posj(:)=pos(:,jat) ; posi(:)=pos(:,iat)
-               call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+               call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                if (cknn) then 
                   neigh(j)=neigh(j)+1
                   graph_solid_connect(j,neigh(j))=k
@@ -794,7 +790,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
    endif
    ! 
 
-   if (trim(adjustl(switch_cages)).eq.'yes') then
+   if (switch_cages) then
          
       ! Find DDCs cages
       ! 1. For every 1<k<6, a minimum of three other hexagonal rings pass through mk.
@@ -972,7 +968,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                   !endif 
                   ! END DEBUG
                   posj(:)=pos(:,kto(w_rings(l,1))) ; posi(:)=pos(:,kto(w_rings(m,k)))
-                  call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                  call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                   if (cknn) then ! mk is a neighbor of l1 | 2. is fulfilled
                      ! Check whether mk+2 nn l3 and mk+4 nn l5 OR mk+2 nn l5 and mk+4 nn l3
                      ! mk+2 nn l3
@@ -982,7 +978,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                      else
                         posi(:)=pos(:,kto(w_rings(m,6)))  
                      endif
-                     call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                     call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                      if (cknn) then 
                         ! mk+4 nn l5
                         posj(:)=pos(:,kto(w_rings(l,5)))
@@ -991,7 +987,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                         else
                            posi(:)=pos(:,kto(w_rings(m,6)))
                         endif
-                        call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                        call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                         if (cknn) then
                            r_flag2=0 ! 3. is fulfilled 
                         endif 
@@ -1004,7 +1000,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                      else
                         posi(:)=pos(:,kto(w_rings(m,6)))
                      endif
-                     call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                     call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                      if (cknn) then
                         ! mk+4 nn l3
                         posj(:)=pos(:,kto(w_rings(l,3)))
@@ -1013,7 +1009,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                         else
                            posi(:)=pos(:,kto(w_rings(m,6)))
                         endif
-                        call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                        call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                         if (cknn) then
                            r_flag2=0 ! 3. is fulfilled 
                         endif
@@ -1021,7 +1017,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                   endif
                   ! mk nn l2
                   posj(:)=pos(:,kto(w_rings(l,2))) ; posi(:)=pos(:,kto(w_rings(m,k)))
-                  call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                  call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                   if (cknn) then ! mk is a neighbor of l2 | 2. is fulfilled
                      ! Check whether mk+2 nn l4 and mk+4 nn l6 OR mk+2 nn l6 and mk+4 nn l2
                      ! mk+2 nn l4
@@ -1031,7 +1027,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                      else
                         posi(:)=pos(:,kto(w_rings(m,6)))
                      endif
-                     call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                     call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                      if (cknn) then
                         ! mk+4 nn l6
                         posj(:)=pos(:,kto(w_rings(l,6)))
@@ -1040,7 +1036,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                         else
                            posi(:)=pos(:,kto(w_rings(m,6)))
                         endif
-                        call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                        call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                         if (cknn) then
                            r_flag2=0 ! 3. is fulfilled 
                         endif
@@ -1053,7 +1049,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                      else
                         posi(:)=pos(:,kto(w_rings(m,6)))
                      endif
-                     call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                     call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                      if (cknn) then
                         ! mk+4 nn l4
                         posj(:)=pos(:,kto(w_rings(l,4)))
@@ -1062,7 +1058,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
                         else
                            posi(:)=pos(:,kto(w_rings(m,6)))
                         endif
-                        call nn (posj,posi,icell,rcut,cknn,xdf,ydf,zdf,dist)
+                        call nn (posj,posi,icell,r_cut,cknn,xdf,ydf,zdf,dist)
                         if (cknn) then
                            r_flag2=0 ! 3. is fulfilled 
                         endif
@@ -1139,7 +1135,7 @@ if (trim(adjustl(switch_cages)).eq.'yes'.or.trim(adjustl(switch_hex)).eq.'yes') 
    endif ! cages
 endif ! hex/cages
 
-if (adjustl(trim(switch_ffss)).eq.'yes') then
+if (switch_ffss) then
    write(*,*) "Currently not implemented - missing libs on MacOS..."
    write(99,*) "Currently not implemented - missing libs on MacOS..."
    !!!! Get the asphericity (\Delta) and the shape (S) parameters for the nucleus. 
@@ -1270,7 +1266,7 @@ write(104,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
 ! Write down rings statistics
 write(stat_format,*) maxr-2
 write(107,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr(:)
-if (trim(adjustl(switch_hbck)).eq.'yes') then
+if (switch_hbck) then
    write(307,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr_HB(:)
 endif
 stat_nr_AVE(:)=stat_nr_AVE(:)+real(stat_nr(:))
@@ -1529,7 +1525,7 @@ subroutine partcage555(rings5,nrings5,ring_cnxs_55,n_cnx_55,t_n_cnx_55,n_rings_5
     
     type(vector3), allocatable :: rings_555(:)
     integer :: n_rings_555
-    logical :: flag
+    logical(1) :: flag
     
     allocate(rings_555(nrings5*(nrings5-1)*(nrings5-2)/6))
     
@@ -1583,7 +1579,7 @@ subroutine partcage655(rings5,rings6,nrings5,nrings6,ring_cnxs_55,ring_cnxs_65,n
     
     type(vector3), allocatable :: rings_655(:)
     integer :: n_rings_655
-    logical :: flag
+    logical(1) :: flag
     
     allocate(rings_655(nrings6*nrings5*(nrings5-1)/2))
     
@@ -1654,10 +1650,10 @@ subroutine dfs_clath(n_rings_555,n_rings_655,rings_555,rings_655,nrings,clath_cl
     type(vector3), allocatable :: rings_555(:), rings_655(:), partcages(:)
     integer :: n_rings_555, n_rings_655, n_partcages, nrings, i, j, k, l
     integer :: n_clath_clusters, tmp_pc
-    logical, allocatable :: reached_rings(:)
+    logical(1), allocatable :: reached_rings(:)
     type(vector_alloc), allocatable :: clath_clusters(:)
     integer, allocatable :: clath_clusters_size(:), pc_root_cluster(:)
-    logical :: tmp_flag
+    logical(1) :: tmp_flag
     
     type :: dfs_alloc
         integer, allocatable :: pc(:)
