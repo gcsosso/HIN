@@ -274,7 +274,7 @@ if (switch_rings.and.switch_r_idx) call system('mv idx.tempo idx.dat')
 
 end program hin_structure
 
-subroutine progress(j)
+subroutine progress(j, switch_progress)
 
    implicit none
    
