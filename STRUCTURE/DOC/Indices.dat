@@ -16,8 +16,9 @@ This is a record of the file indices used in Fortran.  Please update with any ne
      109 : hin_structure.out.cls.color 					[module_clusters.f90]
      110 : hin_structure.out.cls.lambda 					[module_clusters.f90]
  111-162 : ***unused***
-     163 : hin_structure.out.gr							[module_gr.f90]
+     163 : hin_structure.out.gr							      [module_gr.f90]
      164 : hin_structure.out.hydration						[module_hydration.f90]
+     165 : hin_structure.out.hydration.color      [module_hydration.f90]
  165-199 : ***unused***
      200 : hin_structure.out.f.stats 						[module_clathrates.f90]
      201 : hin_structure.out.f.ice.patch 					[module_clathrates.f90]
@@ -58,8 +59,3 @@ This is a record of the file indices used in Fortran.  Please update with any ne
  	  975 : charges.q (read) 									[module_electro.f90]
 976-1101 : ***unused***
 	 1102 : hin_structure.out.xyfes 							[module_output.f90]
- 
- 
- 
- 
- 
