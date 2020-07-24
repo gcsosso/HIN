@@ -369,8 +369,10 @@ do n=3,maxr
    write(rst2,*) n
    rst2=trim(adjustl(rst2))
    fcommand=trim(command)//trim(rst2)//trim(rst)
+   print *, fcommand
    inquire(file=fcommand, exist=exist)
    if (exist) then
+      print *, 'here'
       command="cp ./rstat/liste-5/r"
       ! if non-primitive rings, substitute -5.dat with -1.dat
       rst="-5.dat ."
