@@ -2,7 +2,7 @@ module MOD_read_input
 
 contains
 
-subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, &
+subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, &
                       switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, &
                       filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, max_shell, op_species, &
                       switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
@@ -22,7 +22,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    ! TRAJECTORY
    character(*) :: sfile, tfile
    integer :: fframe, lframe, stride
-   logical(1) :: switch_outxtc
+   logical(1) :: switch_outxtc, switch_progress
    
    ! ORDER
    logical(1) :: switch_op, switch_q(3:6), switch_qd(3:6), switch_qt(3:6), switch_t4, switch_f(3:4), switch_th
@@ -48,8 +48,8 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          switch_op = .true.
          do i=2,num_cl_args
             tmpflag = .false.
-            call read_traj_arg(args(1,i), tmpflag, .false._1, sfile, tfile, fframe, lframe, stride, switch_outxtc, &
-                               filter,filt_min,filt_max)
+            call read_traj_arg(args(1,i), tmpflag, .false._1, sfile, tfile, fframe, lframe, stride, &
+                               switch_outxtc, switch_progress, filter, filt_min, filt_max)
             if (.not.tmpflag) cycle
             tmpflag = .false.
             call read_order_arg(args(1,i), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
@@ -96,8 +96,8 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       if (args(i,1).eq.'') exit
       if (args(i,1).eq.'trajectory') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_traj_arg(args(i,j), eflag, .true._1, sfile, tfile, fframe, lframe, stride, switch_outxtc, &
-                               filter, filt_min, filt_max)
+            call read_traj_arg(args(i,j), eflag, .true._1, sfile, tfile, fframe, lframe, stride, &
+                               switch_outxtc, switch_progress, filter, filt_min, filt_max)
          end do
       else if (args(i,1).eq.'order') then
          switch_op = .true.
@@ -274,11 +274,12 @@ subroutine read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
 
 end subroutine read_cls_idx
 
-subroutine read_traj_arg(arg,eflag,log_errors,sfile,tfile,fframe,lframe,stride,switch_outxtc,filter,filt_min,filt_max)
+subroutine read_traj_arg(arg, eflag, log_errors, sfile, tfile, fframe, lframe, stride, &
+                         switch_outxtc, switch_progress, filter, filt_min, filt_max)
    
    implicit none
    
-   logical(1) :: eflag, switch_outxtc, log_errors
+   logical(1) :: eflag, log_errors, switch_outxtc, switch_progress
    character(*) :: arg, sfile, tfile, filter
    integer :: fframe, lframe, stride
    real :: filt_min, filt_max
@@ -292,6 +293,7 @@ subroutine read_traj_arg(arg,eflag,log_errors,sfile,tfile,fframe,lframe,stride,s
    else if (arg(1:8).eq.'-filter=') then ; call read_arg(arg(9:), 0, 0.0, filter, 'str', 'filter', eflag)
    else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, filt_min, '', 'real', 'min', eflag)
    else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, filt_max, '', 'real', 'max', eflag)
+   else if (trim(adjustl(arg)).eq.'--progress') then ; switch_progress = .true.
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: trajectory "//trim(arg) ; end if
    
 end subroutine read_traj_arg
@@ -380,33 +382,39 @@ subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
    open(unit=100, file='hin_structure.rings.in', status='old')
    do ; read(100, '(A)', iostat=io) buf ; if (io.ne.0) exit ; r_ns = r_ns+1 ; end do ; close(100)
    
-   allocate(r_wr(r_ns), r_ws(r_ns), r_wh(r_ns, 4)) ; r_wh = 0
-   
-   open(unit=100, file='hin_structure.rings.in', status='old')
-   do i=1,r_ns ; read(100, '(A)', iostat=io) buf ; if (io.ne.0) exit ; line_loc = 0 ; in_arg=.false.
-      do j=1,31 ; if (buf(j:j).eq.'#') then ; exit ! Ignore anything after a hash (comments)
-         else 
-            ! This is a line that is not being ignored
-            if (buf(j:j).eq.' ') then
-               if (in_arg) then
-                  in_arg = .false.
-                  if (line_loc.eq.1) then ; r_wr(i) = current_arg
-                  else if (line_loc.eq.2) then ; r_ws(i) = current_arg
-                  else if (line_loc.le.6) then
-                     read(current_arg, *, iostat=io) r_wh(i, line_loc-2)
-                     if (io.ne.0) then ; eflag=.true. ; exit ; end if
-                  else ; exit ; end if
+   if (r_ns.eq.0) then
+      write(99,*) "File 'hin_structure.rings.in' not found. Calculating rings for default atoms (SOL:OW, HO4:OW)."
+      allocate(r_wr(2), r_ws(2), r_wh(2,4)) ; r_wh = 0, r_wr = 'OW'
+      r_wr(1) = 'SOL', r_wr(2) = 'HO4' ; r_wh(1,1) = 1 ; r_wh(1,2) = 2 ; r_wh(2,1) = 1 ; r_wh(2,2) = 2   
+   else
+      allocate(r_wr(r_ns), r_ws(r_ns), r_wh(r_ns, 4)) ; r_wh = 0
+
+      open(unit=100, file='hin_structure.rings.in', status='old')
+      do i=1,r_ns ; read(100, '(A)', iostat=io) buf ; if (io.ne.0) exit ; line_loc = 0 ; in_arg=.false.
+         do j=1,31 ; if (buf(j:j).eq.'#') then ; exit ! Ignore anything after a hash (comments)
+            else 
+               ! This is a line that is not being ignored
+               if (buf(j:j).eq.' ') then
+                  if (in_arg) then
+                     in_arg = .false.
+                     if (line_loc.eq.1) then ; r_wr(i) = current_arg
+                     else if (line_loc.eq.2) then ; r_ws(i) = current_arg
+                     else if (line_loc.le.6) then
+                        read(current_arg, *, iostat=io) r_wh(i, line_loc-2)
+                        if (io.ne.0) then ; eflag=.true. ; exit ; end if
+                     else ; exit ; end if
+                  end if
+               else if (in_arg) then
+                  current_arg = trim(current_arg)//buf(j:j)
+               else
+                  in_arg = .true.
+                  current_arg = buf(j:j)
+                  line_loc = line_loc + 1
                end if
-            else if (in_arg) then
-               current_arg = trim(current_arg)//buf(j:j)
-            else
-               in_arg = .true.
-               current_arg = buf(j:j)
-               line_loc = line_loc + 1
             end if
-         end if
-      end do
-   end do ; close(100)
+         end do
+      end do ; close(100)
+   end if
    
 end subroutine read_rings_input
 
