@@ -306,7 +306,7 @@ command="c2=`head -2 conf.xyz | tail -1 | awk '{print $2}'` ; cat tmp.dat | sed 
 call system(command)
 command="c3=`head -2 conf.xyz | tail -1 | awk '{print $3}'` ; cat rings.in | sed ""s/ICELL3/$c3/"" > tmp.dat"
 call system(command)
-command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/r_cut/$rc/"" > rings.in"
+command="rc=`head -2 conf.xyz | tail -1 | awk '{print $4}'` ; cat tmp.dat | sed ""s/RCUT/$rc/"" > rings.in"
 call system(command)
 command="mr=`head -2 conf.xyz | tail -1 | awk '{print $5}'` ; cat rings.in | sed ""s/MAXR/$mr/"" > tmp.dat"
 call system(command)
