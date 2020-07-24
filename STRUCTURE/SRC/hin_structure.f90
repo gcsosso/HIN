@@ -275,12 +275,15 @@ if (switch_rings.and.switch_r_idx) call system('mv idx.tempo idx.dat')
 end program hin_structure
 
 subroutine progress(j)
+
    implicit none
+   
    logical(1) :: switch_progress
    integer :: k
    real :: j
-   if (switch_progress) then
-      character(57) :: bar="???% |                                                  |"
+   character(57) :: bar="???% |      
+   
+   if (switch_progress) then                                               |"
       write(unit=bar(1:3),fmt="(i3)") int(100*j)
       do k=1, int(50*j)
          bar(6+k:6+k)="*"
