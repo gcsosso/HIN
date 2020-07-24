@@ -31,7 +31,7 @@ integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:
 integer :: n_f_ow
 integer, allocatable :: list_f_ow(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
-real :: zmin, zmax, r_zmin, r_zmax, dz, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr
+real :: zmin, zmax, dz, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_dz, hbdist2
@@ -189,7 +189,7 @@ do while ( STAT==0 )
 
       ! Rings statistics...  
       if (switch_rings) then
-          call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax,sym,resname,rings_exe,r_color,time,STEP, &
+          call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,filt_min,filt_max,sym,resname,rings_exe,r_color,time,STEP, &
                      counter,natformat,nat,icell,r_cut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
                      switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                      patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
