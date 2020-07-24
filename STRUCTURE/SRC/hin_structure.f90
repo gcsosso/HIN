@@ -250,6 +250,8 @@ do while ( STAT==0 )
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
 end do
 
+if (switch_progress) print *, ' Finished.'
+
 ! Output...
 call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_trans, &
             switch_rings,r_ns,r_ws,n_r_ws,maxr,stat_nr_AVE,switch_cages,n_ddc_AVE,n_hc_AVE, &
