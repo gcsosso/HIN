@@ -6,7 +6,7 @@ TFILE  sucrose.xtc            # trajectory file -> .xtc file
 FFRAME 0                   # first frame to be taken into account -> n.
 STRIDE 1                   # stride: consider one frame every stride frames -> n.
 LFRAME 9                  # last frame to be taken into account -> n.
-OUTXTC no                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
+OUTXTC yes                  # output or not [yes or no] an .xtc file containing the frames taken into account [recommended: yes]
 NS     2                   # n. of species for which we want to compute z-dens -> n. AND bond stat.
 WS     OW HW1              # which species -> e.g. 'OW', 'HW', as specified in the .gro file
 HW_EXC yes                 # if this keyword is active, HW2 and considered along with HW1 atoms [recommended: yes]
@@ -95,6 +95,6 @@ GR_MIN_DY     0.0001	# Minimum depth of minimum to be considered
 
 # Hydration
 NH     	     yes	# Calculate hydration number -> yes or no
-NH_BINS	     40		# Number of bins for calculating nH (use 1 if want single hydration number)
-RMAX	     2		# Maximum distance cutoff from solute to Ow (in nm)
+NH_BINS	     1		# Number of bins for calculating nH (use 1 if want single hydration number)
+RMAX	     0.35		# Maximum distance cutoff from solute to Ow (in nm)
 

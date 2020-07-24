@@ -9,4 +9,5 @@
  Time (ps):          32.000000  Step: 16000 Frame: 8
  Time (ps):          36.000000  Step: 18000 Frame: 9
  We have taken into account           10 frames, from frame            0  to frame            9  with stride            1
+ We have written a subset of the original .xtc trajectory. See: hin_structure.out.xtc
  We have calculated some hydration parameters. See: hin_structure.out.hyd

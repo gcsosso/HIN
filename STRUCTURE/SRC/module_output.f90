@@ -356,7 +356,7 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
 
   if (trim(adjustl(switch_nh)).eq.'yes') then
     write(99,*) "We have calculated some hydration parameters. See: hin_structure.out.hyd"
-    open(unit=164, file='hin_structure.out.hyd', status='unknown')
+    open(unit=164, file='hin_structure.out.hydration', status='unknown')
 
     allocate(nh_mol_avg(nh_bins),nh_atm_avg(n_nw,nh_bins))
     do i=1,nh_bins

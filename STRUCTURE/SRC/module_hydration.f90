@@ -50,18 +50,19 @@ enddo
 end subroutine hydration_alloc
 
 
-subroutine hydration(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm)
+subroutine hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm)
 
 implicit none
 
 ! Arguments
-integer :: o_ns, cart, n_nw, n_ow, nh_bins
-integer, allocatable :: list_ws(:,:), list_nw(:), nh_mol(:), nh_atm(:,:)
+integer :: nat, o_ns, cart, n_nw, n_ow, nh_bins
+integer, allocatable :: list_ws(:,:), list_nw(:), nh_mol(:), nh_atm(:,:), resnum(:)
 real :: icell(cart*cart)
 real, allocatable :: pos(:,:), nh_r(:), o_dist(:)
+character*5,allocatable :: resname(:)
 
 ! Local
-integer :: i, j, i_spc, j_spc
+integer :: i, j, i_spc, j_spc, nh_color(nat)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
 
 do i=1,n_nw
@@ -76,19 +77,26 @@ do i=1,n_nw
     r_ij=sqrt(xdf**2.0d0+ydf**2.0d0+zdf**2.0d0)
     if (i.eq.1) then ! First iteration of outer loop, assign regardless of value
       o_dist(j)=r_ij
-    elseif (r_ij .lt. o_dist(j)) then ! If the water is closer to another atom, assign this new shorter distance
+    elseif (r_ij.lt.o_dist(j)) then ! If the water is closer to another atom, assign this new shorter distance
       o_dist(j)=r_ij
     endif
   enddo
 enddo
 
+nh_color(:)=0
 do i=1,n_ow
   do j=1,nh_bins
     if (o_dist(i).le.nh_r(j)) then
       nh_mol(j)=nh_mol(j)+1
+      i_spc=list_ws(o_ns,i)
+      nh_color(i_spc)=1
     endif
   enddo
 enddo
+
+open(unit=165, file='hin_structure.out.hydration.color', status='unknown')
+write(165,*) nh_color(:)
+close(165)
 
 end subroutine hydration
 

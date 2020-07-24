@@ -224,7 +224,7 @@ do while ( STAT==0 )
 
       ! Hydration...
       if (trim(adjustl(switch_nh)).eq.'yes') then
-        call hydration(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm)
+        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm)
       endif
 
    endif
