@@ -142,7 +142,7 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
    read(101,*)
    read(101,*) nat
    write(natformat,*) nat
-   allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat))
+   allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns))
    allocate(list_f_ow(nat))
    n_ws(:)=0
    n_f_ow = 0
