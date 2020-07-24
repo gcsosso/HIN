@@ -281,9 +281,9 @@ subroutine progress(j)
    logical(1) :: switch_progress
    integer :: k
    real :: j
-   character(57) :: bar="???% |      
+   character(57) :: bar="???% |                                                  |"
    
-   if (switch_progress) then                                               |"
+   if (switch_progress) then
       write(unit=bar(1:3),fmt="(i3)") int(100*j)
       do k=1, int(50*j)
          bar(6+k:6+k)="*"
