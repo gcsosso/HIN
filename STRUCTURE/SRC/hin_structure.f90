@@ -171,7 +171,7 @@ if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 ! Read the whole thing
 counter=0
 dostuff=0
-if (switch_progress) call progress(0.0)
+call progress(0.0, switch_progress)
 
 do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
@@ -244,7 +244,7 @@ do while ( STAT==0 )
    end if
    
    counter=counter+1
-   if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
+   call progress(real(counter-fframe)/real(lframe-fframe+1), switch_progress)
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
@@ -276,13 +276,16 @@ end program hin_structure
 
 subroutine progress(j)
    implicit none
+   logical(1) :: switch_progress
    integer :: k
    real :: j
-   character(57) :: bar="???% |                                                  |"
-   write(unit=bar(1:3),fmt="(i3)") int(100*j)
-   do k=1, int(50*j)
-      bar(6+k:6+k)="*"
-   end do
-   ! print the progress bar.
-   write(unit=6,fmt="(a1,a60,$)") char(13), bar
+   if (switch_progress) then
+      character(57) :: bar="???% |                                                  |"
+      write(unit=bar(1:3),fmt="(i3)") int(100*j)
+      do k=1, int(50*j)
+         bar(6+k:6+k)="*"
+      end do
+      ! print the progress bar.
+      write(unit=6,fmt="(a1,a60,$)") char(13), bar
+   end if
 end subroutine progress
