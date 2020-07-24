@@ -61,7 +61,7 @@ integer, parameter :: ARG_LEN=127
 ! TRAJECTORY
 character(ARG_LEN) :: sfile='md.gro', tfile='traj.xtc'
 integer :: fframe=0, lframe=-1, stride=1
-logical(1) :: switch_outxtc=.true.
+logical(1) :: switch_outxtc=.true., switch_progress=.false.
 
 ! ORDER
 logical(1) :: switch_op=.false., switch_q(3:6)=.false., switch_qd(3:6)=.false., switch_qt(3:6)=.false.
@@ -90,7 +90,7 @@ ws(1) = 'OW'
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
-call read_input(ARG_LEN,sfile,tfile,fframe,lframe,stride,switch_outxtc, &
+call read_input(ARG_LEN,sfile,tfile,fframe,lframe,stride,switch_outxtc, switch_progress, &
                 switch_op,switch_q,switch_qd,switch_qt,switch_t4,switch_f,switch_th, &
                 filter,filt_min,filt_max,q_cut,qd_cut,qt_cut,f_cut,max_shell,op_species, &
                 switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
@@ -171,7 +171,7 @@ if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 ! Read the whole thing
 counter=0
 dostuff=0
-call progress(0.0)
+if (switch_progress) call progress(0.0)
 
 do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
@@ -244,7 +244,7 @@ do while ( STAT==0 )
    end if
    
    counter=counter+1
-   call progress(real(counter-fframe)/real(lframe-fframe+1))
+   if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)

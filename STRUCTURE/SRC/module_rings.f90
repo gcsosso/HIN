@@ -107,7 +107,6 @@ integer :: r_flag, r_flag2, r_flag3, tr(osix), tr6(osix), nper, ckr, ck
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13
 integer :: r15, r24, r26, n_ddc, n_hc, maxr, maxr_RINGS, info
 integer :: ti, tj, tk, tri, kr, surfF, lwork, dummy, hydrogens(4)
-integer, allocatable :: kto_h(:,:)
 ! JPCL
 integer :: ddc_bulk_madeit, hc_bulk_madeit, ddc_bulk_dead, hc_bulk_dead, ddc_surf_madeit, hc_surf_madeit, ddc_surf_dead, hc_surf_dead
 ! JPCL
@@ -140,7 +139,7 @@ real :: r_split
 character(4), allocatable :: sym(:)
 character(5), allocatable :: resname(:)
 character(100) :: rings_exe, natformat
-integer, allocatable :: r_wh(:,:)
+integer, allocatable :: r_wh(:,:), kto_h(:,:)
 
 ! DFS stuff
 integer :: ncr, mxvic, nat_cls, iat, jat, nnf, vol_count, voltot, ncrit, patch
@@ -397,7 +396,7 @@ do n=3,maxr
       close(69)
    else
       stat_nr(n)=0
-   endif
+   endif ; print *, stat_nr(n)
    stat_nr_left(n) = stat_nr(n)
    if (switch_r_split) then
       ! if non-primitive rings, substitute liste-5 with liste-1
