@@ -2,12 +2,12 @@ module MOD_read_input
 
 contains
 
-subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, &
+subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, switch_hw_ex, &
                       switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, &
                       filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, max_shell, op_species, &
                       switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                       rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
-                      r_ns, r_wr, r_ws, r_wh)
+                      r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -24,6 +24,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: fframe, lframe, stride
    logical(1) :: switch_outxtc, switch_progress
    
+   ! WS
+   integer :: ns
+   character(4), allocatable :: ws(:)
+   logical(1) :: switch_hw_ex
+   
    ! ORDER
    logical(1) :: switch_op, switch_q(3:6), switch_qd(3:6), switch_qt(3:6), switch_t4, switch_f(3:4), switch_th
    character(*) :: filter, op_species
@@ -37,6 +42,12 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: maxr, maxr_RINGS, wcol, r_ns
    character(5), allocatable :: r_wr(:), r_ws(:)
    integer, allocatable :: r_wh(:,:)
+   
+   ! BONDS
+   logical(1) :: switch_bonds
+   real :: b_dz, b_bmin, b_bmax
+   real, allocatable :: b_rcut(:)
+   integer :: b_bins, npairs
    
    read_loc(:) = 0
    
@@ -99,6 +110,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
             call read_traj_arg(args(i,j), eflag, .true._1, sfile, tfile, fframe, lframe, stride, &
                                switch_outxtc, switch_progress, filter, filt_min, filt_max)
          end do
+      else if (args(i,1).eq.'ws') then ; call read_ws_arg(args(i,:), eflag, ns, ws, switch_hw_ex, MAX_ARGS)
       else if (args(i,1).eq.'order') then
          switch_op = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
@@ -113,8 +125,25 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                                 r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, wcol)
          end do
          call read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
+      else if (args(i,1).eq.'bonds') then
+         switch_bonds = .true.
+         npairs=factorial(ns+2-1)/(2*factorial(ns-1))
+         allocate(b_rcut(npairs)) ; b_rcut(:) = 0.0
+         j = 2 ;  do while (j.le.num_args(i)) ; if (args(i,j).eq.'') exit
+            call read_bonds_arg(args(i,j), eflag, .true._1, b_dz, b_rcut, b_bins, b_bmin, b_bmax)
+            if (b_rcut(1).eq.-1.0) then
+               call read_b_rcut(eflag, args(i,j+1:j+npairs), b_rcut, npairs)
+               j = j+npairs
+            end if
+            j = j+1
+         end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
+   
+   if (ns.eq.0) then
+      ns = 2 ; allocate(ws(2))
+      ws(1) = 'OW' ; ws(2) = 'HW'
+   end if
    
    if (eflag) then ; write(99,*) "Something is wrong with the input file..." ; stop ; end if
 
@@ -142,7 +171,7 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
    read(101,*)
    read(101,*) nat
    write(natformat,*) nat
-   allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns))
+   allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns),n_ws(ns))
    allocate(list_f_ow(nat))
    n_ws(:) = 0
    n_r_ws(:) = 0
@@ -361,6 +390,27 @@ subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, &
 
 end subroutine read_rings_arg
 
+
+subroutine read_bonds_arg(arg, eflag, log_errors, b_dz, b_rcut, b_bins, b_bmin, b_bmax)
+   
+   implicit none
+   
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   real :: b_dz, b_bmin, b_bmax
+   real, allocatable :: b_rcut(:)
+   integer :: b_bins
+   
+   if (arg(1:4).eq.'-dz=') then ; call read_arg(arg(5:), 0, b_dz, '', 'real', 'dz', eflag)
+   else if (trim(adjustl(arg)).eq.'-rcut') then ; b_rcut(1) = -1.0
+   else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), b_bins, 0.0, '', 'int', 'bins', eflag)
+   else if (arg(1:6).eq.'-bmin=') then ; call read_arg(arg(7:), 0, b_bmin, '', 'real', 'bmin', eflag)
+   else if (arg(1:6).eq.'-bmax=') then ; call read_arg(arg(7:), 0, b_bmax, '', 'real', 'bmax', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: bonds "//trim(arg) ; end if
+
+end subroutine read_bonds_arg
+
+
 subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
 
    logical(1) :: in_arg
@@ -418,6 +468,55 @@ subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
    end if
    
 end subroutine read_rings_input
+
+
+subroutine read_b_rcut(eflag, args, b_rcut, npairs)
+   implicit none
+   
+   logical(1) :: eflag
+   integer :: npairs, io, i
+   character(*) :: args(npairs)
+   real, allocatable :: b_rcut(:)
+   
+   do i=1,npairs
+      read(args(i), *, iostat=io) b_rcut(i)
+      if (io.ne.0) then
+         print *, trim(args(i))//" is not a valid value for bonds -rcut!"
+         eflag=.true.
+      end if
+   end do
+   
+
+end subroutine read_b_rcut
+
+
+subroutine read_ws_arg(args, eflag, ns, ws, switch_hw_ex, MAX_ARGS)
+   implicit none
+   
+   integer, intent(in) :: MAX_ARGS
+   character(*) :: args(MAX_ARGS)
+   logical(1) :: eflag, switch_hw_ex
+   integer :: ns, i, io, final_arg, other_args
+   character(*), allocatable :: ws(:)
+   
+   other_args = 0
+   do i=2,MAX_ARGS
+      if (args(i).eq.'') then ; exit
+      else if (args(i)(1:1).eq.'-') then ; other_args = other_args + 1 ; end if
+   end do ; final_arg = i-1 ; allocate(ws(final_arg-1-other_args))
+   
+   ns=0
+   do i=2,final_arg
+      if (trim(adjustl(args(i))).eq.'--no_hw_ex') then ; switch_hw_ex = .false.
+      else ; ns = ns+1 ; read(args(i), *, iostat=io) ws(ns)
+         if (io.ne.0) then
+            print *, trim(args(i))//" is not a valid value for ws!"
+            eflag=.true.
+         end if
+      end if
+   end do
+   
+end subroutine read_ws_arg
 
 
 subroutine read_arg(arg, n, x, s, argtype, argname, eflag)

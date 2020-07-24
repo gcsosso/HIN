@@ -26,7 +26,7 @@ cn_AVE(:,:)=0.0
 end subroutine bonds_alloc
 
 subroutine bonds(b_zmin,b_zmax,b_dz,pos,icell,pdbon,cart,ns,n_ws,list_ws, &
-                 ws,b_r_cut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
+                 ws,b_rcut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
 
 implicit none
 
@@ -34,7 +34,7 @@ implicit none
 integer :: cart, ns, npairs, b_bins, npairs_cn
 integer, allocatable :: n_ws(:), list_ws(:,:)
 real :: b_zmin,b_zmax,b_dz, icell(cart*cart), b_bmin, b_bmax
-real, allocatable :: pos(:,:), b_r_cut(:), pdbon_AVE(:,:,:),cn_AVE(:,:)
+real, allocatable :: pos(:,:), b_rcut(:), pdbon_AVE(:,:,:),cn_AVE(:,:)
 character*4, allocatable :: ws(:), ck_ws(:,:)
 
 ! Local
@@ -94,7 +94,7 @@ do i=1,ns
                         ! Atom l of species i is within the z slice of interest
                         ! Now get the bond length for these two:
                         posl(:)=pos(:,list_ws(i,l)) ; posm(:)=pos(:,list_ws(j,m))
-                        call nn (posl,posm,icell,b_r_cut(ipair),cknn,xdf,ydf,zdf,dist)
+                        call nn (posl,posm,icell,b_rcut(ipair),cknn,xdf,ydf,zdf,dist)
                         if (cknn) then
                            cn(k,ipair)=cn(k,ipair)+1.0
                         !! DEBUG
