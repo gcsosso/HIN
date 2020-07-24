@@ -368,7 +368,7 @@ subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, r_ns, r_wr
    else ; write(99,*) "Values of 6,7,8 or 9 only are allowed for MAXR at the moment..." ; stop ; endif
    
    ! Read rings input file...
-   open(unit=100, file='test.in', status='old')
+   open(unit=100, file='hin_structure.rings.in', status='old')
    do ; read(100, '(A)', iostat=io) buf ; if (io.ne.0) exit ; r_ns = r_ns+1 ; end do ; close(100)
    
    allocate(r_wr(r_ns), r_ws(r_ns), r_wh(r_ns, 4)) ; r_wh = 0
