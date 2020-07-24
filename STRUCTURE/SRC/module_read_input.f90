@@ -384,8 +384,8 @@ subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
    
    if (r_ns.eq.0) then
       write(99,*) "File 'hin_structure.rings.in' not found. Calculating rings for default atoms (SOL:OW, HO4:OW)."
-      allocate(r_wr(2), r_ws(2), r_wh(2,4)) ; r_wh = 0, r_wr = 'OW'
-      r_wr(1) = 'SOL', r_wr(2) = 'HO4' ; r_wh(1,1) = 1 ; r_wh(1,2) = 2 ; r_wh(2,1) = 1 ; r_wh(2,2) = 2   
+      allocate(r_wr(2), r_ws(2), r_wh(2,4)) ; r_wh = 0 ; r_wr = 'OW'
+      r_wr(1) = 'SOL' ; r_wr(2) = 'HO4' ; r_wh(1,1) = 1 ; r_wh(1,2) = 2 ; r_wh(2,1) = 1 ; r_wh(2,2) = 2   
    else
       allocate(r_wr(r_ns), r_ws(r_ns), r_wh(r_ns, 4)) ; r_wh = 0
 
