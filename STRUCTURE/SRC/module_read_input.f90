@@ -108,10 +108,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       else if (args(i,1).eq.'rings') then
          switch_rings = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_rings_arg(args(i,j), .true._1, eflag, rings_exe, r_cls_W, r_ns, r_wr, r_ws, r_wh, &
+            call read_rings_arg(args(i,j), eflag, .true._1, rings_exe, r_cls_W, &
                                 switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
-                                r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol)
+                                r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, wcol)
          end do
+         call read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
    
@@ -327,23 +328,16 @@ subroutine read_order_arg(arg, eflag, log_errors, switch_q, switch_qd, switch_qt
    
 end subroutine read_order_arg
 
-subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, r_ns, r_wr, r_ws, r_wh, &
+subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, &
                           switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
-                          r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol)
+                          r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, wcol)
    
    implicit none
-   
-   logical(1) :: in_arg
-   character(31) :: buf
-   character(5) :: current_arg
-   integer :: io, i, j, line_loc
    
    logical(1) :: eflag, log_errors, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
    character(*) :: arg, rings_exe, r_cls_W
    real :: r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS
-   integer :: maxr, maxr_RINGS, wcol, r_ns
-   character(5), allocatable :: r_wr(:), r_ws(:)
-   integer, allocatable :: r_wh(:,:)
+   integer :: maxr, wcol
    
    if (arg(1:5).eq.'-exe=') then ; call read_arg(arg(6:), 0, 0.0, rings_exe, 'str', 'exe', eflag)
    else if (arg(1:7).eq.'-split=') then; switch_r_split = .true. ; call read_arg(arg(8:), 0, r_split, '', 'real', 'split', eflag)
@@ -361,6 +355,21 @@ subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, r_ns, r_wr
    else if (arg(1:7).eq.'-thrSS=') then ; call read_arg(arg(8:), 0, thrSS, '', 'real', 'thrSS', eflag)
    else if (arg(1:6).eq.'-wcol=') then ; call read_arg(arg(7:), wcol, 0.0, '', 'int', 'wcol', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: rings "//trim(arg) ; end if
+
+end subroutine read_rings_arg
+
+subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
+
+   logical(1) :: in_arg
+   character(31) :: buf
+   character(5) :: current_arg
+   integer :: io, i, j, line_loc
+   
+   logical(1) :: eflag
+   integer :: maxr, maxr_RINGS, r_ns
+   character(*), allocatable :: r_wr(:), r_ws(:)
+   integer, allocatable :: r_wh(:,:)
+
    
    ! Convert from actual max depth of rings search (MAXR, either 4->6 or 5->7,8,9 up to now...)
    ! To R.I.N.G.S. notation
@@ -399,7 +408,7 @@ subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, r_ns, r_wr
       end do
    end do ; close(100)
    
-end subroutine read_rings_arg
+end subroutine read_rings_input
 
 
 subroutine read_arg(arg, n, x, s, argtype, argname, eflag)
