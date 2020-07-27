@@ -136,7 +136,7 @@ subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws
 end subroutine clusters_alloc
 
 subroutine clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
-                    box_trans,pos,prec,cart,pmpi,cls_stat,r_color,natformat,nat,n_cls_AVE)
+                    box_trans,pos,prec,cart,pmpi,switch_cls_stat,r_color,natformat,nat,n_cls_AVE)
 
    use, intrinsic :: iso_c_binding, only: C_NULL_CHAR, C_PTR, c_f_pointer
    use xtc
@@ -159,7 +159,7 @@ subroutine clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
    real :: time, box_trans(cart,cart), prec, n_cls_AVE
    real, allocatable :: pos(:,:)
    character(4), allocatable :: ws(:)
-   character(3) :: cls_stat
+   logical(1) :: switch_cls_stat
    character(100) :: plumed_exe, command, natformat
 
 
@@ -204,7 +204,7 @@ subroutine clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
    close(69)
 
    ! Analysis of the cluster
-   if (trim(adjustl(cls_stat)).eq.'yes') then ! Get asphericity, z-plot...
+   if (switch_cls_stat) then ! Get asphericity, z-plot...
    endif
 
    ! Write down the colors for VMD

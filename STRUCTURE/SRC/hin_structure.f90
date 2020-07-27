@@ -25,31 +25,28 @@ integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, nz, e_nz, b_bins, nz_bAV
 integer ::  idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
-integer :: tmplist, ohstride, pmpi, nxy, nsurf, nbulk, nq
+integer :: tmplist, nsurf, nbulk, nq
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
 integer :: n_f_ow
 integer, allocatable :: list_f_ow(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
-real :: zmin, zmax, dz, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr
+real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
 real :: rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
-real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_dz, hbdist2
-real :: f3_imax, f3_cmax, f4_imax, f4_cmin
+real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, middle, o_dz, hbdist2
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
 character :: ch
-character*3 :: cls_stat
-logical(1) :: switch_zdens=.false., switch_cls=.false., switch_xyfes=.false.
-logical(1) :: switch_r_idx=.false., switch_electro=.false., switch_f_cls=.false.
+logical(1) :: switch_r_idx=.false.
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: sym(:)
 character*4, allocatable :: atq(:)
-character*100 :: xtcOfile, wformat, natformat, command, plumed_exe
-character*100 :: pstring, pstring_C, command1, command2, fcommand, vmd_exe, buffer
+character*100 :: xtcOfile, wformat, natformat, command
+character*100 :: pstring, pstring_C, command1, command2, fcommand, buffer
 type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical(1) :: ex, proc, cknn
@@ -79,7 +76,7 @@ integer :: max_shell=30
 ! RINGS
 logical(1) :: switch_rings=.false., switch_r_split=.false., switch_hbck=.false., switch_hex=.false.
 logical(1) :: switch_r_cls=.false., switch_cages=.false., switch_ffss=.false.
-character(ARG_LEN) :: rings_exe='/home/molases/maungn/rings-code-v1.3.3/BIN/bin/rings'
+character(ARG_LEN) :: rings_exe='PLACEHOLDER_RINGS_EXE'
 character(3) :: r_cls_W=''
 real :: r_split=0.0, r_cut=0.32, hbdist=0.22, hbangle=20.0, a_thr=30.0, thrS=1.5, thrSS=1.7
 integer :: maxr=9, maxr_RINGS, wcol=6, r_ns=0
@@ -92,6 +89,25 @@ real :: b_dz=10.0, b_bmin, b_bmax
 real, allocatable :: b_rcut(:)
 integer :: npairs
 
+! ZDENS
+logical(1) :: switch_zdens=.false.
+real :: zmin=0.0, zmax=10.0, dz=0.1
+
+! XYFES
+logical(1) :: switch_xyfes=.false.
+real :: xymin=1.5, xymax=2.1
+integer :: nxy=200
+
+! CLUSTERS
+logical(1) :: switch_cls=.false., switch_f_cls=.false., switch_cls_stat=.false.
+character(ARG_LEN) :: plumed_exe='PLACEHOLDER_PLUMED_EXE', vmd_exe='PLACEHOLDER_VMD_EXE'
+real :: f3_imax=0.1, f3_cmax=0.1, f4_imax=-0.4, f4_cmin=0.75
+integer :: ohstride=4, pmpi=4
+
+! ELECTROSTATICS
+logical(1) :: switch_electro=.false.
+real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
@@ -100,7 +116,10 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, max_shell, op_species, &
                 switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                 rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
-                r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs)
+                r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
+                switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
+                switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
+                f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -208,7 +227,7 @@ do while ( STAT==0 )
 
       ! Ice-like clusters...
       if (switch_cls) call clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
-                                    box_trans,pos,prec,cart,pmpi,cls_stat,r_color,natformat,nat,n_cls_AVE)
+                                    box_trans,pos,prec,cart,pmpi,switch_cls_stat,r_color,natformat,nat,n_cls_AVE)
       
       ! Clathrates...
       if (switch_f(3).or.switch_f(4)) then

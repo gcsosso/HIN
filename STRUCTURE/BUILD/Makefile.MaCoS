@@ -3,11 +3,17 @@ FFLAGS_MAC=-ffree-line-length-512  #-mmacosx-version-min=10.9.5 -ftrace=full # -
 LDLIBS_MAC=-L/Users/maungn/HIN/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile        #
 EXE_MAC=hin_structure_MaCoS.x 
 
+RINGS_EXE=/home/molases/maungn/rings-code-v1.3.3/BIN/bin/rings
+PLUMED_EXE=plumed
+VMD_EXE=vmd
+
 SRC_DIR=../SRC
 XTC_INTERFACE_DIR=../../XTC_INTERFACE
 BIN_DIR=../BIN
 
-mac: xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_output.o hin_structure.o nn.o images.o
+.PHONY: set-exe revert-exe
+
+mac: set-exe xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_output.o hin_structure.o nn.o images.o revert-exe
 	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_output.o hin_structure.o nn.o images.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
 xtc-interface.mod: $(XTC_INTERFACE_DIR)/xtc-interface.o $(XTC_INTERFACE_DIR)/xtc-interface.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(XTC_INTERFACE_DIR)/xtc-interface.f90	
@@ -71,6 +77,14 @@ images.o: $(SRC_DIR)/images.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/images.f90
 nn.o: $(SRC_DIR)/nn.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/nn.f90
+set-exe:
+	cp $(SRC_DIR)/hin_structure.f90 tmp_hin_structure_0.f90
+	sed "s|PLACEHOLDER_RINGS_EXE|$(RINGS_EXE)|" tmp_hin_structure_0.f90 > tmp_hin_structure_1.f90
+	sed "s|PLACEHOLDER_PLUMED_EXE|$(PLUMED_EXE)|" tmp_hin_structure_1.f90 > tmp_hin_structure_2.f90
+	sed "s|PLACEHOLDER_VMD_EXE|$(VMD_EXE)|" tmp_hin_structure_2.f90 > $(SRC_DIR)/hin_structure.f90
+revert-exe:
+	cp tmp_hin_structure_0.f90 $(SRC_DIR)/hin_structure.f90
+	rm tmp_hin_structure_*.f90
 
 clean:
 	rm -r -f *.o *.mod

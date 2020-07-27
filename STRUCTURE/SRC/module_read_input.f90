@@ -7,7 +7,10 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, max_shell, op_species, &
                       switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                       rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
-                      r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs)
+                      r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
+                      switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
+                      switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
+                      f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -48,6 +51,25 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    real :: b_dz, b_bmin, b_bmax
    real, allocatable :: b_rcut(:)
    integer :: b_bins, npairs
+   
+   ! ZDENS
+   logical(1) :: switch_zdens
+   real :: zmin, zmax, dz
+   
+   ! XYFES
+   logical(1) :: switch_xyfes
+   real :: xymin, xymax
+   integer :: nxy
+   
+   ! CLUSTERS
+   logical(1) :: switch_cls, switch_f_cls, switch_cls_stat
+   character(*) :: plumed_exe, vmd_exe
+   real :: f3_imax, f3_cmax, f4_imax, f4_cmin
+   integer :: ohstride, pmpi
+   
+   ! ELECTROSTATICS
+   logical(1) :: switch_electro
+   real :: e_zmin, e_zmax, e_dz
    
    read_loc(:) = 0
    
@@ -137,6 +159,26 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
             end if
             j = j+1
          end do
+      else if (args(i,1).eq.'zdens') then
+         switch_zdens = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_zdens_arg(args(i,j), eflag, .true._1, zmin, zmax, dz)
+         end do
+      else if (args(i,1).eq.'xyfes') then
+         switch_xyfes = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_xyfes_arg(args(i,j), eflag, .true._1, xymin, xymax, nxy)
+         end do
+      else if (args(i,1).eq.'clusters') then
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_clusters_arg(args(i,j), eflag, .true._1, switch_cls, switch_f_cls, switch_cls_stat, &
+                                   plumed_exe, vmd_exe, f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi)
+         end do
+      else if (args(i,1).eq.'electro') then
+         switch_electro = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_electro_arg(args(i,j), eflag, .true._1, e_zmin, e_zmax, e_dz)
+         end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
    
@@ -195,7 +237,8 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
       enddo
       if (switch_rings) then
          do j=1,r_ns
-            !!if (trim(adjustl(r_ws(j))).ne.'OW'.and.trim(adjustl(r_ws(j))).ne.'O3'.and.trim(adjustl(r_ws(j))).ne.'OR1'.and.trim(adjustl(r_ws(j))).ne.'OR2'.and.trim(adjustl(r_ws(j))).ne.'OR3'.and.trim(adjustl(r_ws(j))).ne.'OR4') then
+            !!if (trim(adjustl(r_ws(j))).ne.'OW'.and.trim(adjustl(r_ws(j))).ne.'O3'.and.trim(adjustl(r_ws(j))).ne.'OR1'.and. &
+               !!trim(adjustl(r_ws(j))).ne.'OR2'.and.trim(adjustl(r_ws(j))).ne.'OR3'.and.trim(adjustl(r_ws(j))).ne.'OR4') then
             !!   write(99,*) "You'll have to implement yet another type of HB check!"
             !!   stop
             !!endif
@@ -219,7 +262,8 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
 
 end subroutine read_gro
 
-subroutine read_first_xtc(tfile,switch_outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
+subroutine read_first_xtc(tfile, switch_outxtc, xtcOfile, STAT, NATOMS, nat, xd_c, xd, xd_c_out, xd_out, STEP, time, &
+                          box_trans, pos, prec, icell, cart)
 
    use, intrinsic :: iso_c_binding, only: C_NULL_CHAR, C_PTR, c_f_pointer
    use xtc
@@ -409,6 +453,81 @@ subroutine read_bonds_arg(arg, eflag, log_errors, b_dz, b_rcut, b_bins, b_bmin, 
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: bonds "//trim(arg) ; end if
 
 end subroutine read_bonds_arg
+
+
+subroutine read_zdens_arg(arg, eflag, log_errors, zmin, zmax, dz)
+   
+   implicit none
+   
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   real :: zmin, zmax, dz
+   
+   if (arg(1:4).eq.'-dz=') then ; call read_arg(arg(5:), 0, dz, '', 'real', 'dz', eflag)
+   else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, zmin, '', 'real', 'min', eflag)
+   else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, zmax, '', 'real', 'max', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: zdens "//trim(arg) ; end if
+
+end subroutine read_zdens_arg
+
+
+subroutine read_xyfes_arg(arg, eflag, log_errors, xymin, xymax, nxy)
+   
+   implicit none
+   
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   real :: xymin, xymax
+   integer :: nxy
+   
+   if (arg(1:5).eq.'-nxy=') then ; call read_arg(arg(6:), nxy, 0.0, '', 'int', 'dz', eflag)
+   else if (arg(1:7).eq.'-xymin=') then ; call read_arg(arg(8:), 0, xymin, '', 'real', 'xymin', eflag)
+   else if (arg(1:7).eq.'-xymax=') then ; call read_arg(arg(8:), 0, xymax, '', 'real', 'xymax', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: xyfes "//trim(arg) ; end if
+
+end subroutine read_xyfes_arg
+
+
+subroutine read_clusters_arg(arg, eflag, log_errors, switch_cls, switch_f_cls, switch_cls_stat, &
+                             plumed_exe, vmd_exe, f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi)
+   
+   implicit none
+   
+   logical(1) :: eflag, log_errors, switch_cls, switch_f_cls, switch_cls_stat
+   character(*) :: arg, plumed_exe, vmd_exe
+   real :: f3_imax, f3_cmax, f4_imax, f4_cmin
+   integer :: ohstride, pmpi
+   
+   if (trim(adjustl(arg)).eq.'--ice') then ; switch_cls = .true.
+   else if (trim(adjustl(arg)).eq.'--clathrate') then ; switch_f_cls = .true.
+   else if (trim(adjustl(arg)).eq.'--cls_stat') then ; switch_cls_stat = .true.
+   else if (arg(1:12).eq.'-plumed_exe=') then ; call read_arg(arg(13:), 0, 0.0, plumed_exe, 'str', 'plumed_exe', eflag)
+   else if (arg(1:9).eq.'-vmd_exe=') then ; call read_arg(arg(10:), 0, 0.0, vmd_exe, 'str', 'vmd_exe', eflag)
+   else if (arg(1:11).eq.'-ice_f3max=') then ; call read_arg(arg(12:), 0, f3_imax, '', 'real', 'ice_f3max', eflag)
+   else if (arg(1:17).eq.'-clathrate_f3max=') then ; call read_arg(arg(18:), 0, f3_cmax, '', 'real', 'clathrate_f3max', eflag)
+   else if (arg(1:11).eq.'-ice_f4max=') then ; call read_arg(arg(12:), 0, f4_imax, '', 'real', 'ice_f4max', eflag)
+   else if (arg(1:17).eq.'-clathrate_f4min=') then ; call read_arg(arg(18:), 0, f4_cmin, '', 'real', 'clathrate_f4min', eflag)
+   else if (arg(1:10).eq.'-ohstride=') then ; call read_arg(arg(11:), ohstride, 0.0, '', 'int', 'ohstride', eflag)
+   else if (arg(1:6).eq.'-pmpi=') then ; call read_arg(arg(7:), pmpi, 0.0, '', 'int', 'pmpi', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: clusters "//trim(arg) ; end if
+
+end subroutine read_clusters_arg
+
+
+subroutine read_electro_arg(arg, eflag, log_errors, e_zmin, e_zmax, e_dz)
+   
+   implicit none
+   
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   real :: e_zmin, e_zmax, e_dz
+   
+   if (arg(1:4).eq.'-dz=') then ; call read_arg(arg(5:), 0, e_dz, '', 'real', 'dz', eflag)
+   else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, e_zmin, '', 'real', 'min', eflag)
+   else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, e_zmax, '', 'real', 'max', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: electro "//trim(arg) ; end if
+
+end subroutine read_electro_arg
 
 
 subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
