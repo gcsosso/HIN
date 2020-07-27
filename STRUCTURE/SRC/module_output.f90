@@ -306,7 +306,7 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
       do j=1,n_bins
         write(163,'(f12.5,f12.5,f12.5)') rad(j), gr_atm_avg(i,j), smgr_atm(i,j)
       enddo
-      write(163,*) ""
+      write(163,*)
     enddo
 
     elseif ((gr_ws.eq.0).or.(gr_ws.eq.2).or.(gr_ws.eq.3)) then! For O-O PCF [0] or M-O PCF [2]/[3]
@@ -352,6 +352,7 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
         write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
       enddo
     endif
+    close(163)
   endif
 
   if (trim(adjustl(switch_nh)).eq.'yes') then
@@ -363,6 +364,8 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
       nh_mol_avg(i)=real(nh_mol(i))/real(dostuff)
       write(164,'(f10.3,f10.3)') nh_r(i), nh_mol_avg(i)
     enddo
+    close(164)
+    close(165) ! Color file
   endif
 
 end subroutine output

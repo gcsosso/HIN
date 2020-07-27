@@ -26,7 +26,7 @@ integer :: maxr, maxr_RINGS, wcol, tmplist, ohstride, pmpi, nxy, nsurf, nbulk, n
 integer :: o_ns, n_nw, n_ow, nr, min_npts, gr_ws, gr_bins, gr_min_dx, nh_bins
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:), list_nw(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:), o_solv_mol(:), o_solv_atm(:), n_solv(:), n_hyd(:)
-integer, allocatable :: nh_mol(:), nh_atm(:,:)
+integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: zmin, zmax, r_zmin, r_zmax, dz, rcut, rsqdf, posi(cart), posj(cart), xymin, xymax, ddx, ddy, thr, thrS, thrSS
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
@@ -144,7 +144,7 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
 endif
 
 if (trim(adjustl(switch_nh)).eq.'yes') then
-   call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rmax,nh_r,nh_mol,nh_atm)
+   call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rmax,nh_r,nh_mol,nh_atm,nh_color)
 endif
 
 
@@ -224,7 +224,7 @@ do while ( STAT==0 )
 
       ! Hydration...
       if (trim(adjustl(switch_nh)).eq.'yes') then
-        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm)
+        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm,nh_color)
       endif
 
    endif
