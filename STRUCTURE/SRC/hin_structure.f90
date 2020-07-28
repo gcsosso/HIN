@@ -66,11 +66,11 @@ logical(1) :: switch_hw_ex=.true.
 
 ! ORDER
 logical(1) :: switch_op=.false., switch_q(3:6)=.false., switch_qd(3:6)=.false., switch_qt(3:6)=.false.
-logical(1) :: switch_t4=.false., switch_f(3:4)=.false., switch_th=.false.
+logical(1) :: switch_t4=.false., switch_f(3:4)=.false., switch_th=.false., switch_t_order=.false.
 character(7) :: filter='none'
 character(5) :: op_species='OW'
 character(3) :: switch_water='mol'
-real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35
+real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35, t_rcut
 integer :: max_shell=30
 
 ! RINGS
@@ -108,18 +108,29 @@ integer :: ohstride=4, pmpi=4
 logical(1) :: switch_electro=.false.
 real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
+! RADIAL
+logical(1) :: switch_gr=.false.
+integer :: gr_ws, gr_bins=300, gr_min_dx=2
+real :: gr_min_dy=0.001
+
+! HYDRATION
+logical(1) :: switch_nh=.false.
+integer :: nh_bins
+real :: nh_rcut
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
 call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, switch_hw_ex, &
-                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, &
-                filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, max_shell, op_species, &
+                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, &
+                filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species, &
                 switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                 rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
                 r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
-                f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz)
+                f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
+                switch_gr, gr_ws, gr_bins, gr_min_dx, gr_min_dy, switch_nh, nh_bins, nh_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
