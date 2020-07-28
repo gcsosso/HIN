@@ -11,7 +11,7 @@ subroutine read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch
                       o_zmin,o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                       switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta, &
                       switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy, &
-                      switch_nh,nh_bins,nh_rmax)
+                      switch_nh,nh_bins,nh_rmax,switch_q)
 
 implicit none
 
@@ -24,7 +24,7 @@ real, allocatable :: b_rcut(:)
 character*3 :: outxtc, hw_ex, switch_zdens, switch_hex, r_cls_W, switch_electro
 character*3 :: switch_rings, switch_cls, switch_bonds, switch_r_cls, switch_order
 character*3 :: switch_cages, cls_stat, switch_xyfes, switch_r_idx, switch_ffss
-character*3 :: switch_water, switch_hbck, switch_cryo, switch_hydration, switch_gr, switch_nh
+character*3 :: switch_water, switch_hbck, switch_cryo, switch_hydration, switch_gr, switch_nh, switch_q
 character*100 :: sfile, tfile, rings_exe, buffer, plumed_exe, vmd_exe
 integer, allocatable, intent(out) :: n_ws(:), n_r_ws(:)
 character*4 :: wmol, axis_1, axis_2
@@ -162,6 +162,7 @@ read(100,*) ; read(100,*)
 read(100,*) buffer, switch_nh        ; if (trim(adjustl(buffer)).ne.'NH') eflag=1
 read(100,*) buffer, nh_bins          ; if (trim(adjustl(buffer)).ne.'NH_BINS') eflag=1
 read(100,*) buffer, nh_rmax          ; if (trim(adjustl(buffer)).ne.'RMAX') eflag=1
+read(100,*) buffer, switch_q         ; if (trim(adjustl(buffer)).ne.'Q') eflag=1
 
 
 if (eflag.eq.1) then

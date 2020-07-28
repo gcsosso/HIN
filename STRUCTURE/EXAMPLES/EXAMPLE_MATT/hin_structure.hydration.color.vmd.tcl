@@ -1,8 +1,8 @@
 # Frame number N in this VMD medley corresponds to line number (N+1)*4 in dfs_surf.dat
 
 set sfile sucrose.gro
-set tfile sucrose_10f_whole.xtc
-#set tfile hin_structure.out.xtc
+#set tfile sucrose_10f_whole.xtc
+set tfile hin_structure.out.xtc
 # RINGS
 set cfile hin_structure.out.hydration.color
 # RINGS + PATCH
