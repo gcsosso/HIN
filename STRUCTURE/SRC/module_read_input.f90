@@ -88,19 +88,19 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    num_cl_args = COMMAND_ARGUMENT_COUNT()
 
    if (num_cl_args.ne.0) then
-      do i=1,num_cl_args ; CALL GET_COMMAND_ARGUMENT(i,args(1,i)) ; end do
+      do i=1,num_cl_args ; CALL GET_COMMAND_ARGUMENT(i,args(i,1)) ; end do
       if (trim(adjustl(args(1,1))).eq.'order') then
          switch_op = .true.
          do i=2,num_cl_args
             tmpflag = .false.
-            call read_traj_arg(args(1,i), tmpflag, .false._1, sfile, tfile, fframe, lframe, stride, &
+            call read_traj_arg(args(i,1), tmpflag, .false._1, sfile, tfile, fframe, lframe, stride, &
                                switch_outxtc, switch_progress, filter, filt_min, filt_max)
             if (.not.tmpflag) cycle
             tmpflag = .false.
-            call read_order_arg(args(1,i), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
+            call read_order_arg(args(i,1), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
                                 switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species)
             if (tmpflag) then ; eflag = .true.
-               write(99,*) "I don't understand the command line argument: "//trim(args(1,i))
+               write(99,*) "I don't understand the command line argument: "//trim(args(i,1))
             end if
          end do
       end if
