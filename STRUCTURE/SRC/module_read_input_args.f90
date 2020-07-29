@@ -196,9 +196,9 @@ subroutine read_radial_arg(arg, eflag, log_errors, gr_ws, gr_bins, gr_min_dx, gr
    real :: gr_min_dy
    
    if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), gr_ws, 0.0, '', 'int', 'ws', eflag)
-   else if (arg(1:5).eq.'-bins=') then ; call read_arg(arg(6:), gr_bins, 0.0, '', 'int', 'bins', eflag)
-   else if (arg(1:5).eq.'-min_dx=') then ; call read_arg(arg(6:), gr_min_dx, 0.0, '', 'int', 'min_dx', eflag)
-   else if (arg(1:5).eq.'-min_dy=') then ; call read_arg(arg(6:), 0, gr_min_dy, '', 'real', 'min_dy', eflag)
+   else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), gr_bins, 0.0, '', 'int', 'bins', eflag)
+   else if (arg(1:8).eq.'-min_dx=') then ; call read_arg(arg(9:), gr_min_dx, 0.0, '', 'int', 'min_dx', eflag)
+   else if (arg(1:8).eq.'-min_dy=') then ; call read_arg(arg(9:), 0, gr_min_dy, '', 'real', 'min_dy', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: radial "//trim(arg) ; end if
    
 end subroutine read_radial_arg
@@ -212,7 +212,7 @@ subroutine read_hydration_arg(arg, eflag, log_errors, nh_bins, nh_rcut)
    integer :: nh_bins
    real :: nh_rcut
    
-   if (arg(1:4).eq.'-bins=') then ; call read_arg(arg(5:), nh_bins, 0.0, '', 'int', 'bins', eflag)
+   if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), nh_bins, 0.0, '', 'int', 'bins', eflag)
    else if (arg(1:5).eq.'-cut=') then ; call read_arg(arg(6:), 0, nh_rcut, '', 'real', 'nhcut', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: hydration "//trim(arg) ; end if
    
