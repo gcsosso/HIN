@@ -33,7 +33,7 @@ real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, rstep, a_thr, n_ddc_AVE, n_hc_AVE,
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, e_zmin, e_zmax, e_dz, middle, o_zmax, o_zmin, o_dz, hbdist, hbangle
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: c_rcut, dr, half_dr, fact, min_delta, gr_min_dy, nh_rmax, ooo_ang(6)
+real :: c_rcut, dr, half_dr, fact, min_delta, gr_min_dy, nh_rcut, ooo_ang(6)
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: b_rcut(:), pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
@@ -42,7 +42,7 @@ real, allocatable :: rmin(:), delta_gr_p(:), delta_gr_m(:), o_dist(:), nh_r(:), 
 character :: ch
 character*3 :: outxtc, hw_ex, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes
 character*3 :: switch_hex, switch_r_cls, r_cls_W, switch_cages, cls_stat, switch_r_idx, switch_ffss
-character*3 :: switch_electro, switch_order, switch_water, switch_hbck, switch_cryo, switch_hydration, switch_gr, switch_nh, switch_q
+character*3 :: switch_electro, switch_order, switch_water, switch_hbck, switch_cryo, switch_hydration, switch_gr, switch_nh, switch_t_order
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: ws(:), r_ws(:), sym(:)
@@ -64,7 +64,7 @@ call read_input(eflag,sfile,tfile,fframe,stride,lframe,outxtc,hw_ex,switch_zdens
                 switch_electro,e_zmin,e_zmax,e_dz,switch_order,wmol,axis_1,axis_2,o_zmin, &
                 o_zmax,o_dz,switch_water,switch_hbck,hbdist,hbangle,thrSS, &
                 switch_cryo,c_rcut,nr,switch_hydration,min_npts,min_delta, &
-                switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy,switch_nh,nh_bins,nh_rmax,switch_q)
+                switch_gr,gr_ws,gr_bins,gr_min_dx,gr_min_dy,switch_nh,nh_bins,nh_rcut,switch_t_order)
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,hw_ex,switch_rings,r_ns,r_ws,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws)
@@ -143,8 +143,8 @@ if (trim(adjustl(switch_gr)).eq.'yes') then
    call gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,o_dist)
 endif
 
-if (trim(adjustl(switch_nh)).eq.'yes') then
-   call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rmax,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+if (trim(adjustl(switch_nh)).eq.'yes'.or.(trim(adjustl(switch_t_order)).eq.'yes')) then
+   call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
 endif
 
 
@@ -227,7 +227,7 @@ do while ( STAT==0 )
         call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm,nh_color)
       endif
 
-      if (trim(adjustl(switch_q)).eq.'yes') then
+      if (trim(adjustl(switch_t_order)).eq.'yes') then
         call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
       endif
 

@@ -2,14 +2,14 @@ module MOD_hydration
 
 contains
 
-subroutine hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rmax,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+subroutine hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
 
 implicit none
 
 ! Arguments
 integer :: nat, ns, o_ns, n_nw, n_ow, nh_bins
 integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
-real :: nh_rmax, ooo_ang(6)
+real :: nh_rcut, ooo_ang(6)
 real, allocatable :: o_dist(:), nh_r(:), order_t(:)
 character*4, allocatable :: sym(:)
 
@@ -42,7 +42,7 @@ endif
 allocate(nh_r(nh_bins),nh_mol(nh_bins),nh_atm(n_nw,nh_bins),nh_color(nat))
 nh_mol(:)=0
 nh_atm(:,:)=0
-nh_dr=nh_rmax/(real(nh_bins))
+nh_dr=nh_rcut/(real(nh_bins))
 do i=1,nh_bins
   nh_r(i)=(real(i)*nh_dr)
 enddo
