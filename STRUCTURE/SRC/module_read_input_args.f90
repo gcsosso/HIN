@@ -145,18 +145,18 @@ subroutine read_xyfes_arg(arg, eflag, log_errors, xymin, xymax, nxy)
 end subroutine read_xyfes_arg
 
 
-subroutine read_clusters_arg(arg, eflag, log_errors, switch_cls, switch_f_cls, switch_cls_stat, &
+subroutine read_clusters_arg(arg, eflag, log_errors, switch_cls, switch_f_cls, switch_f, switch_cls_stat, &
                              plumed_exe, vmd_exe, f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi)
    
    implicit none
    
-   logical(1) :: eflag, log_errors, switch_cls, switch_f_cls, switch_cls_stat
+   logical(1) :: eflag, log_errors, switch_cls, switch_f_cls, switch_f(3:4), switch_cls_stat
    character(*) :: arg, plumed_exe, vmd_exe
    real :: f3_imax, f3_cmax, f4_imax, f4_cmin
    integer :: ohstride, pmpi
    
    if (trim(adjustl(arg)).eq.'--ice') then ; switch_cls = .true.
-   else if (trim(adjustl(arg)).eq.'--clathrate') then ; switch_f_cls = .true.
+   else if (trim(adjustl(arg)).eq.'--clathrate') then ; switch_f_cls = .true. ; switch_f(3) = .true. ; switch_f(4) = .true.
    else if (trim(adjustl(arg)).eq.'--cls_stat') then ; switch_cls_stat = .true.
    else if (arg(1:12).eq.'-plumed_exe=') then ; call read_arg(arg(13:), 0, 0.0, plumed_exe, 'str', 'plumed_exe', eflag)
    else if (arg(1:9).eq.'-vmd_exe=') then ; call read_arg(arg(10:), 0, 0.0, vmd_exe, 'str', 'vmd_exe', eflag)

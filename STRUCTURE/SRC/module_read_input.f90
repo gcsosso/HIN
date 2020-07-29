@@ -183,7 +183,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          end do
       else if (args(i,1).eq.'clusters') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_clusters_arg(args(i,j), eflag, .true._1, switch_cls, switch_f_cls, switch_cls_stat, &
+            call read_clusters_arg(args(i,j), eflag, .true._1, switch_cls, switch_f_cls, switch_f, switch_cls_stat, &
                                    plumed_exe, vmd_exe, f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi)
          end do
       else if (args(i,1).eq.'electro') then
