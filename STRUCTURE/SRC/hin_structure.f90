@@ -13,6 +13,8 @@ use MOD_electro
 use MOD_output
 use MOD_order
 use MOD_bondorder
+use MOD_gr
+use MOD_hydration
 
 implicit none
 
@@ -30,15 +32,19 @@ integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
 integer :: n_f_ow
 integer, allocatable :: list_f_ow(:)
+integer :: o_ns, n_nw, n_ow
+integer, allocatable :: list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
 real :: rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
-real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK 
+real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, middle, o_dz, hbdist2
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
+real :: dr, half_dr, fact, ooo_ang(6)
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
+real, allocatable :: rad(:), gr_mol_norm(:), gr_atm_norm(:,:), o_dist(:), nh_r(:), order_t(:)
 character :: ch
 logical(1) :: switch_r_idx=.false.
 character*5, allocatable :: resname(:)
@@ -82,7 +88,7 @@ real :: r_split=0.0, r_cut=0.32, hbdist=0.22, hbangle=20.0, a_thr=30.0, thrS=1.5
 integer :: maxr=9, maxr_RINGS, wcol=6, r_ns=0
 character(5), allocatable :: r_wr(:), r_ws(:)
 integer, allocatable :: r_wh(:,:)
-   
+
 ! BONDS
 logical(1) :: switch_bonds=.false.
 real :: b_dz=10.0, b_bmin, b_bmax
@@ -161,11 +167,11 @@ allocate(qlb_io(n_f_ow))
 !close(877)
 
 ! Set the averages to zero !
-nz_bAVE=0; n_ddc_AVE=0.0; n_hc_AVE=0.0; n_hex_AVE=0.0; n_cls_AVE=0.0; zop_AVE=0.0; 
-n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0; n_ddc_AVE_BULK=0.0; 
-n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0; ze_AVE=0.0; ze_AVE_BULK=0.0;  ze_AVE_SURF=0.0; 
-delta_AVE=0.0;  delta_AVE_BULK=0.0;  delta_AVE_SURF=0.0; esse_AVE=0.0; esse_AVE_BULK=0.0; 
-esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0; 
+nz_bAVE=0; n_ddc_AVE=0.0; n_hc_AVE=0.0; n_hex_AVE=0.0; n_cls_AVE=0.0; zop_AVE=0.0;
+n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0; n_ddc_AVE_BULK=0.0;
+n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0; ze_AVE=0.0; ze_AVE_BULK=0.0;  ze_AVE_SURF=0.0;
+delta_AVE=0.0;  delta_AVE_BULK=0.0;  delta_AVE_SURF=0.0; esse_AVE=0.0; esse_AVE_BULK=0.0;
+esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0;
 
 if (switch_zdens) call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
 
@@ -203,6 +209,14 @@ if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) call bondorder_alloc(3)
 if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
+if (switch_gr) then
+  call gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,o_dist)
+end if
+
+if (switch_nh.or.switch_t_order) then
+  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+end if
+
 ! Read the whole thing
 counter=0
 dostuff=0
@@ -212,7 +226,7 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-      
+
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
 
@@ -222,7 +236,7 @@ do while ( STAT==0 )
       ! 2D FES in the xy plane...
       if (switch_xyfes) call xyfes(ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
 
-      ! Rings statistics...  
+      ! Rings statistics...
       if (switch_rings) then
           call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,filt_min,filt_max,sym,resname,rings_exe,r_color,time,STEP, &
                      counter,natformat,nat,icell,r_cut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
@@ -239,13 +253,13 @@ do while ( STAT==0 )
       ! Ice-like clusters...
       if (switch_cls) call clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
                                     box_trans,pos,prec,cart,pmpi,switch_cls_stat,r_color,natformat,nat,n_cls_AVE)
-      
+
       ! Clathrates...
       if (switch_f(3).or.switch_f(4)) then
         call clathrates(switch_f,filt_min,filt_max,f_cut,n_f_ow,list_f_ow,counter, &
                         time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
       end if
-      
+
       ! Bonds statistics...
       if (switch_bonds) call bonds(filt_min,filt_max,b_dz,pos,icell,pdbon,cart,ns,n_ws,list_ws, &
                                    ws,b_rcut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
@@ -261,7 +275,7 @@ do while ( STAT==0 )
               mq_all,cart,middle,switch_water,sym,wmol,resname, &
               resnum,axis_1,axis_2,zop_AVE,natformat,icell)
       end if
-      
+
       ! Q Ordering...
       if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) then
           call bondorder(3,filt_min,filt_max,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_shell, &
@@ -275,9 +289,20 @@ do while ( STAT==0 )
           call bondorder(6,filt_min,filt_max,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
       end if
-      
+      if (switch_gr) then
+        call gr(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_ws,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,fact,o_dist)
+
+      end if
+      if (switch_nh) then
+        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm,nh_color)
+
+      end if
+      if (switch_t_order) then
+        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
+      end if
+
    end if
-   
+
    counter=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
@@ -296,7 +321,9 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
             n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,switch_ffss, &
             delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
             rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
-            switch_electro,e_nz,e_zmesh,switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck)
+            switch_electro,e_nz,e_zmesh,switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
+            switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy, &
+            switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
 
 STAT=xdrfile_close(xd)
 
