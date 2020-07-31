@@ -178,7 +178,7 @@ do i=1,n_ow
       v_prod=((v_ij(1)*v_ik(1))+(v_ij(2)*v_ik(2))+(v_ij(3)*v_ik(3)))
       r_prod=r_ij*r_ik
       theta=acos(v_prod/r_prod)
-      t_sum=t_sum+(cos(theta)+real(1/3))**2 ! cos(acos(x))==x so could condense these lines
+      t_sum=t_sum+(cos(theta)+(1.0d0/3.0d0))**2 ! cos(acos(x))==x so could condense these lines
       !write(*,*) theta, cos(theta)
       !ooo_ang(counter)=theta
       !counter=counter+1
