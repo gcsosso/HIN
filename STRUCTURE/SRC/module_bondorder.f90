@@ -29,162 +29,136 @@ subroutine bondorder_t4_alloc()
 
 end subroutine bondorder_t4_alloc
 
-subroutine bondorder(l,q_zmin,q_zmax,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_coord, &
-                      time,cart,icell,pos,nat,natformat,sym,switch_ql,switch_qd,switch_qt,switch_t4,qlb_io)
+subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtered, filt_param, switch_filt_param, max_shell, &
+                     time, cart, icell, pos, nat, natformat, sym, switch_ql, switch_qd, switch_qt, switch_t4, qlb_io)
 
    implicit none
 	 
    integer, parameter :: dp = kind(1.d0)
-   real :: q_zmin, q_zmax, q_cut, qd_cut, qt_cut
+   real :: q_cut, qd_cut, qt_cut
    real :: time
-   integer :: i, ii, l, cart, nat, m, max_coord
+   integer :: i, ii, l, cart, nat, m, max_shell
    integer :: counter                           ! Frame
    real :: icell(cart*cart)
-   integer :: tot_atoms                         ! Count of number of atoms for which F3 is calculated
-   real :: first_coord_shell(max_coord,4)       ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-   integer :: first_coord_shell_ndx(max_coord)  ! First coordination shell atom indices
+   real :: first_coord_shell(max_shell,4)       ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+   integer :: first_coord_shell_ndx(max_shell)  ! First coordination shell atom indices
    integer :: size_first_coord_shell            ! Size of first coordination shell
-   real, allocatable :: pos(:,:)
+   real :: pos(:,:), filt_param(:)
    character*100 :: natformat
-   real(dp) :: ql_mol(n_f_ow), qlb_mol(n_f_ow), qlt_mol(n_f_ow), w_oz(n_f_ow)
-   real(dp) :: t4_mol(n_f_ow), t4_col(nat)
-   integer :: size_first(n_f_ow)
-   real(dp), allocatable :: qlb_io(:)
+   integer :: n_filtered(2)
+   real(dp) :: ql_mol(n_filtered(1)), qlb_mol(n_filtered(1)), qlt_mol(n_filtered(1))
+   real(dp) :: t4_mol(n_filtered(1)), t4_col(nat)
+   integer :: size_first(n_filtered(2))
+   real(dp) :: qlb_io(:)
    real(dp) :: ql_atom, qlb_atom, qlt_atom
    character*100 :: n_mol_format
-   character*4, allocatable :: sym(:)
-   logical(1) :: switch_ql, switch_qd, switch_qt, switch_t4
-   integer, allocatable :: list_f_ow(:)
-   integer :: n_f_ow
-   complex(dp) :: qlm_all(-l:l,n_f_ow)
+   character*4 :: sym(:)
+   logical(1) :: switch_ql, switch_qd, switch_qt, switch_t4, switch_filt_param
+   integer :: list_filtered(:,:)
+   complex(dp) :: qlm_all(-l:l,n_filtered(2))
    real, parameter :: Pi = 3.14159
-
-   tot_atoms = 0
-   w_oz(:) = 0.0
+   
    ql_mol(:) = 0.0
    qlb_mol(:) = 0.0
    qlt_mol(:) = 0.0
    t4_col(:) = 0.0
 
-   do ii=1,n_f_ow
-      i = list_f_ow(ii)
-      if (pos(cart,i).ge.(q_zmin-q_cut).and.pos(cart,i).le.(q_zmax+q_cut)) then
-         call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                    q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
-         if (size_first_coord_shell.gt.0) then
-           do m=-l,l
-               call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
-                                     first_coord_shell,size_first_coord_shell,max_coord)
-           end do
+   do ii=1,n_filtered(2) ; i = list_filtered(2,ii)
+      call compute_first_coord_shell(list_filtered(2,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                                 q_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
+      
+      if (size_first_coord_shell.gt.0) then
+        do m=-l,l
+            call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_cut,pos,counter,sym, &
+                                  first_coord_shell,size_first_coord_shell,max_shell)
+        end do
+      else
+      
+        qlm_all(:,ii) = (0.0, 0.0)
+      end if
+      size_first(ii) = size_first_coord_shell
+   end do
+
+   do ii=1,n_filtered(1) ; i = list_filtered(1,ii)
+
+      ! Compute the ql parameter for the atom
+      if (switch_ql) then
+         call compute_ql(ii,l,ql_atom,size_first(ii),qlm_all)
+         ql_mol(ii) = ql_atom
+      end if
+      
+      ! Compute the averaged ql parameter for the atom
+      if (switch_qd) then
+         call compute_first_coord_shell(list_filtered(1,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                                        qd_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
+         call compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all, &
+                          size_first(ii),max_shell)
+         qlb_mol(ii) = qlb_atom
+      end if
+
+      ! Compute the Tianshu ql parameter for the atom
+      if (switch_qt) then
+         call compute_first_coord_shell(list_filtered(1,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                                        qt_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
+         call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first(ii),max_shell)
+         qlt_mol(ii) = qlt_atom
+      end if
+      
+      ! Compute t4 if appropriate
+      if (switch_t4.and.(l.eq.6)) then
+         if (qlb_io(ii).ne.-2) then
+            t4_mol(ii) = (1/Pi)*acos((qlb_io(ii)-0.36)/&
+                                sqrt((qlb_io(ii)-0.36)**2+(qlb_mol(ii)-0.16)**2))
          else
-           qlm_all(:,ii) = (0.0, 0.0)
+            t4_mol(ii) = -2
          end if
-         size_first(ii) = size_first_coord_shell
+         t4_col(i) = t4_mol(ii)
       end if
    end do
 
-   do ii=1,n_f_ow ! Iterate through atoms
-      i = list_f_ow(ii)
-      if (pos(cart,i).ge.q_zmin.and.pos(cart,i).le.q_zmax) then
-         ! Count how many atoms of interest are in the Z-range
-         tot_atoms = tot_atoms + 1
-         w_oz(tot_atoms) = pos(cart,i)
-
-         ! Compute the ql parameter for the atom
-         if (switch_ql) then
-            call compute_ql(ii,l,ql_atom,size_first(ii),n_f_ow,qlm_all)
-            ql_mol(tot_atoms) = ql_atom
-         end if
-
-         call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                  q_zmin,q_zmax,qd_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
-
-         ! Compute the averaged ql parameter for the atom
-         if (switch_qd) then
-            call compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all, &
-                             size_first(ii),max_coord)
-            qlb_mol(tot_atoms) = qlb_atom
-         end if
-
-         call compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                  q_zmin,q_zmax,qt_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
-
-         ! Compute the Tianshu ql parameter for the atom
-         if (switch_qt) then
-            call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all, &
-                             size_first(ii),max_coord)
-            qlt_mol(tot_atoms) = qlt_atom
-         end if
-
-         ! Compute t4 if appropriate
-         if (switch_t4.and.(l.eq.6)) then
-            if (qlb_io(tot_atoms).ne.-2) then
-               t4_mol(tot_atoms) = (1/Pi)*acos((qlb_io(tot_atoms)-0.36)/&
-                                   sqrt((qlb_io(tot_atoms)-0.36)**2+(qlb_mol(tot_atoms)-0.16)**2))
-            else
-               t4_mol(tot_atoms) = -2
-            end if
-            t4_col(i) = t4_mol(tot_atoms)
-         end if
-      end if
-   end do
-	 
-   if (switch_t4.and.(l.eq.3)) then
-      qlb_io = qlb_mol
-   end if
-
-   write(n_mol_format,*) tot_atoms
-
-   !if (l.ne.6) then
-   write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
-   if (switch_ql) then
-      write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (ql_mol(i), i=1,tot_atoms)
-   end if
-   if (switch_qd) then
-      write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlb_mol(i), i=1,tot_atoms)
-   end if
-   if (switch_qt) then
-      write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(i), i=1,tot_atoms)
-   end if
+   if (switch_t4.and.(l.eq.3)) qlb_io = qlb_mol
+   write(n_mol_format,*) n_filtered(1)
+   write(240+l,'('//adjustl(n_mol_format)//'I7)') (list_filtered(1,ii), i=1i,n_filtered(1))
+   if (switch_filt_param) write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
+   if (switch_ql) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (ql_mol(ii), ii=1,n_filtered(1))
+   if (switch_qd) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlb_mol(ii), ii=1,n_filtered(1))
+   if (switch_qt) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(ii), ii=1,n_filtered(1))
    if (switch_t4.and.(l.eq.6)) then
-      write(250,'('//adjustl(n_mol_format)//'F11.4)') (w_oz(i), i=1,tot_atoms)
-      write(250,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(i), i=1,tot_atoms)
+      write(250,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
+      write(250,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(ii), ii=1,n_filtered(1))
       write(251,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
    end if
-   !end if
-
+   
 end subroutine bondorder
 
 
 ! Computes first coordination shell
-subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
-                                     q_zmin,q_zmax,q_cut,cart,icell,counter,pos,n_f_ow,list_f_ow,sym,max_coord)
+subroutine compute_first_coord_shell(i,first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
+                                     q_cut,cart,icell,counter,pos,n_filtered,list_filtered,sym,max_shell)
 
    implicit none
 
-   integer :: ii, i, jj, j, cart, counter, n_f_ow  ! Atom numbers for central OW, other OW atoms
-   integer, allocatable :: tot_atoms(:)            ! Count of number of atoms for which F3 is calculated
-   real :: first_coord_shell(max_coord,4)          ! First coordination shell of the current atom: (dx, dy, dz, dsq)
-   integer :: first_coord_shell_ndx(max_coord)     ! First coordination shell atom indices
+   integer :: i, jj, j, cart, counter, n_filtered  ! Atom numbers for central OW, other OW atoms
+   real :: first_coord_shell(max_shell,4)          ! First coordination shell of the current atom: (dx, dy, dz, dsq)
+   integer :: first_coord_shell_ndx(max_shell)     ! First coordination shell atom indices
    integer :: size_first_coord_shell               ! Size of first coordination shell
    real :: dx, dy, dz                              ! X, Y and Z distances between two atoms
    real :: dsq                                     ! Square distance between two atoms
    real :: icell(cart*cart)
-   real :: q_zmin, q_zmax, q_cut
-   real, allocatable :: pos(:,:)
-   character*4, allocatable :: sym(:)
-   integer, allocatable :: list_f_ow(:)
-   integer :: max_coord
-
+   real :: q_cut
+   real :: pos(:,:)
+   character(4) :: sym(:)
+   integer :: list_filtered(:)
+   integer :: max_shell
+   
    first_coord_shell(:,:) = 0.0
    first_coord_shell_ndx(:) = 0
    size_first_coord_shell = 0
 
    size_first_coord_shell = 0
-   do jj=1,n_f_ow ! Iterate through other atoms
-      i = list_f_ow(ii)
-      j = list_f_ow(jj)
-      if (ii/=jj.and.pos(cart,j).ge.(q_zmin-2*q_cut).and.pos(cart,j).le.(q_zmax+2*q_cut)) then
+   
+   do jj=1,n_filtered ; j = list_filtered(jj)
+      if (i.ne.j) then
          dx = pos(1,j)-pos(1,i)
          dy = pos(2,j)-pos(2,i)
          dz = pos(3,j)-pos(3,i)
@@ -192,10 +166,10 @@ subroutine compute_first_coord_shell(ii,first_coord_shell,first_coord_shell_ndx,
          dsq = dx*dx + dy*dy + dz*dz
          if (dsq <= q_cut*q_cut) then
              size_first_coord_shell = size_first_coord_shell + 1
-             ! if size_first_coord_shell > max_coord, or whatever allocated size, warn & stop
-             if (size_first_coord_shell >= max_coord) then
+             ! if size_first_coord_shell > max_shell, or whatever allocated size, warn & stop
+             if (size_first_coord_shell >= max_shell) then
                  write(99,*) "WARNING: Q first coordination shell for atom ", i, &
-                             ", at frame ", counter, " exceeds ", max_coord, " atoms!"
+                             ", at frame ", counter, " exceeds ", max_shell, " atoms!"
                  EXIT
              end if
              first_coord_shell_ndx(size_first_coord_shell) = jj
@@ -211,17 +185,17 @@ end subroutine compute_first_coord_shell
 
 
 ! Computes local ql order parameter for an atom
-subroutine compute_ql(ii,l,ql_atom,size_first,n_f_ow,qlm_all)
+subroutine compute_ql(ii,l,ql_atom,size_first,qlm_all)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, m, l, counter, n_f_ow
+   integer :: ii, m, l, counter
    integer :: size_first       				! Size of first coordination shell
    real(dp) :: ql_atom                      ! ql(i) parameter for atom i
    real :: sigma
    real, parameter :: Pi = 3.14159
-   complex(dp) :: qlm_all(-l:l,n_f_ow)
+   complex(dp) :: qlm_all(:,:)
 
    sigma = 0.0
 
@@ -235,26 +209,26 @@ end subroutine compute_ql
 
 
 ! Computes averaged ql order parameter for an atom (Dellago)
-subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first,max_coord)
+subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, m, l, n_f_ow, max_coord
+   integer :: ii, m, l, max_shell
    integer :: size_first_coord_shell, size_first      ! Size of coordination shells
-   integer :: first_coord_shell_ndx(max_coord)        ! First coordination shell atom indices
+   integer :: first_coord_shell_ndx(max_shell)        ! First coordination shell atom indices
    real(dp) :: qlb_atom                               ! ql(i) bar parameter for atom i
    real :: sigma
    complex :: qlmb
    real, parameter :: Pi = 3.14159
-   complex(dp) :: qlm_all(-l:l,n_f_ow)
+   complex(dp) :: qlm_all(:,:)
 
    sigma = 0.0
 
    if (size_first.gt.0) then 
       qlb_atom = 0
       do m=-l,l
-         call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,max_coord)
+         call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell)
          sigma = sigma + real(qlmb)**2+aimag(qlmb)**2
       end do
       qlb_atom = sqrt(4*Pi*sigma/(2*l+1))
@@ -264,15 +238,15 @@ end subroutine compute_qlb
 
 
 ! Computes Tianshu version of ql order parameter for an atom
-subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,size_first,max_coord)
+subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, fj, jj, m, l, n_f_ow, max_coord
+   integer :: ii, fj, jj, m, l, max_shell
    integer :: size_first_coord_shell, size_first   ! Size of coordination shells
-   integer :: first_coord_shell_ndx(max_coord)     ! First coordination shell atom indices
-   complex(dp) :: qlm_all(-l:l,n_f_ow)
+   integer :: first_coord_shell_ndx(max_shell)     ! First coordination shell atom indices
+   complex(dp) :: qlm_all(:,:)
    complex :: qi_dot_qj, sigma
    real :: qi_sq, qj_sq
    real(dp) :: qlt_atom
@@ -298,16 +272,16 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shel
 end subroutine compute_qlt
 
 
-subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,n_f_ow,qlm_all,max_coord)
+subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell)
     
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, fi, m, l, n_f_ow, max_coord
+   integer :: ii, fi, m, l, max_shell
    integer :: size_first_coord_shell
-   integer :: first_coord_shell_ndx(max_coord)    ! First coordination shell atom indices
+   integer :: first_coord_shell_ndx(max_shell)    ! First coordination shell atom indices
    complex :: qlmb, qlm, sigma
-   complex(dp) :: qlm_all(-l:l,n_f_ow)
+   complex(dp) :: qlm_all(:,:)
 
    qlm = qlm_all(m,ii)
    sigma = qlm
@@ -321,27 +295,25 @@ subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell
 
 end subroutine compute_qlmb
 
-subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f_ow,list_f_ow,sym, &
-								first_coord_shell,size_first_coord_shell,max_coord)
+subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_cut,pos,counter,sym, &
+								first_coord_shell,size_first_coord_shell,max_shell)
     
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, fj, l, m, counter, max_coord
+   integer :: ii, fj, l, m, counter, max_shell
    complex(dp) :: Ylm, sigma
    complex(dp) :: qlm
-   real :: first_coord_shell(max_coord,4)
+   real :: first_coord_shell(max_shell,4)
    integer :: size_first_coord_shell
-   integer :: cart, n_f_ow
+   integer :: cart
    real :: icell(cart*cart)
-   real :: q_zmin, q_zmax, q_cut
-   real, allocatable :: pos(:,:)
-   character*4, allocatable :: sym(:)
-   integer, allocatable :: list_f_ow(:)
+   real :: q_cut
+   real :: pos(:,:)
+   character*4 :: sym(:)
    real(dp) :: th, ph
    real, parameter :: Pi = 3.14159
-
-   sigma = (0.0, 0.0)
+   
    do fj=1,size_first_coord_shell
       if (first_coord_shell(fj,4).eq.0.0) then ; th = 0.0
       else ; th = acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))) ; end if
@@ -361,7 +333,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_zmin,q_zmax,q_cut,pos,counter,n_f
       call compute_Ylm(Ylm,l,m,th,ph)
       sigma = sigma + Ylm
    end do
-
+   
    qlm = sigma/size_first_coord_shell
 
 end subroutine compute_qlm

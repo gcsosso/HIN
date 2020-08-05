@@ -15,6 +15,7 @@ use MOD_order
 use MOD_bondorder
 use MOD_gr
 use MOD_hydration
+use MOD_filter
 
 implicit none
 
@@ -30,10 +31,11 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
 integer :: tmplist, nsurf, nbulk, nq
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
-integer :: n_f_ow
-integer, allocatable :: list_f_ow(:)
+integer :: n_f_ow, n_filtered(2), n_all_ws
+integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:)
 integer :: o_ns, n_nw, n_ow
 integer, allocatable :: list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
+integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
 real :: rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
@@ -44,7 +46,7 @@ real :: dr, half_dr, fact, ooo_ang(6)
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: rad(:), gr_mol_norm(:), gr_atm_norm(:,:), o_dist(:), nh_r(:), order_t(:)
+real, allocatable :: rad(:), gr_mol_norm(:), gr_atm_norm(:,:), o_dist(:), nh_r(:), order_t(:), filt_param(:)
 character :: ch
 logical(1) :: switch_r_idx=.false.
 character*5, allocatable :: resname(:)
@@ -68,15 +70,14 @@ logical(1) :: switch_outxtc=.true., switch_progress=.false.
 ! WS
 integer :: ns=0
 character(4), allocatable :: ws(:)
-logical(1) :: switch_hw_ex=.true.
+character(7) :: filter='none'
+logical(1) :: switch_filt_param=.false.
 
 ! ORDER
 logical(1) :: switch_op=.false., switch_q(3:6)=.false., switch_qd(3:6)=.false., switch_qt(3:6)=.false.
 logical(1) :: switch_t4=.false., switch_f(3:4)=.false., switch_th=.false., switch_t_order=.false.
-character(7) :: filter='none'
-character(5) :: op_species='OW'
 character(3) :: switch_water='mol'
-real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35, t_rcut
+real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35, t_rcut=0.35, op_max_cut=0.35
 integer :: max_shell=30
 
 ! RINGS
@@ -127,9 +128,9 @@ real :: nh_rcut
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
-call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, switch_hw_ex, &
-                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, &
-                filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species, &
+call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, &
+                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, &
+                switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
                 switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                 rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
                 r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
@@ -146,10 +147,10 @@ end if
 
 hbdist2 = hbdist**2.0
 
-call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
+call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
 
-allocate(qlb_io(n_f_ow))
+call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws)
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
 !open(unit=877, file='flags.dat', status='old')
@@ -190,7 +191,7 @@ if (switch_rings) then
                  ze_AVE,ze_AVE_BULK,ze_AVE_SURF,stat_nr_HB_AVE,switch_hbck)
 end if
 
-if (switch_cls) call clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
+if (switch_cls) call clusters_alloc(switch_outxtc,ns,ws,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
 
 if (switch_f(3).or.switch_f(4)) call clathrates_alloc(switch_f,switch_f_cls)
 
@@ -202,7 +203,7 @@ if (switch_electro.or.switch_th) then ! we need masses for order as well - COM r
 end if
 
 !if (trim(adjustl(switch_th)).eq.'yes'.and.trim(adjustl(switch_water)).eq.'yes') then
-if (switch_th) call order_alloc(o_nz,filt_max,filt_min,o_dz,w_order,o_zmesh,switch_water)
+if (switch_th) call order_alloc()
 
 if (switch_t4) call bondorder_t4_alloc()
 if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) call bondorder_alloc(3)
@@ -226,7 +227,9 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-
+      
+      call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
+                        pos, filt_param, qlb_io)
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
 
@@ -256,8 +259,8 @@ do while ( STAT==0 )
 
       ! Clathrates...
       if (switch_f(3).or.switch_f(4)) then
-        call clathrates(switch_f,filt_min,filt_max,f_cut,n_f_ow,list_f_ow,counter, &
-                        time,cart,icell,pos,nat,natformat,f_zbins,switch_f_cls,f3_imax,f3_cmax,f4_imax,f4_cmin)
+        call clathrates(switch_f, f_cut, n_filtered, list_filtered, filt_param, switch_filt_param, counter, time, cart, &
+                        icell, pos, nat, natformat, f_zbins, switch_f_cls, f3_imax, f3_cmax, f4_imax, f4_cmin)
       end if
 
       ! Bonds statistics...
@@ -271,22 +274,20 @@ do while ( STAT==0 )
 
       ! Ordering...
       if (switch_th) then
-         call order(o_nz,filt_max,filt_min,o_dz,w_order,o_zmesh,nat,pos, &
-              mq_all,cart,middle,switch_water,sym,wmol,resname, &
-              resnum,axis_1,axis_2,zop_AVE,natformat,icell)
+         call order(nat, pos, cart, icell, n_filtered(1), list_filtered(1,:), filt_param, switch_filt_param, natformat)
       end if
 
       ! Q Ordering...
       if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) then
-          call bondorder(3,filt_min,filt_max,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_shell, &
+          call bondorder(3,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(3),switch_qd(3),switch_qt(3),switch_t4,qlb_io)
       end if
       if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) then
-          call bondorder(4,filt_min,filt_max,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_shell, &
+          call bondorder(4,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(4),switch_qd(4),switch_qt(4),switch_t4,qlb_io)
       end if
       if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) then
-          call bondorder(6,filt_min,filt_max,q_cut,qd_cut,qt_cut,counter,list_f_ow,n_f_ow,max_shell, &
+          call bondorder(6,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
       end if
       if (switch_gr) then
@@ -300,9 +301,10 @@ do while ( STAT==0 )
       if (switch_t_order) then
         call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
       end if
-
+      
+      deallocate(list_filtered, filt_param, qlb_io)
    end if
-
+   
    counter=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
@@ -310,7 +312,7 @@ do while ( STAT==0 )
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
 end do
 
-if (switch_progress) print *, ' Finished.'
+if (switch_progress) write(6,*) ' Finished.'
 
 ! Output...
 call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_trans, &

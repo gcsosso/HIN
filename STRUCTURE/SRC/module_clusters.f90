@@ -2,7 +2,7 @@ module MOD_clusters
 
 contains
 
-subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
+subroutine clusters_alloc(switch_outxtc,ns,ws,ohstride,n_ws,list_ws,sfile,vmd_exe,n_cls_AVE)
 
    implicit none
 
@@ -15,7 +15,7 @@ subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws
    integer :: ns, ohstride
    integer, allocatable :: n_ws(:), list_ws(:,:)
    real :: n_cls_AVE
-   logical(1) :: switch_outxtc, switch_hw_ex
+   logical(1) :: switch_outxtc
    character(4), allocatable :: ws(:)
    character(100) :: sfile, vmd_exe
 
@@ -25,7 +25,7 @@ subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws
       write(99,*) "PLUMED2 needs the .xtc to be written (set --outxtc in hin_structure.in)"
       stop
    endif
-   ! Check whether we have both oxygens and hydrogens, and that the switch_hw_ex is yes
+   ! Check whether we have both oxygens and hydrogens
    flag=0
    do i=1,ns
       if(ws(i).eq.'OW') flag=flag+1
@@ -33,10 +33,6 @@ subroutine clusters_alloc(switch_outxtc,ns,ws,switch_hw_ex,ohstride,n_ws,list_ws
    enddo
    if (flag.ne.2) then
       write(99,*) "In order to have clusters, you need to read both oxygens and hydrogens..."
-      stop
-   endif
-   if (switch_hw_ex) then
-      write(99,*) "Set switch_hw_exC to yes, please..."
       stop
    endif
    ! Write the rigth atomic indexes in plumed.dat

@@ -3,14 +3,13 @@ module MOD_read_input_args
 contains
 
 subroutine read_traj_arg(arg, eflag, log_errors, sfile, tfile, fframe, lframe, stride, &
-                         switch_outxtc, switch_progress, filter, filt_min, filt_max)
+                         switch_outxtc, switch_progress)
    
    implicit none
    
    logical(1) :: eflag, log_errors, switch_outxtc, switch_progress
-   character(*) :: arg, sfile, tfile, filter
+   character(*) :: arg, sfile, tfile
    integer :: fframe, lframe, stride
-   real :: filt_min, filt_max
    
    if (arg(1:7).eq.'-sfile=') then ; call read_arg(arg(8:), 0, 0.0, sfile, 'str', 'sfile', eflag)
    else if (arg(1:7).eq.'-tfile=') then ; call read_arg(arg(8:), 0, 0.0, tfile, 'str', 'tfile', eflag)
@@ -18,22 +17,37 @@ subroutine read_traj_arg(arg, eflag, log_errors, sfile, tfile, fframe, lframe, s
    else if (arg(1:8).eq.'-lframe=') then ; call read_arg(arg(9:), lframe, 0.0, '', 'int', 'lframe', eflag)
    else if (arg(1:8).eq.'-stride=') then ; call read_arg(arg(9:), stride, 0.0, '', 'int', 'stride', eflag)
    else if (trim(adjustl(arg)).eq.'--noxtc') then ; switch_outxtc = .false.
-   else if (arg(1:8).eq.'-filter=') then ; call read_arg(arg(9:), 0, 0.0, filter, 'str', 'filter', eflag)
-   else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, filt_min, '', 'real', 'min', eflag)
-   else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, filt_max, '', 'real', 'max', eflag)
    else if (trim(adjustl(arg)).eq.'--progress') then ; switch_progress = .true.
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: trajectory "//trim(arg) ; end if
    
 end subroutine read_traj_arg
 
+
+subroutine read_ws_arg(arg, eflag, filter, filt_min, filt_max, ns, ws)
+   implicit none
+   
+   character(*) :: arg, filter
+   logical(1) :: eflag
+   integer :: ns
+   real :: filt_min, filt_max
+   character(*), allocatable :: ws(:)
+   
+   if (arg(1:8).eq.'-filter=') then ; call read_arg(arg(9:), 0, 0.0, filter, 'str', 'filter', eflag)
+   else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, filt_min, '', 'real', 'min', eflag)
+   else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, filt_max, '', 'real', 'max', eflag)
+   else ; ns = ns+1 ; call read_arg(arg(2:), 0, 0.0, ws(ns), 'str', 'ws', eflag)
+   end if
+   
+end subroutine read_ws_arg
+
 subroutine read_order_arg(arg, eflag, log_errors, switch_q, switch_qd, switch_qt, switch_t4, switch_f, &
-                          switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species)
+                          switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell)
    
    implicit none
    
    logical(1) :: eflag, log_errors
    logical(1) :: switch_q(3:6), switch_qd(3:6), switch_qt(3:6), switch_t4, switch_f(3:4), switch_th, switch_t_order
-   character(*) :: arg, op_species
+   character(*) :: arg
    real :: q_cut, qd_cut, qt_cut, f_cut, t_rcut
    integer :: max_shell
    
@@ -56,7 +70,6 @@ subroutine read_order_arg(arg, eflag, log_errors, switch_q, switch_qd, switch_qt
    else if (arg(1:6).eq.'-fcut=') then ; call read_arg(arg(7:), 0, f_cut, '', 'real', 'fcut', eflag)
    else if (arg(1:6).eq.'-tcut=') then ; call read_arg(arg(7:), 0, t_rcut, '', 'real', 'tcut', eflag)
    else if (arg(1:10).eq.'-maxshell=') then ; call read_arg(arg(11:), max_shell, 0.0, '', 'int', 'maxshell', eflag)
-   else if (arg(1:9).eq.'-species=') then ; call read_arg(arg(10:), 0, 0.0, op_species, 'str', 'species', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: order "//trim(arg) ; end if
    
 end subroutine read_order_arg
@@ -298,36 +311,8 @@ subroutine read_b_rcut(eflag, args, b_rcut, npairs)
 end subroutine read_b_rcut
 
 
-subroutine read_ws_arg(args, eflag, ns, ws, switch_hw_ex, MAX_ARGS)
-   implicit none
-   
-   integer, intent(in) :: MAX_ARGS
-   character(*) :: args(MAX_ARGS)
-   logical(1) :: eflag, switch_hw_ex
-   integer :: ns, i, io, final_arg, other_args
-   character(*), allocatable :: ws(:)
-   
-   other_args = 0
-   do i=2,MAX_ARGS
-      if (args(i).eq.'') then ; exit
-      else if (args(i)(1:1).eq.'-') then ; other_args = other_args + 1 ; end if
-   end do ; final_arg = i-1 ; allocate(ws(final_arg-1-other_args))
-   
-   ns=0
-   do i=2,final_arg
-      if (trim(adjustl(args(i))).eq.'--no_hw_ex') then ; switch_hw_ex = .false.
-      else ; ns = ns+1 ; read(args(i), *, iostat=io) ws(ns)
-         if (io.ne.0) then
-            print *, trim(args(i))//" is not a valid value for ws!"
-            eflag=.true.
-         end if
-      end if
-   end do
-   
-end subroutine read_ws_arg
-
-
 subroutine read_arg(arg, n, x, s, argtype, argname, eflag)
+
    implicit none
 
    logical(1) :: eflag
@@ -344,5 +329,21 @@ subroutine read_arg(arg, n, x, s, argtype, argname, eflag)
    end if
 
 end subroutine read_arg
+
+subroutine set_op_max_cut(switch_qd, switch_qt, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut)
+   
+   implicit none
+   
+   logical(1) :: switch_q(3:6), switch_qt(3:6), switch_qd(3:6)
+   real :: q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, second_cut=0.0
+   
+   if (op_max_cut.lt.q_cut) op_max_cut = q_cut
+   if (op_max_cut.lt.f_cut) op_max_cut = f_cut
+   if (op_max_cut.lt.t_rcut) op_max_cut = t_rcut
+   if (switch_qd(3).or.switch_qd(4).or.switch_qd(6)) second_cut = qd_cut
+   if ((second_cut.lt.qt_cut).and.(switch_qd(3).or.switch_qd(4).or.switch_qd(6))) second_cut = qt_cut
+   op_max_cut = op_max_cut + second_cut
+
+end subroutine set_op_max_cut
 
 end module MOD_read_input_args

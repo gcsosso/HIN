@@ -3,9 +3,9 @@ module MOD_read_input
 use MOD_read_input_args
 contains
 
-subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, switch_hw_ex, &
-                      switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, &
-                      filter, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species, &
+subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, &
+                      switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, &
+                      switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
                       switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                       rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
                       r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
@@ -32,12 +32,13 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    ! WS
    integer :: ns
    character(4), allocatable :: ws(:)
-   logical(1) :: switch_hw_ex
+   character(*) :: filter
+   real :: filt_min, filt_max
+   logical(1) :: switch_filt_param
    
    ! ORDER
    logical(1) :: switch_op, switch_q(3:6), switch_qd(3:6), switch_qt(3:6), switch_t4, switch_f(3:4), switch_th, switch_t_order
-   character(*) :: filter, op_species
-   real :: filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut
+   real :: q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut
    integer :: max_shell
    
    ! RINGS
@@ -86,7 +87,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    read_loc(:) = 0
    
    num_cl_args = COMMAND_ARGUMENT_COUNT()
-
+   
    if (num_cl_args.ne.0) then
       do i=1,num_cl_args ; CALL GET_COMMAND_ARGUMENT(i,args(i,1)) ; end do
       if (trim(adjustl(args(1,1))).eq.'order') then
@@ -94,11 +95,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          do i=2,num_cl_args
             tmpflag = .false.
             call read_traj_arg(args(i,1), tmpflag, .false._1, sfile, tfile, fframe, lframe, stride, &
-                               switch_outxtc, switch_progress, filter, filt_min, filt_max)
+                               switch_outxtc, switch_progress)
             if (.not.tmpflag) cycle
             tmpflag = .false.
             call read_order_arg(args(i,1), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
-                                switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species)
+                                switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell)
             if (tmpflag) then ; eflag = .true.
                write(99,*) "I don't understand the command line argument: "//trim(args(i,1))
             end if
@@ -137,19 +138,24 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    end do
    close(100)
    
+   allocate(ws(MAX_ARGS)) ; ns = 0
+   
    do i=1,num_categories
       if (args(i,1).eq.'') exit
       if (args(i,1).eq.'trajectory') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             call read_traj_arg(args(i,j), eflag, .true._1, sfile, tfile, fframe, lframe, stride, &
-                               switch_outxtc, switch_progress, filter, filt_min, filt_max)
+                               switch_outxtc, switch_progress)
          end do
-      else if (args(i,1).eq.'ws') then ; call read_ws_arg(args(i,:), eflag, ns, ws, switch_hw_ex, MAX_ARGS)
+      else if (args(i,1).eq.'ws') then
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws)
+         end do
       else if (args(i,1).eq.'order') then
          switch_op = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             call read_order_arg(args(i,j), eflag, .true._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, &
-                                switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell, op_species)
+                                switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell)
          end do
       else if (args(i,1).eq.'rings') then
          switch_rings = .true.
@@ -204,28 +210,33 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
    
+   call set_op_max_cut(switch_qd, switch_qt, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut)
+   
    if (ns.eq.0) then
-      ns = 2 ; allocate(ws(2))
+      ns = 2
       ws(1) = 'OW' ; ws(2) = 'HW'
    end if
+   
+   if (filter.eq.'z') switch_filt_param = .true.
    
    if (eflag) then ; write(99,*) "Something is wrong with the input file..." ; stop ; end if
 
 end subroutine read_input
 
 
-subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_ex,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
+subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
                     natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
 
    implicit none
 
-   integer :: r_ns, nat, ns, i, j, idx, n_f_ow
-   integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:)
+   integer :: r_ns, nat, ns, i, j, idx, n_f_ow, tmp_ws_len
+   integer, allocatable :: n_r_ws(:), list_ws(:,:), list_r_ws(:,:)
    integer, allocatable :: list_f_ow(:)
    integer, allocatable :: kto(:), r_color(:), resnum(:)
+   character(5) :: tmp_ws
    real :: dummyp
-   logical(1) ::switch_rings, switch_op, switch_hw_ex
-   character(5),allocatable :: resname(:)
+   logical(1) ::switch_rings, switch_op, tmp_ws_ast
+   character(5), allocatable :: resname(:)
    character(100) :: sfile, natformat
    character(4), allocatable :: sym(:), ws(:)
    character(5), allocatable :: r_ws(:), r_wr(:)
@@ -235,28 +246,15 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
    read(101,*)
    read(101,*) nat
    write(natformat,*) nat
-   allocate(sym(nat),list_ws(ns,nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns),n_ws(ns))
+   allocate(sym(nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns))
    allocate(list_f_ow(nat))
-   n_ws(:) = 0
+   
    n_r_ws(:) = 0
    n_f_ow = 0
    
    do i=1,nat
       read(101,'(i5,2a5,i5,3f8.3,3f8.4)') resnum(i), resname(i), sym(i), idx, dummyp, dummyp, dummyp
       sym(i)=trim(adjustl(sym(i)))
-      ! HW1 = HW2 exception
-      if (switch_hw_ex) then
-         if (trim(adjustl(sym(i))).eq.'HW2') then
-            n_ws(ns)=n_ws(ns)+1
-            list_ws(ns,n_ws(ns))=i
-         endif
-      endif
-      do j=1,ns
-         if (trim(adjustl(sym(i))).eq.trim(adjustl(ws(j)))) then
-            n_ws(j)=n_ws(j)+1
-            list_ws(j,n_ws(j))=i 
-         endif
-      enddo
       if (switch_rings) then
          do j=1,r_ns
             !!if (trim(adjustl(r_ws(j))).ne.'OW'.and.trim(adjustl(r_ws(j))).ne.'O3'.and.trim(adjustl(r_ws(j))).ne.'OR1'.and. &
@@ -264,18 +262,13 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,n_ws,switch_hw_e
             !!   write(99,*) "You'll have to implement yet another type of HB check!"
             !!   stop
             !!endif
-            if ((trim(adjustl(sym(i))).eq.trim(adjustl(r_ws(j)))).and.(trim(adjustl(resname(i))).eq.trim(adjustl(r_wr(j))))) then
+            if ((trim(adjustl(sym(i))).eq.trim(adjustl(r_ws(j)))) &
+                .and.(trim(adjustl(resname(i))).eq.trim(adjustl(r_wr(j))))) then
                n_r_ws(j)=n_r_ws(j)+1
                list_r_ws(j,n_r_ws(j))=i
             endif
          enddo 
-      endif  
-      if (switch_op) then
-        if (trim(adjustl(sym(i))).eq.'OW') then
-           n_f_ow=n_f_ow+1
-           list_f_ow(n_f_ow)=i
-        endif
-      endif  
+      endif
    enddo
    
    close(101)

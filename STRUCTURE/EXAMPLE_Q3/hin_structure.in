@@ -1,5 +1,5 @@
 # This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
 
-trajectory --progress -filter=z -min=10.2 -max=18.0
-
-order --q3d --q6d
+trajectory --progress
+ws -OW -filter=z -min=10.0 -max=20.0
+order --f3 --f4 --th --q3d --q6d
