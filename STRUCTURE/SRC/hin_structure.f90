@@ -76,7 +76,7 @@ logical(1) :: switch_t4=.false., switch_f(3:4)=.false., switch_th=.false., switc
 character(7) :: filter='none'
 character(5) :: op_species='OW'
 character(3) :: switch_water='mol'
-real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35, t_rcut
+real :: filt_min=0.0, filt_max=1.0, q_cut=0.35, qd_cut=0.35, qt_cut=0.35, f_cut=0.35, t_rcut=0.35
 integer :: max_shell=30
 
 ! RINGS
@@ -214,7 +214,7 @@ if (switch_gr) then
 end if
 
 if (switch_nh.or.switch_t_order) then
-  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,resname)
 end if
 
 ! Read the whole thing
@@ -298,7 +298,7 @@ do while ( STAT==0 )
 
       end if
       if (switch_t_order) then
-        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
+        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum)
       end if
 
    end if

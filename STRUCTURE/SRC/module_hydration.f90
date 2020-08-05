@@ -2,7 +2,7 @@ module MOD_hydration
 
 contains
 
-subroutine hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+subroutine hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,resname)
 
 implicit none
 
@@ -12,6 +12,7 @@ integer, allocatable :: n_ws(:), list_ws(:,:), list_nw(:), nh_mol(:), nh_atm(:,:
 real :: nh_rcut, ooo_ang(6)
 real, allocatable :: o_dist(:), nh_r(:), order_t(:)
 character*4, allocatable :: sym(:)
+character*5, allocatable :: resname(:)
 
 ! Local
 integer :: counter, i
@@ -50,7 +51,6 @@ enddo
 allocate(o_nhbrs(n_ow,4), order_t(n_ow))
 
 end subroutine hydration_alloc
-
 
 subroutine hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm,nh_color)
 
@@ -102,12 +102,12 @@ write(165,*) nh_color(:)
 
 end subroutine hydration
 
-subroutine t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
+subroutine t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum)
 
 ! Arguments
 integer :: n_ow, o_ns, cart
 integer, allocatable :: list_ws(:,:), o_nhbrs(:,:), resnum(:)
-real :: ooo_ang(6), icell(cart*cart)
+real :: ooo_ang(6), icell(cart*cart), t_rcut
 real, allocatable :: pos(:,:), order_t(:)
 character*5,allocatable :: resname(:)
 
@@ -141,9 +141,12 @@ do i=1,n_ow
       else
         max_loc=maxloc(oo_dist,1)
         max_dist=oo_dist(max_loc)
-        if (r_ij.lt.max_dist) then
+        if (r_ij.lt.max_dist .and. r_ij.le.t_rcut) then
           oo_dist(max_loc)=r_ij
           o_nhbrs(i,max_loc)=j_spc
+        else if (r_ij.lt.max_dist .and. r_ij.gt.t_rcut) then
+          oo_dist(max_loc)=r_ij
+          o_nhbrs(i,max_loc)=0
         endif
       endif
     endif
@@ -161,28 +164,33 @@ do i=1,n_ow
 
   do j=1,n_nn ! Number of neighbours
     j_spc=o_nhbrs(i,j)
-    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-    xdf=j_pos(1)-i_pos(1) ; ydf=j_pos(2)-i_pos(2) ; zdf=j_pos(3)-i_pos(3)
-    call images(cart,0,1,1,icell,xdf,ydf,zdf)
-    v_ij(1)=xdf ; v_ij(2)=ydf ; v_ij(3)=zdf
-    r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
-
+    if (j_spc.eq.0) then
+      continue
+    else
+      j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+      xdf=j_pos(1)-i_pos(1) ; ydf=j_pos(2)-i_pos(2) ; zdf=j_pos(3)-i_pos(3)
+      call images(cart,0,1,1,icell,xdf,ydf,zdf)
+      v_ij(1)=xdf ; v_ij(2)=ydf ; v_ij(3)=zdf
+      r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
+    end if
     do k=j+1,n_nn ! Number of neighbours (k>j)
       k_spc=o_nhbrs(i,k)
-      k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
-      xdf=k_pos(1)-i_pos(1) ; ydf=k_pos(2)-i_pos(2) ; zdf=k_pos(3)-i_pos(3)
-      call images(cart,0,1,1,icell,xdf,ydf,zdf)
-      v_ik(1)=xdf ; v_ik(2)=ydf ; v_ik(3)=zdf
-      r_ik=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
-
-      v_prod=((v_ij(1)*v_ik(1))+(v_ij(2)*v_ik(2))+(v_ij(3)*v_ik(3)))
-      r_prod=r_ij*r_ik
-      theta=acos(v_prod/r_prod)
-      t_sum=t_sum+(cos(theta)+(1.0d0/3.0d0))**2 ! cos(acos(x))==x so could condense these lines
-      !write(*,*) theta, cos(theta)
-      !ooo_ang(counter)=theta
-      !counter=counter+1
-      !write(*,*) i_spc, j_spc, k_spc, v_prod, r_prod, counter
+      if (j_spc.eq.0 .or. k_spc.eq.0) then
+        t_sum=t_sum+(2.0d0/3.0d0)**2
+      else
+        k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
+        xdf=k_pos(1)-i_pos(1) ; ydf=k_pos(2)-i_pos(2) ; zdf=k_pos(3)-i_pos(3)
+        call images(cart,0,1,1,icell,xdf,ydf,zdf)
+        v_ik(1)=xdf ; v_ik(2)=ydf ; v_ik(3)=zdf
+        r_ik=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
+        v_prod=((v_ij(1)*v_ik(1))+(v_ij(2)*v_ik(2))+(v_ij(3)*v_ik(3)))
+        r_prod=r_ij*r_ik
+        theta=acos(v_prod/r_prod)
+        t_sum=t_sum+(cos(theta)+(1.0d0/3.0d0))**2 ! cos(acos(x))==x so could condense these lines
+        !ooo_ang(counter)=theta
+        !counter=counter+1
+        !write(*,*) i_spc, j_spc, k_spc, v_prod, r_prod, counter
+      end if
     enddo
   enddo
   t_ord=1.0d0-((3.0d0/8.0d0)*t_sum)
