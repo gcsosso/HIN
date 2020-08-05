@@ -35,7 +35,7 @@ subroutine read_ws_arg(arg, eflag, filter, filt_min, filt_max, ns, ws)
    if (arg(1:8).eq.'-filter=') then ; call read_arg(arg(9:), 0, 0.0, filter, 'str', 'filter', eflag)
    else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, filt_min, '', 'real', 'min', eflag)
    else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, filt_max, '', 'real', 'max', eflag)
-   else ; ns = ns+1 ; call read_arg(arg(2:), 0, 0.0, ws(ns), 'str', 'ws', eflag)
+   else ; ns = ns+1 ; call read_arg(arg(2:), 0, 0.0, ws(ns), 'str', 'species', eflag)
    end if
    
 end subroutine read_ws_arg

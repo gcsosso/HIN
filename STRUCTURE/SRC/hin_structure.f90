@@ -67,7 +67,7 @@ character(ARG_LEN) :: sfile='md.gro', tfile='traj.xtc'
 integer :: fframe=0, lframe=-1, stride=1
 logical(1) :: switch_outxtc=.true., switch_progress=.false.
 
-! WS
+! SPECIES
 integer :: ns=0
 character(4), allocatable :: ws(:)
 character(7) :: filter='none'

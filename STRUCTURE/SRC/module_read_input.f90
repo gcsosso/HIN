@@ -29,7 +29,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: fframe, lframe, stride
    logical(1) :: switch_outxtc, switch_progress
    
-   ! WS
+   ! SPECIES
    integer :: ns
    character(4), allocatable :: ws(:)
    character(*) :: filter
@@ -147,7 +147,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
             call read_traj_arg(args(i,j), eflag, .true._1, sfile, tfile, fframe, lframe, stride, &
                                switch_outxtc, switch_progress)
          end do
-      else if (args(i,1).eq.'ws') then
+      else if (args(i,1).eq.'species') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws)
          end do
