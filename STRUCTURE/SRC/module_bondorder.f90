@@ -118,7 +118,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
 
    if (switch_t4.and.(l.eq.3)) qlb_io = qlb_mol
    write(n_mol_format,*) n_filtered(1)
-   write(240+l,'('//adjustl(n_mol_format)//'I7)') (list_filtered(1,ii), i=1i,n_filtered(1))
+   write(240+l,'('//adjustl(n_mol_format)//'I7)') (list_filtered(1,ii), ii=1,n_filtered(1))
    if (switch_filt_param) write(240+l,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
    if (switch_ql) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (ql_mol(ii), ii=1,n_filtered(1))
    if (switch_qd) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlb_mol(ii), ii=1,n_filtered(1))
