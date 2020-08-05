@@ -176,7 +176,8 @@ esse_AVE_SURF=0.0; rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0;
 
 if (switch_zdens) call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
 
-call read_first_xtc(tfile,switch_outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time,box_trans,pos,prec,icell,cart)
+call read_first_xtc(tfile,switch_outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time, &
+                    box_trans,pos,prec,icell,cart)
 
 if (switch_rings.and.switch_r_idx) call read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
 
@@ -211,11 +212,13 @@ if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
 if (switch_gr) then
-  call gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,o_dist)
+  call gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm, &
+                gr_atm_norm,o_dist)
 end if
 
 if (switch_nh.or.switch_t_order) then
-  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t)
+  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm, &
+                       nh_color,o_nhbrs,ooo_ang,order_t,resname)
 end if
 
 ! Read the whole thing
@@ -295,11 +298,12 @@ do while ( STAT==0 )
 
       end if
       if (switch_nh) then
-        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol,nh_atm,nh_color)
+        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol, &
+                       nh_atm,nh_color)
 
       end if
       if (switch_t_order) then
-        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,resname,resnum)
+        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum)
       end if
       
       deallocate(list_filtered, filt_param, qlb_io)
