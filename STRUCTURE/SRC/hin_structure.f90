@@ -31,8 +31,8 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
 integer :: tmplist, nsurf, nbulk, nq
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
-integer :: n_f_ow, n_filtered(2), n_all_ws
-integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:)
+integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs
+integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:), list_cs(:)
 integer :: o_ns, n_nw, n_ow
 integer, allocatable :: list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
 integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
@@ -70,7 +70,7 @@ logical(1) :: switch_outxtc=.true., switch_progress=.false.
 ! SPECIES
 integer :: ns=0
 character(4), allocatable :: ws(:)
-character(7) :: filter='none'
+character(7) :: filter='none', centre='none'
 logical(1) :: switch_filt_param=.false.
 
 ! ORDER
@@ -129,7 +129,7 @@ real :: nh_rcut
 open(unit=99, file='hin_structure.log', status='unknown')
 
 call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, &
-                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, &
+                switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, centre, &
                 switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
                 switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                 rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
@@ -150,7 +150,7 @@ hbdist2 = hbdist**2.0
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
 
-call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws)
+call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
 !open(unit=877, file='flags.dat', status='old')
@@ -217,8 +217,7 @@ if (switch_gr) then
 end if
 
 if (switch_nh.or.switch_t_order) then
-  call hydration_alloc(nat,ns,sym,n_ws,list_ws,o_ns,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm, &
-                       nh_color,o_nhbrs,ooo_ang,order_t,resname)
+  call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
 end if
 
 ! Read the whole thing
@@ -230,9 +229,9 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-      
+
       call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
-                        pos, filt_param, qlb_io)
+                        pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
 
@@ -298,17 +297,16 @@ do while ( STAT==0 )
 
       end if
       if (switch_nh) then
-        call hydration(resname,resnum,nat,pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,o_dist,nh_bins,nh_r,nh_mol, &
-                       nh_atm,nh_color)
+        call hydration(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
 
       end if
       if (switch_t_order) then
-        call t_order(n_ow,list_ws,o_ns,pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum)
+        call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
-      
+
       deallocate(list_filtered, filt_param, qlb_io)
    end if
-   
+
    counter=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
