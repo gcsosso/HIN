@@ -1,12 +1,14 @@
 # If using RINGS with MPI... module load GCC/7.3.0-2.30 OpenMPI/3.1.1
 
 FC_LINUX=gfortran
-FFLAGS_LINUX=-ffree-line-length-512 -fbacktrace  -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
-                                                #
+FFLAGS_LINUX=-ffree-line-length-512 # -fbacktrace  -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
+
 # Gabriele's path
 LDLIBS_LINUX=-L/home/chem/mssnkt/LIBS/LIBXDR/xdrfile-1.1.1/BIN/lib -lxdrfile -L/usr/lib -llapack -lblas
 # Chris' path
 # LDLIBS_LINUX=-L/storage/molases/maungn/analysis/HIN/LIBXDR/build/lib -lxdrfile -L/usr/lib64 -llapack -lblas
+# Matt's path
+# LDLIBS_LINUX=-L/home/wms/nttsnt/CODES/HIN/LIBXDR/build/lib -lxdrfile -L/usr/lib64 -llapack -lblas
 EXE_LINUX=hin_structure_LiNuX.x
 
 RINGS_EXE=/home/molases/maungn/rings-code-v1.3.3/BIN/bin/rings
@@ -34,9 +36,9 @@ module_read_input.mod: $(SRC_DIR)/module_read_input.o $(SRC_DIR)/module_read_inp
 module_read_input.o: $(SRC_DIR)/module_read_input.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_read_input.f90
 module_filter.mod: $(SRC_DIR)/module_filter.o $(SRC_DIR)/module_filter.f90
-  $(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_filter.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_filter.f90
 module_filter.o: $(SRC_DIR)/module_filter.f90
-  $(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_filter.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_filter.f90
 module_zdens.mod: $(SRC_DIR)/module_zdens.o $(SRC_DIR)/module_zdens.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_zdens.f90
 module_zdens.o: $(SRC_DIR)/module_zdens.f90
@@ -85,6 +87,10 @@ module_gr.mod: $(SRC_DIR)/module_gr.o $(SRC_DIR)/module_gr.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_gr.f90
 module_gr.o: $(SRC_DIR)/module_gr.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_gr.f90
+module_hydration.mod: $(SRC_DIR)/module_hydration.o $(SRC_DIR)/module_hydration.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_hydration.f90
+module_hydration.o: $(SRC_DIR)/module_hydration.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_hydration.f90
 module_output.mod: $(SRC_DIR)/module_output.o $(SRC_DIR)/module_output.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_output.f90
 module_output.o: $(SRC_DIR)/module_output.f90
@@ -99,4 +105,4 @@ set-exe:
 	sed -e "s|PLACEHOLDER_RINGS_EXE|$(RINGS_EXE)| ; s|PLACEHOLDER_PLUMED_EXE|$(PLUMED_EXE)| ; s|PLACEHOLDER_VMD_EXE|$(VMD_EXE)|" $(SRC_DIR)/hin_structure.f90 > hin_structure.f90
 
 clean:
-	rm -r -f *.o *.mod hin_structure_*.f90
+	rm -r -f *.o *.mod hin_structure*.f90
