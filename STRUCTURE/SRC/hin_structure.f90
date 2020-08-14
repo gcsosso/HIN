@@ -297,7 +297,7 @@ do while ( STAT==0 )
 
       end if
       if (switch_nh) then
-        call hydration(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+        call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
 
       end if
       if (switch_t_order) then

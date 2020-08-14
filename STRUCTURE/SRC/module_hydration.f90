@@ -27,7 +27,7 @@ end do
 end subroutine hydration_alloc
 
 
-subroutine hydration(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+subroutine h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
 
 implicit none
 
@@ -53,7 +53,7 @@ enddo
 open(unit=165, file='hin_structure.out.hydration.color', status='unknown')
 write(165,*) nh_color(:) ! Write color file
 
-end subroutine hydration
+end subroutine h_number
 
 
 subroutine t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
@@ -71,6 +71,7 @@ integer :: i, j, k, i_spc, j_spc, k_spc, max_loc, frame
 real :: i_pos(3), j_pos(3), k_pos(3), xdf, ydf, zdf, r_ij, r_ik, oo_dist(4), max_dist, v_ij(3), v_ik(3), v_prod, r_prod, theta, t_sum, t_ord
 
 open(unit=166, file='hin_structure.out.t_order', status='unknown')
+order_t(:)=0.0d0
 
 ! Find 4 nearest neighbours
 do i=1,n_filtered(1)
@@ -137,9 +138,11 @@ do i=1,n_filtered(1)
     enddo
   enddo
   t_ord=1.0d0-((3.0d0/8.0d0)*t_sum)
-  write(166,"(i6,a6,i6,i6,i6,i6,f8.3,f8.3)") resnum(i_spc), resname(i_spc), resnum(o_nhbrs(i,1)), resnum(o_nhbrs(i,2)), resnum(o_nhbrs(i,3)), resnum(o_nhbrs(i,4)), t_ord, filt_param(i)
+  order_t(i)=t_ord
+  !write(166,"(i6,a6,i6,i6,i6,i6,f8.3,f8.3)") resnum(i_spc), resname(i_spc), resnum(o_nhbrs(i,1)), resnum(o_nhbrs(i,2)), resnum(o_nhbrs(i,3)), resnum(o_nhbrs(i,4)), t_ord, filt_param(i)
 enddo
-write(166,*)
+
+write(166,*) (list_filtered(1,i), filt_param(i), order_t(i), i=1,n_filtered(1)) ! Output format: [index, distance, order]/atom for all atoms, single line per frame
 
 end subroutine t_order
 
