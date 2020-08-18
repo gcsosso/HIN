@@ -6,9 +6,10 @@ subroutine initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws
 
    implicit none
 
-   logical(1) :: tmp_ws_ast
-   integer :: nat, ns, i, j, tmp_ws_len, n_all_ws, n_cs
+   logical(1) :: tmp_ws_ast, centre_range
+   integer :: nat, ns, i, j, tmp_ws_len, n_all_ws, n_cs, delim_index, centre_start, centre_end
    integer, allocatable :: n_ws(:), list_ws(:,:), list_all_ws(:), list_cs(:)
+   character(1) :: delim=':'
    character(5) :: tmp_ws
    character(4), allocatable :: sym(:), ws(:)
    character*5, allocatable :: resname(:)
@@ -19,10 +20,21 @@ subroutine initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws
    n_all_ws = 0
    n_cs = 0
 
+   ! -centre input can be provided as atom index range or residue name
+   if (verify(delim,centre).eq.0) then ! If colon detected then interpret as a index range
+     centre_range = .true.
+     delim_index = scan(centre,delim)
+     read(centre(1:delim_index-1),*) centre_start
+     read(centre(delim_index+1:),*) centre_end
+   else ; centre_range = .false. ; end if ! Otherwise interpret as resname
+
    do i=1,nat
       ! Filter by ws. An * can be used at the end of a species name to select anything with the same starting characters.
       ! E.g. HW* for both HW1 and HW2.
-      if (trim(adjustl(resname(i))).eq.trim(adjustl(centre))) then ;
+      if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
+        n_cs = n_cs + 1
+        list_cs(n_cs) = i
+      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
         n_cs = n_cs + 1
         list_cs(n_cs) = i
       end if
