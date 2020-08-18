@@ -4,7 +4,7 @@ use MOD_read_input_args
 contains
 
 subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, &
-                      switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, &
+                      switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, centre, &
                       switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
                       switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                       rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
@@ -17,30 +17,30 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
    integer, intent(in) :: ARG_LEN
-   
+
    ! Parsing the input file
    logical(1) :: in_arg=.false., eflag=.false., tmpflag
    character(LINE_LEN) :: buf
    integer :: io, i, j, read_loc(2), num_args(CATEGORIES)=0, num_categories=0, num_cl_args
    character(ARG_LEN) :: args(CATEGORIES, MAX_ARGS)
-   
+
    ! TRAJECTORY
    character(*) :: sfile, tfile
    integer :: fframe, lframe, stride
    logical(1) :: switch_outxtc, switch_progress
-   
+
    ! SPECIES
    integer :: ns
    character(4), allocatable :: ws(:)
-   character(*) :: filter
+   character(*) :: filter, centre
    real :: filt_min, filt_max
    logical(1) :: switch_filt_param
-   
+
    ! ORDER
    logical(1) :: switch_op, switch_q(3:6), switch_qd(3:6), switch_qt(3:6), switch_t4, switch_f(3:4), switch_th, switch_t_order
    real :: q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut
    integer :: max_shell
-   
+
    ! RINGS
    logical(1) :: switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
    character(*) :: rings_exe, r_cls_W
@@ -48,46 +48,46 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: maxr, maxr_RINGS, wcol, r_ns
    character(5), allocatable :: r_wr(:), r_ws(:)
    integer, allocatable :: r_wh(:,:)
-   
+
    ! BONDS
    logical(1) :: switch_bonds
    real :: b_dz, b_bmin, b_bmax
    real, allocatable :: b_rcut(:)
    integer :: b_bins, npairs
-   
+
    ! ZDENS
    logical(1) :: switch_zdens
    real :: zmin, zmax, dz
-   
+
    ! XYFES
    logical(1) :: switch_xyfes
    real :: xymin, xymax
    integer :: nxy
-   
+
    ! CLUSTERS
    logical(1) :: switch_cls, switch_f_cls, switch_cls_stat
    character(*) :: plumed_exe, vmd_exe
    real :: f3_imax, f3_cmax, f4_imax, f4_cmin
    integer :: ohstride, pmpi
-   
+
    ! ELECTROSTATICS
    logical(1) :: switch_electro
    real :: e_zmin, e_zmax, e_dz
-   
+
    ! RADIAL
    logical(1) :: switch_gr
    integer :: gr_ws, gr_bins, gr_min_dx
    real :: gr_min_dy
-   
+
    ! HYDRATION
    logical(1) :: switch_nh
    integer :: nh_bins
    real :: nh_rcut
-   
+
    read_loc(:) = 0
-   
+
    num_cl_args = COMMAND_ARGUMENT_COUNT()
-   
+
    if (num_cl_args.ne.0) then
       do i=1,num_cl_args ; CALL GET_COMMAND_ARGUMENT(i,args(i,1)) ; end do
       if (trim(adjustl(args(1,1))).eq.'order') then
@@ -99,7 +99,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
             if (.not.tmpflag) cycle
             tmpflag = .false.
             call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws)
-            call read_order_arg(args(i,1), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
+            call read_order_arg(args(i,1), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, &
                                 switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell)
             if (tmpflag) then ; eflag = .true.
                write(99,*) "I don't understand the command line argument: "//trim(args(i,1))
@@ -112,12 +112,12 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
 
    ! If command line arguments aren't provided, we try to read input file...
    open(unit=100, file='hin_structure.in', status='old')
-   
+
    do
       read(100, '(A)', iostat=io) buf ; if (io.ne.0) exit
       do i=1,LINE_LEN
          if (buf(i:i).eq.'#') exit ! Ignore anything after a hash (comments)
-         
+
          ! This is a line that is not being ignored
          if (buf(i:i).eq.' ') then
             in_arg = .false.
@@ -138,9 +138,9 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       end do
    end do
    close(100)
-   
+
    allocate(ws(MAX_ARGS)) ; ns = 0
-   
+
    do i=1,num_categories
       if (args(i,1).eq.'') exit
       if (args(i,1).eq.'trajectory') then
@@ -150,7 +150,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          end do
       else if (args(i,1).eq.'species') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws)
+            call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws, centre)
          end do
       else if (args(i,1).eq.'order') then
          switch_op = .true.
@@ -210,16 +210,16 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
-   
+
    call set_op_max_cut(switch_qd, switch_qt, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut)
-   
+
    if (ns.eq.0) then
       ns = 2
       ws(1) = 'OW' ; ws(2) = 'HW'
    end if
-   
+
    if (filter.eq.'z') switch_filt_param = .true.
-   
+
    if (eflag) then ; write(99,*) "Something is wrong with the input file..." ; stop ; end if
 
 end subroutine read_input
@@ -241,7 +241,7 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_n
    character(100) :: sfile, natformat
    character(4), allocatable :: sym(:), ws(:)
    character(5), allocatable :: r_ws(:), r_wr(:)
-   
+
    ! Read structure file...
    open(unit=101, file=trim(adjustl(sfile)), status='old')
    read(101,*)
@@ -249,10 +249,10 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_n
    write(natformat,*) nat
    allocate(sym(nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns))
    allocate(list_f_ow(nat))
-   
+
    n_r_ws(:) = 0
    n_f_ow = 0
-   
+
    do i=1,nat
       read(101,'(i5,2a5,i5,3f8.3,3f8.4)') resnum(i), resname(i), sym(i), idx, dummyp, dummyp, dummyp
       sym(i)=trim(adjustl(sym(i)))
@@ -268,10 +268,10 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_n
                n_r_ws(j)=n_r_ws(j)+1
                list_r_ws(j,n_r_ws(j))=i
             endif
-         enddo 
+         enddo
       endif
    enddo
-   
+
    close(101)
 
    return
@@ -320,12 +320,12 @@ subroutine read_first_xtc(tfile, switch_outxtc, xtcOfile, STAT, NATOMS, nat, xd_
       call c_f_pointer(xd_c_out,xd_out)
    endif
 
-   ! Read first frame 
+   ! Read first frame
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
    icell(1)=box_trans(1,1) ; icell(2)=box_trans(1,2) ; icell(3)=box_trans(1,3)
    icell(4)=box_trans(2,1) ; icell(5)=box_trans(2,2) ; icell(6)=box_trans(2,3)
    icell(7)=box_trans(3,1) ; icell(8)=box_trans(3,2) ; icell(9)=box_trans(3,3)
-   
+
    return
 
 end subroutine read_first_xtc
@@ -382,4 +382,3 @@ integer function factorial(n)
 end function factorial
 
 end module MOD_read_input
-
