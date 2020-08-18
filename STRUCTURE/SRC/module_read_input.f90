@@ -98,6 +98,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                                switch_outxtc, switch_progress)
             if (.not.tmpflag) cycle
             tmpflag = .false.
+            call read_ws_arg(args(i,j), eflag, filter, filt_min, filt_max, ns, ws)
             call read_order_arg(args(i,1), tmpflag, .false._1, switch_q, switch_qd, switch_qt, switch_t4, switch_f, & 
                                 switch_th, switch_t_order, q_cut, qd_cut, qt_cut, f_cut, t_rcut, max_shell)
             if (tmpflag) then ; eflag = .true.
