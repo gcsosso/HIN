@@ -83,7 +83,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
 
       ! Compute the ql parameter for the atom
       if (switch_ql) then
-         call compute_ql(ii,l,ql_atom,size_first(ii),qlm_all)
+         call compute_ql(ii,l,ql_atom,size_first(ii),qlm_all,n_filtered(2))
          ql_mol(ii) = ql_atom
       end if
       
@@ -92,7 +92,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
          call compute_first_coord_shell(list_filtered(1,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
                                         qd_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
          call compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all, &
-                          size_first(ii),max_shell)
+                          size_first(ii),max_shell,n_filtered(2))
          qlb_mol(ii) = qlb_atom
       end if
 
@@ -100,7 +100,8 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
       if (switch_qt) then
          call compute_first_coord_shell(list_filtered(1,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
                                         qt_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
-         call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first(ii),max_shell)
+         call compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first(ii), &
+                          max_shell,n_filtered(2))
          qlt_mol(ii) = qlt_atom
       end if
       
@@ -185,17 +186,17 @@ end subroutine compute_first_coord_shell
 
 
 ! Computes local ql order parameter for an atom
-subroutine compute_ql(ii,l,ql_atom,size_first,qlm_all)
+subroutine compute_ql(ii,l,ql_atom,size_first,qlm_all,n_filtered)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, m, l, counter
+   integer :: ii, m, l, counter, n_filtered
    integer :: size_first       				! Size of first coordination shell
    real(dp) :: ql_atom                      ! ql(i) parameter for atom i
    real :: sigma
    real, parameter :: Pi = 3.14159
-   complex(dp) :: qlm_all(:,:)
+   complex(dp) :: qlm_all(-l:l,n_filtered)
 
    sigma = 0.0
 
@@ -209,26 +210,26 @@ end subroutine compute_ql
 
 
 ! Computes averaged ql order parameter for an atom (Dellago)
-subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell)
+subroutine compute_qlb(ii,l,qlb_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell,n_filtered)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, m, l, max_shell
+   integer :: ii, m, l, max_shell, n_filtered
    integer :: size_first_coord_shell, size_first      ! Size of coordination shells
    integer :: first_coord_shell_ndx(max_shell)        ! First coordination shell atom indices
    real(dp) :: qlb_atom                               ! ql(i) bar parameter for atom i
    real :: sigma
    complex :: qlmb
    real, parameter :: Pi = 3.14159
-   complex(dp) :: qlm_all(:,:)
+   complex(dp) :: qlm_all(-l:l,n_filtered)
 
    sigma = 0.0
 
    if (size_first.gt.0) then 
       qlb_atom = 0
       do m=-l,l
-         call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell)
+         call compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell,n_filtered)
          sigma = sigma + real(qlmb)**2+aimag(qlmb)**2
       end do
       qlb_atom = sqrt(4*Pi*sigma/(2*l+1))
@@ -238,15 +239,15 @@ end subroutine compute_qlb
 
 
 ! Computes Tianshu version of ql order parameter for an atom
-subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell)
+subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shell,qlm_all,size_first,max_shell,n_filtered)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, fj, jj, m, l, max_shell
+   integer :: ii, fj, jj, m, l, max_shell, n_filtered
    integer :: size_first_coord_shell, size_first   ! Size of coordination shells
    integer :: first_coord_shell_ndx(max_shell)     ! First coordination shell atom indices
-   complex(dp) :: qlm_all(:,:)
+   complex(dp) :: qlm_all(-l:l,n_filtered)
    complex :: qi_dot_qj, sigma
    real :: qi_sq, qj_sq
    real(dp) :: qlt_atom
@@ -272,16 +273,16 @@ subroutine compute_qlt(ii,l,qlt_atom,first_coord_shell_ndx,size_first_coord_shel
 end subroutine compute_qlt
 
 
-subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell)
+subroutine compute_qlmb(ii,l,m,qlmb,first_coord_shell_ndx,size_first_coord_shell,qlm_all,max_shell,n_filtered)
     
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ii, fi, m, l, max_shell
+   integer :: ii, fi, m, l, max_shell, n_filtered
    integer :: size_first_coord_shell
    integer :: first_coord_shell_ndx(max_shell)    ! First coordination shell atom indices
    complex :: qlmb, qlm, sigma
-   complex(dp) :: qlm_all(:,:)
+   complex(dp) :: qlm_all(-l:l,n_filtered)
 
    qlm = qlm_all(m,ii)
    sigma = qlm
