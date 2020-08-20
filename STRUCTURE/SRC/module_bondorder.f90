@@ -125,6 +125,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
    if (switch_qd) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlb_mol(ii), ii=1,n_filtered(1))
    if (switch_qt) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(ii), ii=1,n_filtered(1))
    if (switch_t4.and.(l.eq.6)) then
+      write(250,'('//adjustl(n_mol_format)//'I7)') (list_filtered(1,ii), ii=1,n_filtered(1))
       write(250,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
       write(250,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(ii), ii=1,n_filtered(1))
       write(251,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
