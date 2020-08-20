@@ -13,31 +13,31 @@ subroutine output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,de
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy, &
+                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy,icell,n_ow, &
                   switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
 
 implicit none
 
 ! Local
 integer :: i, j, k, ibin, l, n, n_bins
-real :: rstep, h, rsum, gr_dy_p, gr_dy_m, rmin_mol
+real :: rstep, h, rsum, gr_dy_p, gr_dy_m, rmin_mol, gr_density, dr
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, allocatable :: efield(:), epot(:)
-real, allocatable :: gr_mol_avg(:), gr_atm_avg(:,:), smgr_mol(:), smgr_atm(:,:), rmin_atm(:), nh_mol_avg(:), nh_atm_avg(:,:)
+real, allocatable :: gr_mol_avg(:), gr_atm_avg(:,:), smgr_mol(:), smgr_atm(:,:), rmin_atm(:), nh_mol_avg(:), nh_atm_avg(:,:), cn_running(:)
 character*100 :: wformat
 logical :: found_min
 
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
 integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk
-integer :: gr_ws, n_nw, gr_min_dx, nh_bins
+integer :: gr_ws, n_nw, gr_min_dx, nh_bins, n_ow
 integer, allocatable :: n_ws(:), n_r_ws(:), list_nw(:), nh_mol(:), nh_atm(:,:)
 real :: box_trans(cart,cart), zmin, zmax, r_zmin, r_zmax, dz, zop_AVE
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK, ze_AVE_SURF
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
-real :: gr_min_dy
+real :: gr_min_dy, icell(cart*cart)
 real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_AVE(:,:), stat_nr_HB_AVE(:)
 real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
 real, allocatable :: rad(:), o_dist(:), gr_mol_norm(:), gr_atm_norm(:,:), nh_r(:)
@@ -250,7 +250,7 @@ if (switch_gr) then
   found_min=.false.
 
   ! Needed for M-O PCF (individual atoms [1])
-  allocate(gr_atm_avg(n_nw,n_bins),smgr_atm(n_nw,n_bins),rmin_atm(n_nw))
+  allocate(gr_atm_avg(n_nw,n_bins),smgr_atm(n_nw,n_bins),rmin_atm(n_nw),cn_running(n_bins))
   gr_atm_avg(:,:)=0.0d0
   smgr_atm(:,:)=0.0d0
   rmin_atm(:)=0.0d0
@@ -350,10 +350,27 @@ if (switch_gr) then
         endif
       endif
     enddo
+    ! Integrate to find CN
+    if (gr_ws.eq.3) then
+      dr=rad(2)-rad(1)
+      do i=1,n_bins
+        cn_running(i)=cn_running(i)+(gr_mol_avg(i)*rad(i)*rad(i)*dr)
+        if (i.gt.1) then
+          cn_running(i)=cn_running(i)+cn_running(i-1)
+        end if
+      enddo
+      gr_density=dble(n_ow)/(icell(1)**3.0d0)
+      cn_running(:)=cn_running(:)*4.0d0*2.D0*DASIN(1.D0)*gr_density
+    end if
+
     ! Write to file
     write(163,*) "First minimum:", rmin_mol
     do i=1,n_bins
-      write(163,'(f12.5,f12.5,f12.5)') rad(i), gr_mol_avg(i), smgr_mol(i)
+      if (gr_ws.eq.3) then
+        write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), gr_mol_avg(i), smgr_mol(i), cn_running(i)
+      else
+        write(163,'(f12.4,f12.4,f12.4)') rad(i), gr_mol_avg(i), smgr_mol(i)
+      end if
     enddo
   endif
   close(163)
