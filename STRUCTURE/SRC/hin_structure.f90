@@ -38,7 +38,7 @@ integer, allocatable :: list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs
 integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
-real :: rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE
+real :: rstep, n_ddc_AVE, n_hc_AVE, n_hex_AVE, n_cls_AVE, zop_AVE, b_zmin
 real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, middle, o_dz, hbdist2
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
@@ -318,16 +318,18 @@ if (switch_progress) write(6,*) ' Finished.'
 
 ! Output...
 call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,dz,box_trans, &
-            switch_rings,r_ns,r_ws,n_r_ws,maxr,stat_nr_AVE,switch_cages,n_ddc_AVE,n_hc_AVE, &
-            switch_hex,n_hex_AVE,switch_bonds,npairs,nz_bAVE,filt_min,b_dz,b_bins,b_bmax,b_bmin, &
-            pdbon_AVE,npairs_cn,cn_AVE,switch_cls,n_cls_AVE,cart,switch_zdens, &
-            switch_r_cls,r_cls_W,switch_xyfes,xydens,xymax,xymin,nxy,xmesh,ymesh,nsurf,nbulk,n_ddc_AVE_SURF, &
-            n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,switch_ffss, &
-            delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
-            rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,d_charge, &
-            switch_electro,e_nz,e_zmesh,switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-            switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy, &
-            switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
+                  switch_rings,r_ns,r_ws,n_r_ws,maxr,stat_nr_AVE,switch_cages,n_ddc_AVE,n_hc_AVE, &
+                  switch_hex,n_hex_AVE,switch_bonds,npairs,nz_bAVE,b_zmin,b_dz,b_bins,b_bmax,b_bmin, &
+                  pdbon_AVE,npairs_cn,cn_AVE,switch_cls,n_cls_AVE,cart,switch_zdens, &
+                  switch_r_cls,r_cls_W,switch_xyfes,xydens,xymax,xymin,nxy,xmesh,ymesh,nsurf,nbulk,n_ddc_AVE_SURF, &
+                  n_hc_AVE_SURF,n_hex_AVE_SURF, &
+                  n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK,switch_ffss, &
+                  delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
+                  rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
+                  ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
+                  switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
+                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy,icell,n_ow, &
+                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
 
 STAT=xdrfile_close(xd)
 
