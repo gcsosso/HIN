@@ -77,7 +77,7 @@ subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_a
       i = list_all_ws(ii)
       if (trim(adjustl(filter)).eq.'none') then
          n_filtered(:) = n_all_ws
-         list_filtered(1,:) = list_all_ws ; list_filtered(2,:) = list_all_ws
+         list_filtered(1,:) = list_all_ws(1:n_all_ws) ; list_filtered(2,:) = list_all_ws(1:n_all_ws)
       else if (trim(adjustl(filter)).eq.'z') then
         call filter_z(i, filt_min, filt_max, op_max_cut, pos(3,list_all_ws(ii)), n_filtered, list_filtered, filt_param)
       else if (trim(adjustl(filter)).eq.'shell') then

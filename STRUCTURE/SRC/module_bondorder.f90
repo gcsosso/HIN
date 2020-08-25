@@ -62,16 +62,16 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
    qlb_mol(:) = 0.0
    qlt_mol(:) = 0.0
    t4_col(:) = 0.0
-
+   
    do ii=1,n_filtered(2) ; i = list_filtered(2,ii)
       call compute_first_coord_shell(list_filtered(2,ii),first_coord_shell,first_coord_shell_ndx,size_first_coord_shell, &
                                  q_cut,cart,icell,counter,pos,n_filtered(2),list_filtered(2,:),sym,max_shell)
       
       if (size_first_coord_shell.gt.0) then
-        do m=-l,l
+         do m=-l,l
             call compute_qlm(ii,l,m,qlm_all(m,ii),cart,icell,q_cut,pos,counter,sym, &
                                   first_coord_shell,size_first_coord_shell,max_shell)
-        end do
+         end do
       else
       
         qlm_all(:,ii) = (0.0, 0.0)
@@ -126,7 +126,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
    if (switch_qt) write(240+l,'('//adjustl(n_mol_format)//'F12.8)') (qlt_mol(ii), ii=1,n_filtered(1))
    if (switch_t4.and.(l.eq.6)) then
       write(250,'('//adjustl(n_mol_format)//'I7)') (list_filtered(1,ii), ii=1,n_filtered(1))
-      write(250,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
+      if (switch_filt_param) write(250,'('//adjustl(n_mol_format)//'F11.4)') (filt_param(ii), ii=1,n_filtered(1))
       write(250,'('//adjustl(n_mol_format)//'F12.8)') (t4_mol(ii), ii=1,n_filtered(1))
       write(251,'('//adjustl(natformat)//'F11.4)') (t4_col(i), i=1,nat)
    end if
@@ -316,6 +316,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_cut,pos,counter,sym, &
    real(dp) :: th, ph
    real, parameter :: Pi = 3.14159
    
+   sigma = (0.0, 0.0)
    do fj=1,size_first_coord_shell
       if (first_coord_shell(fj,4).eq.0.0) then ; th = 0.0
       else ; th = acos(first_coord_shell(fj,3)/sqrt(first_coord_shell(fj,4))) ; end if
@@ -328,7 +329,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_cut,pos,counter,sym, &
          if (first_coord_shell(fj,2).ge.0) then ; ph = atan(first_coord_shell(fj,2)/first_coord_shell(fj,1))
          else ; ph = 3*Pi/2 - atan(first_coord_shell(fj,1)/first_coord_shell(fj,2)) ; end if
       else
-         if (first_coord_shell(fj,2).ge.0) then ; ph = Pi/2 - atan(first_coord_shell(fj,1)/first_coord_shell(fj,2))
+         if (first_coord_shell(fj,2).gt.0) then ; ph = Pi/2 - atan(first_coord_shell(fj,1)/first_coord_shell(fj,2))
          else ; ph = Pi + atan(first_coord_shell(fj,2)/first_coord_shell(fj,1)) ; end if
       end if
 
@@ -337,7 +338,7 @@ subroutine compute_qlm(ii,l,m,qlm,cart,icell,q_cut,pos,counter,sym, &
    end do
    
    qlm = sigma/size_first_coord_shell
-
+   
 end subroutine compute_qlm
 
 subroutine compute_Ylm(Ylm,l,m,th,ph)
