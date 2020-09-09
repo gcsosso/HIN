@@ -95,7 +95,7 @@ module_output.mod: $(SRC_DIR)/module_output.o $(SRC_DIR)/module_output.f90
 module_output.o: $(SRC_DIR)/module_output.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_output.f90 
 hin_structure.o: hin_structure.f90
-	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/hin_structure.f90 
+	$(FC_LINUX) $(FFLAGS_LINUX) -c hin_structure.f90 
 images.o: $(SRC_DIR)/images.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/images.f90
 nn.o: $(SRC_DIR)/nn.f90
