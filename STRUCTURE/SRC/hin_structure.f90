@@ -150,7 +150,9 @@ hbdist2 = hbdist**2.0
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
 
-call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
+if (switch_order.or.switch_electro.or.switch_gr.or.switch_nh) then
+   call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
+end if
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
 !open(unit=877, file='flags.dat', status='old')
@@ -229,9 +231,10 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-
-      call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
-                        pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
+      if (switch_order.or.switch_electro.or.switch_gr.or.switch_nh) then
+         call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
+                           pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
+      end if
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
 
@@ -304,7 +307,7 @@ do while ( STAT==0 )
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
 
-      deallocate(list_filtered, filt_param, qlb_io)
+      if (switch_order.or.switch_electro.or.switch_gr.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
    end if
 
    counter=counter+1
