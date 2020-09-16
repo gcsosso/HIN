@@ -46,7 +46,9 @@ if (switch_rings) then
    endif
    open(unit=104, file='hin_structure.out.rings.color', status='unknown')
    open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
-   write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9))"
+   if (.not.switch_r_idx) then
+      write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. water mols | No. RINGS mols"
+   else ; write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. RINGS mols" ; end if
    if (switch_hbck) then
       open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
       write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
@@ -102,7 +104,7 @@ implicit none
 
 ! Local
 integer, parameter :: osix=6
-integer :: i, j, k, l, m, n, nxyz, nleft, nl, endf, iostat, id, nsix, n_hex, cart
+integer :: i, j, k, l, m, n, nxyz, nwat, nleft, nl, endf, iostat, id, nsix, n_hex, cart
 integer :: r_flag, r_flag2, r_flag3, tr(osix), tr6(osix), nper, ckr, ck
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13
 integer :: r15, r24, r26, n_ddc, n_hc, maxr, maxr_RINGS, info
@@ -164,6 +166,7 @@ if (.not.switch_r_idx) then ! pick up those atoms within some z-slice
       r_split = r_zmax
    endif
    nxyz=0
+   nwat=0
    kto(:)=0
    kto_h(:,:)=0
    allocate(tmp_pos(cart,nat))
@@ -171,6 +174,7 @@ if (.not.switch_r_idx) then ! pick up those atoms within some z-slice
       do j=1,n_r_ws(i)
          if (pos(cart,list_r_ws(i,j)).ge.r_zmin.and.pos(cart,list_r_ws(i,j)).le.r_split) then
             nxyz=nxyz+1
+            if (i.eq.1) nwat=nwat+1
             ! Index nxyz in conf.xyz corresponds to index list_r_ws(i,j) in the global .xtc
             ! Index nleft will be the final index on the "left" side of the system
             ! Store this information for visualisation purposes
@@ -199,6 +203,7 @@ if (.not.switch_r_idx) then ! pick up those atoms within some z-slice
          do j=1,n_r_ws(i)
             if (pos(cart,list_r_ws(i,j)).gt.r_split.and.pos(cart,list_r_ws(i,j)).le.r_zmax) then
                nxyz=nxyz+1
+               if (i.eq.1) nwat=nwat+1
                kto(nxyz)=list_r_ws(i,j)
                kto_h(nxyz,:)=r_wh(i,:)
                tmp_pos(:,nxyz) = pos(:,list_r_ws(i,j))*10.0
@@ -1264,7 +1269,8 @@ write(104,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
 
 ! Write down rings statistics
 write(stat_format,*) maxr-2
-write(107,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr(:)
+if (.not.switch_r_idx) then ; write(107,"(1E10.4,"//adjustl(stat_format)//"i10,2i10)") time, stat_nr(:), nwat, nxyz
+else ; write(107,"(1E10.4,"//adjustl(stat_format)//"i10,i10)") time, stat_nr(:), nxyz ; end if
 if (switch_hbck) then
    write(307,"(1E10.4,"//adjustl(stat_format)//"i10)") time, stat_nr_HB(:)
 endif
