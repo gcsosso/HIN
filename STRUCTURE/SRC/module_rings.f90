@@ -41,7 +41,7 @@ close(108)
 if (.not.switch_outxtc) then
    write(99,*) "hin_structure.out.rings.color could not match the .xtc traj!"
    write(99,*) "Remove '--noxtc' from the input file!"
-   stop
+   !stop
 endif
 if (switch_r_col) open(unit=104, file='hin_structure.out.rings.color', status='unknown')
 open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
