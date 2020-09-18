@@ -2,7 +2,7 @@ module MOD_rings
 
 contains
 
-subroutine rings_alloc(switch_rings,switch_cages,switch_hex,switch_outxtc, &
+subroutine rings_alloc(switch_r_col,switch_cages,switch_hex,switch_outxtc, &
                        stat_nr_AVE,maxr,n_ddc_AVE,n_hc_AVE,n_hex_AVE,switch_r_idx, &
                        switch_r_cls,r_cls_W,nsurf,nbulk,n_ddc_AVE_SURF,n_hc_AVE_SURF,n_hex_AVE_SURF, &
                        n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
@@ -21,76 +21,74 @@ real :: n_ddc_AVE_BULK, n_hc_AVE_BULK, n_hex_AVE_BULK
 real :: ze_AVE,ze_AVE_BULK,ze_AVE_SURF
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real, allocatable :: stat_nr_AVE(:), stat_nr_HB_AVE(:)
-logical(1) :: switch_rings, switch_cages, switch_hex, switch_outxtc, switch_r_cls, switch_hbck,switch_r_idx
+logical(1) :: switch_r_col, switch_cages, switch_hex, switch_outxtc, switch_r_cls, switch_hbck,switch_r_idx
 character(3) :: r_cls_W
 
 ! If we're doing rings, make the tmp dir and open the output files...
-if (switch_rings) then
-   command="rm -r -f data ; mkdir data"
-   call system(command)
-   if (switch_cages) then
-      write(99,*) "We have looked into DDCs and HCs as well. See hin_structure.out.rings.cages"
-      open(unit=103, file='hin_structure.out.rings.cages', status='unknown')
-      write(103,*) "# Time [ps] | N. of 6-membered rings | N. of DDC cages | N. of HC cages"
-   endif
-   if (switch_hex) then
-      write(99,*) "We have looked into hexagonal rings as well. See hin_structure.out.rings.hex"
-      open(unit=108, file='hin_structure.out.rings.hex', status='unknown')
-      write(108,*) "! Time [ps] | N. of 6-membered rings | N. of proper hexagonal rings"
-   endif
-   close(108)
-   if (.not.switch_outxtc) then
-      write(99,*) "hin_structure.out.rings.color could not match the .xtc traj!"
-      write(99,*) "Remove '--noxtc' from the input file!"
-      stop
-   endif
-   open(unit=104, file='hin_structure.out.rings.color', status='unknown')
-   open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
-   if (.not.switch_r_idx) then
-      write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. water mols | No. RINGS mols"
-   else ; write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. RINGS mols" ; end if
-   if (switch_hbck) then
-      open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
-      write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
-   endif
-   ! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
-   if (switch_r_cls) then
-      if (trim(adjustl(r_cls_W)).eq.'CLA') then
-         open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
-         open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
-         open(unit=212, file='hin_structure.out.rings.clath.cls.color', status='unknown')
-         write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages | N. of 6556 partcages"
-      else if (trim(adjustl(r_cls_W)).ne.'SIX') then
-         write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
-      else
-      open(unit=207, file='hin_structure.out.rings.stats.patch', status='unknown')
-      open(unit=208, file='hin_structure.out.rings.color.patch', status='unknown')
-      endif
-   endif 
-   ! Allocate the average...
-   allocate(stat_nr_AVE(3:maxr),stat_nr_HB_AVE(3:maxr))
-   stat_nr_AVE(:)=0.0
-   stat_nr_HB_AVE(:)=0.0
-   n_ddc_AVE=0.0
-   n_hc_AVE=0.0
-   n_hex_AVE=0.0
-   nsurf=0 
-   nbulk=0
-   n_ddc_AVE_BULK=0.0; n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0
-   n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0
-   delta_AVE=0.0; delta_AVE_BULK=0.0; delta_AVE_SURF=0.0
-   esse_AVE=0.0; esse_AVE_BULK=0.0; esse_AVE_SURF=0.0
-   rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0
-   ze_AVE=0.0; ze_AVE_BULK=0.0; ze_AVE_SURF=0.0
-   
+command="rm -r -f data ; mkdir data"
+call system(command)
+if (switch_cages) then
+   write(99,*) "We have looked into DDCs and HCs as well. See hin_structure.out.rings.cages"
+   open(unit=103, file='hin_structure.out.rings.cages', status='unknown')
+   write(103,*) "# Time [ps] | N. of 6-membered rings | N. of DDC cages | N. of HC cages"
 endif
+if (switch_hex) then
+   write(99,*) "We have looked into hexagonal rings as well. See hin_structure.out.rings.hex"
+   open(unit=108, file='hin_structure.out.rings.hex', status='unknown')
+   write(108,*) "! Time [ps] | N. of 6-membered rings | N. of proper hexagonal rings"
+endif
+close(108)
+if (.not.switch_outxtc) then
+   write(99,*) "hin_structure.out.rings.color could not match the .xtc traj!"
+   write(99,*) "Remove '--noxtc' from the input file!"
+   stop
+endif
+if (switch_r_col) open(unit=104, file='hin_structure.out.rings.color', status='unknown')
+open(unit=107, file='hin_structure.out.rings.stats', status='unknown')
+if (.not.switch_r_idx) then
+   write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. water mols | No. RINGS mols"
+else ; write(107,*) "# Time [ps] | N. of n-membered rings (from 3 to n (max=9)) | No. RINGS mols" ; end if
+if (switch_hbck) then
+   open(unit=307, file='hin_structure.out.rings.stats.HB', status='unknown')
+   write(307,*) "# Time [ps] | N. of ** HB ** n-membered rings (from 3 to n (max=9))"
+endif
+! Cluster hexagonal rings, e.g. to find the largest patch of hexagonal rings sitting on top of the surface
+if (switch_r_cls) then
+   if (trim(adjustl(r_cls_W)).eq.'CLA') then
+      open(unit=210, file='hin_structure.out.rings.clath', status='unknown')
+      if (switch_r_col) open(unit=211, file='hin_structure.out.rings.clath.color', status='unknown')
+      if (switch_r_col) open(unit=212, file='hin_structure.out.rings.clath.cls.color', status='unknown')
+      write(210,*) "# Time [ps] | N. of 555 partcages | N. of 655 partcages | N. of 6556 partcages"
+   else if (trim(adjustl(r_cls_W)).ne.'SIX') then
+      write(99,*) "Sorry mate, I can do only six membered rings at the moment..."
+   else
+   open(unit=207, file='hin_structure.out.rings.stats.patch', status='unknown')
+   if (switch_r_col) open(unit=208, file='hin_structure.out.rings.color.patch', status='unknown')
+   endif
+endif 
+! Allocate the average...
+allocate(stat_nr_AVE(3:maxr),stat_nr_HB_AVE(3:maxr))
+stat_nr_AVE(:)=0.0
+stat_nr_HB_AVE(:)=0.0
+n_ddc_AVE=0.0
+n_hc_AVE=0.0
+n_hex_AVE=0.0
+nsurf=0 
+nbulk=0
+n_ddc_AVE_BULK=0.0; n_hc_AVE_BULK=0.0; n_hex_AVE_BULK=0.0
+n_ddc_AVE_SURF=0.0; n_hc_AVE_SURF=0.0; n_hex_AVE_SURF=0.0
+delta_AVE=0.0; delta_AVE_BULK=0.0; delta_AVE_SURF=0.0
+esse_AVE=0.0; esse_AVE_BULK=0.0; esse_AVE_SURF=0.0
+rog_AVE=0.0; rog_AVE_BULK=0.0; rog_AVE_SURF=0.0
+ze_AVE=0.0; ze_AVE_BULK=0.0; ze_AVE_SURF=0.0
+   
 
 end subroutine rings_alloc
 
 subroutine rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,r_zmin,r_zmax, &
                  sym,resname,rings_exe,r_color,time,STEP,counter,natformat, &
                  nat,icell,r_cut,n_ddc_AVE,n_HC_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
-                 switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
+                 switch_r_col,switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
                  patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
                  n_hc_AVE_SURF,n_hex_AVE_SURF,n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
                  delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
@@ -135,7 +133,7 @@ real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, hbdist, hbdist2, hbangle, tangle
 real, allocatable :: pos(:,:), stat_nr_AVE(:), stat_nr_HB_AVE(:)
-logical(1) :: switch_cages, switch_hex, switch_r_cls, switch_r_idx, switch_ffss, switch_hbck, switch_r_split
+logical(1) :: switch_r_col,switch_cages, switch_hex, switch_r_cls, switch_r_idx, switch_ffss, switch_hbck, switch_r_split
 character(3) :: r_cls_W
 real :: r_split
 character(4), allocatable :: sym(:)
@@ -242,7 +240,7 @@ else ! we have already read the indexes of the atoms we are interested in - typi
       !write(*,*) kto(nxyz)-1      
 
       ! color the atoms in the cluster...
-      r_color(C_idx(counter+1,i)+1)=9
+      if (switch_r_col) r_color(C_idx(counter+1,i)+1)=9
       ! Check whether this is a cluster at the surface or not
       if (pos(3,kto(nxyz)).lt.minz) minz=pos(3,kto(nxyz)) 
       if (pos(3,kto(nxyz)).gt.maxz) maxz=pos(3,kto(nxyz))
@@ -459,7 +457,7 @@ do n=3,maxr
             ! Get the atoms involved in each ring... 
             read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
             ! Colors
-            if (wcol.eq.n) then
+            if (switch_r_col.and.(wcol.eq.n)) then
                r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
                !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
             endif   
@@ -479,7 +477,7 @@ do n=3,maxr
                ! Get the atoms involved in each ring... 
                read(69,*) stat_wr%stat_wr_size(n)%mrings(kr,:)
                ! Colors
-               if (wcol.eq.n) then
+               if (switch_r_col.and.(wcol.eq.n)) then
                   r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n
                   !write(*,*) kto(stat_wr%stat_wr_size(n)%mrings(kr,:))-1
                endif   
@@ -551,7 +549,7 @@ if (switch_hbck) then
                stat_nr_HB(n)=stat_nr_HB(n)+1
                stat_wr_HB%stat_wr_size(n)%mrings(stat_nr_HB(n),:) = stat_wr%stat_wr_size(n)%mrings(kr,:)
                ! fix the color!
-               if (wcol.eq.n) then
+               if (switch_r_col.and.(wcol.eq.n)) then
                   r_color(kto(stat_wr%stat_wr_size(n)%mrings(kr,:)))=n*100 
                endif 
                !if (n.eq.6) then
@@ -652,7 +650,7 @@ if (switch_cages.or.switch_hex) then
             !write(*,*) counter, nl, n_hex
             !! END DEBUG 
  
-            if (wcol.eq.0.or.wcol.eq.1) then ! TBF
+            if (switch_r_col.and.(wcol.eq.0.or.wcol.eq.1)) then ! TBF
                r_color(kto(w_rings(k,:)))=10
             endif
          endif
@@ -675,9 +673,9 @@ if (switch_cages.or.switch_hex) then
       endif
       if (trim(adjustl(r_cls_W)).eq.'CLA') then
          if (switch_hbck) then
-            call clath_cages(stat_wr_HB,stat_nr_HB,time,nat,natformat,kto)
+            call clath_cages(stat_wr_HB,stat_nr_HB,time,nat,natformat,kto,switch_r_col)
          else
-            call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
+            call clath_cages(stat_wr,stat_nr,time,nat,natformat,kto,switch_r_col)
          end if
          
       else if (trim(adjustl(r_cls_W)).ne.'SIX') then
@@ -769,7 +767,7 @@ if (switch_cages.or.switch_hex) then
      write(207,"(1E10.4,2i10)") time, patch, ncr
 
      ! Write down the colors for VMD
-     write(208,"("//adjustl(natformat)//"i10)") (dfs_color(k), k=1,nat)
+     if (switch_r_col) write(208,"("//adjustl(natformat)//"i10)") (dfs_color(k), k=1,nat)
 
 !     ! output by columns:
 !     ! col0 = time [ps]
@@ -900,7 +898,7 @@ if (switch_cages.or.switch_hex) then
                                                    if (ckr.ne.3) r_flag3=1
                                                    if (r_flag3.eq.0) then ! we finally have a proper DDC cage
                                                        n_ddc=n_ddc+1 
-                                                       if (wcol.eq.1) then
+                                                       if (switch_r_col.and.(wcol.eq.1)) then
                                                           r_color(kto(w_rings(k,:)))=15 
                                                           r_color(kto(p_rings(1,per1,:)))=15 
                                                           r_color(kto(p_rings(3,per3,:)))=15
@@ -1071,7 +1069,7 @@ if (switch_cages.or.switch_hex) then
                enddo
                if (r_flag2.eq.0) then ! ! we finally have a proper HC cage
                   n_hc=n_hc+1
-                  if (wcol.eq.1) then
+                  if (switch_r_col.and.(wcol.eq.1)) then
                      r_color(kto(w_rings(l,:)))=20
                      r_color(kto(w_rings(m,:)))=20
                   endif
@@ -1265,7 +1263,7 @@ endif
 
 
 ! Write down the colors for VMD
-write(104,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
+if (switch_r_col) write(104,"("//adjustl(natformat)//"i10)") (r_color(k), k=1,nat)
 
 ! Write down rings statistics
 write(stat_format,*) maxr-2
@@ -1330,7 +1328,7 @@ subroutine sort2(dati, n) ! Insertion sort
 end subroutine sort2
 
 ! Find partcages 5^3 and 5^2 6
-subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
+subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto,switch_r_col)
     
     use MOD_vector3
     implicit none
@@ -1344,6 +1342,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
     integer :: nat, clath_color(nat), i, j, k
     real :: time
     character*100 :: natformat
+    logical(1) :: switch_r_col
     
     integer, dimension(:,:), allocatable :: rings5, rings6
     integer :: nrings5, nrings6, tmp_ring
@@ -1429,7 +1428,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
             end do
         end do
     end do
-    write(211,'('//adjustl(natformat)//'(I1,X))') (clath_color(i), i=1,nat)
+    if (switch_r_col) write(211,'('//adjustl(natformat)//'(I1,X))') (clath_color(i), i=1,nat)
     
     ! ----------------------------------
     ! Colors
@@ -1460,7 +1459,7 @@ subroutine clath_cages(stat_wr,stat_nr,time,nat,natformat,kto)
             end if
         end do
     end do
-    write(212,'('//adjustl(natformat)//'(I5,X))') (clath_cls_color(i), i=1,nat)
+    if (switch_r_col) write(212,'('//adjustl(natformat)//'(I5,X))') (clath_cls_color(i), i=1,nat)
     
     deallocate(rings_555, rings_655, rings_6556, clath_clusters, clath_clusters_size)
 

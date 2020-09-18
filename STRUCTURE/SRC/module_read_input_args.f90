@@ -75,13 +75,14 @@ subroutine read_order_arg(arg, eflag, log_errors, switch_q, switch_qd, switch_qt
 
 end subroutine read_order_arg
 
-subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, &
+subroutine read_rings_arg(arg, eflag, log_errors, switch_r_col, rings_exe, r_cls_W, &
                           switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                           r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, wcol)
 
    implicit none
 
-   logical(1) :: eflag, log_errors, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
+   logical(1) :: eflag, log_errors
+   logical(1) :: switch_r_col, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
    character(*) :: arg, rings_exe, r_cls_W
    real :: r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS
    integer :: maxr, wcol
@@ -90,6 +91,7 @@ subroutine read_rings_arg(arg, eflag, log_errors, rings_exe, r_cls_W, &
    else if (arg(1:7).eq.'-split=') then; switch_r_split = .true. ; call read_arg(arg(8:), 0, r_split, '', 'real', 'split', eflag)
    else if (arg(1:5).eq.'-cut=') then ; call read_arg(arg(6:), 0, r_cut, '', 'real', 'cut', eflag)
    else if (trim(adjustl(arg)).eq.'--hbck') then ; switch_hbck = .true.
+   else if (trim(adjustl(arg)).eq.'--color') then ; switch_r_col = .true.
    else if (arg(1:6).eq.'-dcut=') then ; call read_arg(arg(7:), 0, hbdist, '', 'real', 'dcut', eflag)
    else if (arg(1:6).eq.'-acut=') then ; call read_arg(arg(7:), 0, hbangle, '', 'real', 'acut', eflag)
    else if (arg(1:6).eq.'-maxr=') then ; call read_arg(arg(7:), maxr, 0.0, '', 'int', 'maxr', eflag)

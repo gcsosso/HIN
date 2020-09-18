@@ -6,9 +6,9 @@ contains
 subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, switch_progress, ns, ws, &
                       switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, centre, &
                       switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
-                      switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
-                      rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, wcol, &
-                      r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
+                      switch_rings, switch_r_col, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, &
+                      switch_ffss, rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS,  &
+                      wcol, r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
                       switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
@@ -42,7 +42,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: max_shell
 
    ! RINGS
-   logical(1) :: switch_rings, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
+   logical(1) :: switch_rings, switch_r_col, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss
    character(*) :: rings_exe, r_cls_W
    real :: r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS
    integer :: maxr, maxr_RINGS, wcol, r_ns
@@ -161,7 +161,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       else if (args(i,1).eq.'rings') then
          switch_rings = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_rings_arg(args(i,j), eflag, .true._1, rings_exe, r_cls_W, &
+            call read_rings_arg(args(i,j), eflag, .true._1, switch_r_col, rings_exe, r_cls_W, &
                                 switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, switch_ffss, &
                                 r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, wcol)
          end do
