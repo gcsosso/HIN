@@ -218,7 +218,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       ws(1) = 'OW' ; ws(2) = 'HW'
    end if
 
-   if (filter.eq.'z') switch_filt_param = .true.
+   if (filter.eq.'z'.or.filter.eq.'shell') switch_filt_param = .true.
 
    if (eflag) then ; write(99,*) "Something is wrong with the input file..." ; stop ; end if
 
