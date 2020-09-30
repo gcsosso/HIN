@@ -1,0 +1,17 @@
+# This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
+
+trajectory --progress -fframe=100 -lframe=500 -sfile=conf.gro -tfile=whole.xtc
+
+species -OW -filter=shell -centre=THR -min=0.0 -max=4.0 
+
+order --f3 
+
+
+
+#trajectory --progress -fframe=0 -lframe=9 -sfile=conf.gro -tfile=whole.xtc
+#
+#radial -ws=1 -bins=100 -min_dx=2 -min_dy=0.05
+#
+#hydration -bins=1 -cut=0.35
+#
+#order --t -tcut=0.35
