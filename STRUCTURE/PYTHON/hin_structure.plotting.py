@@ -9,21 +9,39 @@ warnings.filterwarnings("ignore")
 # - Additional informaion for each plotting type: #parser.add_argument("-i","--info", action='store_true', help="Show more information about the plotting parameters for selected plot")
 # - Add DATA folder in PYTHON directory where output files are placed for plotting (without specifying input path)
 
-parser = argparse.ArgumentParser(description="Post-processing and plotting tool for HIN_structure.")
-parser.add_argument("parameter", type=str, help="Specify the order parameter to plot.", choices=['qt'])
+parser = argparse.ArgumentParser(description="Post-processing and plotting tool for HIN order parameters")
+parser.add_argument("parameter", type=str, help="Specify the order parameter to plot", choices=['qt','f3','f4'])
 
 args = parser.parse_args()
 
 if args.parameter == "qt":
     from FUNCTIONS.qt import *
-    plotType = int(input("Select plot:\n 0   Probability density, f(qT)\n 1   Radial distribution, qT(r)\n\n"))
+    plotType = int(input("Select plot:\n 0   Distance distribution, qT(r)\n 1   Probability density, f(qT)\n\n"))
 
     if plotType == 0:
-        qtData = f_qt()
+        qtData = qt_r()
         qtData.read()
         qtData.plot()
 
     elif plotType == 1:
-        qtData = qt_r()
+        qtData = f_qt()
         qtData.read()
         qtData.plot()
+
+if (args.parameter == "f3" or "f4"):
+    from FUNCTIONS.f3_f4 import *
+    if args.parameter == "f3":
+        paramLoc=3
+    elif args.parameter == "f4":
+        paramLoc=4
+    plotType = int(input("Select plot:\n 0   Radial/Z distribution\n 1   Probability density\n\n"))
+
+    if plotType == 0:
+        fData = fDist()
+        fData.read(paramLoc,4)
+        fData.plot(paramLoc)
+
+    elif plotType == 1:
+        qtData = fDens()
+        qtData.read(paramLoc,4)
+        qtData.plot(paramLoc)
