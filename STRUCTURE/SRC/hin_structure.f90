@@ -150,7 +150,7 @@ hbdist2 = hbdist**2.0
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
 
-if (switch_op.or.switch_electro.or.switch_gr.or.switch_nh) then
+if (ns.gt.0) then
    call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
 end if
 
