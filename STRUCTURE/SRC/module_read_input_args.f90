@@ -202,19 +202,19 @@ subroutine read_electro_arg(arg, eflag, log_errors, e_zmin, e_zmax, e_dz)
 
 end subroutine read_electro_arg
 
-subroutine read_radial_arg(arg, eflag, log_errors, gr_ws, gr_bins, gr_min_dx, gr_min_dy)
+subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins)
 
    implicit none
 
    logical(1) :: eflag, log_errors
    character(*) :: arg
-   integer :: gr_ws, gr_bins, gr_min_dx
-   real :: gr_min_dy
+   character(5) :: rad_ws(2)
+   integer :: rad_bins
 
-   if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), gr_ws, 0.0, '', 'int', 'ws', eflag)
-   else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), gr_bins, 0.0, '', 'int', 'bins', eflag)
-   else if (arg(1:8).eq.'-min_dx=') then ; call read_arg(arg(9:), gr_min_dx, 0.0, '', 'int', 'min_dx', eflag)
-   else if (arg(1:8).eq.'-min_dy=') then ; call read_arg(arg(9:), 0, gr_min_dy, '', 'real', 'min_dy', eflag)
+   ! if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), rad_ws, 0.0, '', 'int', 'ws', eflag)
+   if (arg(1:5).eq.'-ws1=') then ; call read_arg(arg(6:), 0, 0.0, rad_ws(1), 'str', 'ws1', eflag)
+   else if (arg(1:5).eq.'-ws2=') then ; call read_arg(arg(6:), 0, 0.0, rad_ws(2), 'str', 'ws2', eflag)
+   else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), rad_bins, 0.0, '', 'int', 'bins', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: radial "//trim(arg) ; end if
 
 end subroutine read_radial_arg

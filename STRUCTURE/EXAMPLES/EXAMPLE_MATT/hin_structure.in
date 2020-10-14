@@ -2,8 +2,8 @@
 
 trajectory --progress -fframe=0 -lframe=9 -sfile=sucrose.gro -tfile=sucrose.xtc
 
-radial -ws=1 -bins=100 -min_dx=2 -min_dy=0.05
+radial -ws1=1:45 -ws2=OW -bins=200
 
-hydration -bins=1 -cut=0.35
+#hydration -bins=1 -cut=0.35
 
-order --t -tcut=0.35
+#order --t -tcut=0.35

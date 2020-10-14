@@ -13,7 +13,7 @@ use MOD_electro
 use MOD_output
 use MOD_order
 use MOD_bondorder
-use MOD_gr
+use MOD_radial
 use MOD_hydration
 use MOD_filter
 
@@ -28,13 +28,13 @@ integer :: NATOMS, STEP, STAT, STAT_OUT, i, j, k, l, m, nz, e_nz, b_bins, nz_bAV
 integer ::  idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
-integer :: tmplist, nsurf, nbulk, nq
+integer :: tmplist, nsurf, nbulk, nq, n_nw
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
 integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs
 integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:), list_cs(:)
-integer :: o_ns, n_nw, n_ow
-integer, allocatable :: list_nw(:), nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
+integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
+integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
 integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
@@ -46,7 +46,8 @@ real :: dr, half_dr, fact, ooo_ang(6)
 real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: rad(:), gr_mol_norm(:), gr_atm_norm(:,:), o_dist(:), nh_r(:), order_t(:), filt_param(:)
+real, allocatable :: rad(:), rad_norm(:)
+real, allocatable :: nh_r(:), order_t(:), filt_param(:)
 character :: ch
 logical(1) :: switch_r_idx=.false.
 character*5, allocatable :: resname(:)
@@ -57,7 +58,7 @@ character*100 :: xtcOfile, wformat, natformat, command
 character*100 :: pstring, pstring_C, command1, command2, fcommand, buffer
 type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
-logical(1) :: ex, proc, cknn
+logical(1) :: ex, proc, cknn, ws1_mol
 real(dp), allocatable :: qlb_io(:)
 
 integer, parameter :: ARG_LEN=127
@@ -116,9 +117,9 @@ logical(1) :: switch_electro=.false.
 real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
 ! RADIAL
-logical(1) :: switch_gr=.false.
-integer :: gr_ws, gr_bins=300, gr_min_dx=2
-real :: gr_min_dy=0.001
+logical(1) :: switch_radial=.false.
+character(5) :: rad_ws(2)
+integer :: rad_bins=300
 
 ! HYDRATION
 logical(1) :: switch_nh=.false.
@@ -132,12 +133,12 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_op, switch_q, switch_qd, switch_qt, switch_t4, switch_f, switch_th, switch_t_order, filter, centre, &
                 switch_filt_param, filt_min, filt_max, q_cut, qd_cut, qt_cut, f_cut, t_rcut, op_max_cut, max_shell, &
                 switch_rings, switch_r_col, switch_r_split, switch_hbck, switch_hex, switch_r_cls, switch_cages, &
-                switch_ffss, rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS, &
+                switch_ffss, rings_exe, r_cls_W, r_split, r_cut, hbdist, hbangle, a_thr, thrS, thrSS, maxr, maxr_RINGS,  &
                 wcol, r_ns, r_wr, r_ws, r_wh, switch_bonds, b_dz, b_rcut, b_bmin, b_bmax, b_bins, npairs, &
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                switch_gr, gr_ws, gr_bins, gr_min_dx, gr_min_dy, switch_nh, nh_bins, nh_rcut)
+                switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -213,9 +214,8 @@ if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) call bondorder_alloc(3)
 if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
-if (switch_gr) then
-  call gr_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_bins,dr,half_dr,rad,gr_mol_norm, &
-                gr_atm_norm,o_dist)
+if (switch_radial) then
+  call radial_alloc(nat,sym,resname,cart,icell,rad_ws,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
 end if
 
 if (switch_nh.or.switch_t_order) then
@@ -231,7 +231,7 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-      if (switch_op.or.switch_electro.or.switch_gr.or.switch_nh) then
+      if (switch_op.or.switch_electro.or.switch_nh) then
          call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
                            pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
       end if
@@ -295,8 +295,8 @@ do while ( STAT==0 )
           call bondorder(6,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
       end if
-      if (switch_gr) then
-        call gr(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,gr_ws,gr_bins,dr,half_dr,rad,gr_mol_norm,gr_atm_norm,fact,o_dist)
+      if (switch_radial) then
+        call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
 
       end if
       if (switch_nh) then
@@ -307,7 +307,7 @@ do while ( STAT==0 )
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
 
-      if (switch_op.or.switch_electro.or.switch_gr.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
+      if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
    end if
 
    counter=counter+1
@@ -331,8 +331,8 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_gr,gr_ws,n_nw,list_nw,sym,rad,o_dist,gr_mol_norm,gr_atm_norm,gr_min_dx,gr_min_dy,icell,n_ow, &
-                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm)
+                  switch_radial,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
+                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
 
 STAT=xdrfile_close(xd)
 
