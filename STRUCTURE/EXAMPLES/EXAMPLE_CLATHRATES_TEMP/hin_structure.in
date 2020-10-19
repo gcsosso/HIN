@@ -1,0 +1,11 @@
+# This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
+
+## z-density profile
+#trajectory --progress -fframe=0 -lframe=2 -sfile=md.gro -tfile=traj.xtc
+#species -OW -filter=z -min=0 -max=20
+#zdens -dz=0.05 -min=0 -max=20
+
+# temperature
+# lag=1 HARDCODED
+# ts -> time separation between each frame, ns
+temp -lag=1 -ts=0.004 

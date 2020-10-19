@@ -1,0 +1,51 @@
+Start testing: Oct 19 20:38 BST
+----------------------------------------------------------
+1/3 Testing: basic_xdrfile_library
+1/3 Test: basic_xdrfile_library
+Command: "/Users/wolf/CODES/GIT/HIN/LIBXDR/build/xdrfile_test" "0"
+Directory: /Users/wolf/CODES/GIT/HIN/LIBXDR/build
+"basic_xdrfile_library" start time: Oct 19 20:38 BST
+Output:
+----------------------------------------------------------
+Testing basic xdrfile library: PASSED
+<end of output>
+Test time =   0.30 sec
+----------------------------------------------------------
+Test Passed.
+"basic_xdrfile_library" end time: Oct 19 20:38 BST
+"basic_xdrfile_library" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: xtc_functionality
+2/3 Test: xtc_functionality
+Command: "/Users/wolf/CODES/GIT/HIN/LIBXDR/build/xdrfile_test" "1"
+Directory: /Users/wolf/CODES/GIT/HIN/LIBXDR/build
+"xtc_functionality" start time: Oct 19 20:38 BST
+Output:
+----------------------------------------------------------
+Testing xtc functionality: PASSED
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"xtc_functionality" end time: Oct 19 20:38 BST
+"xtc_functionality" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/3 Testing: trr_functionality
+3/3 Test: trr_functionality
+Command: "/Users/wolf/CODES/GIT/HIN/LIBXDR/build/xdrfile_test" "2"
+Directory: /Users/wolf/CODES/GIT/HIN/LIBXDR/build
+"trr_functionality" start time: Oct 19 20:38 BST
+Output:
+----------------------------------------------------------
+Testing trr functionality: PASSED
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"trr_functionality" end time: Oct 19 20:38 BST
+"trr_functionality" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 19 20:38 BST

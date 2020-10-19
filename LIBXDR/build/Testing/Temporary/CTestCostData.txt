@@ -1,0 +1,4 @@
+basic_xdrfile_library 1 0.304184
+xtc_functionality 1 0.00396395
+trr_functionality 1 0.00393308
+---

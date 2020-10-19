@@ -15,6 +15,7 @@ use MOD_order
 use MOD_bondorder
 use MOD_radial
 use MOD_hydration
+use MOD_temp
 use MOD_filter
 
 implicit none
@@ -43,7 +44,7 @@ real :: n_ddc_AVE_SURF, n_hc_AVE_SURF, n_hex_AVE_SURF, n_ddc_AVE_BULK, n_hc_AVE_
 real :: ze_AVE, ze_AVE_BULK, ze_AVE_SURF, middle, o_dz, hbdist2
 real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse_AVE_SURF, rog_AVE, rog_AVE_BULK, rog_AVE_SURF
 real :: dr, half_dr, fact, ooo_ang(6)
-real, allocatable :: pos(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
+real, allocatable :: pos(:,:), pos_past(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
 real, allocatable :: rad(:), rad_norm(:)
@@ -126,6 +127,11 @@ logical(1) :: switch_nh=.false.
 integer :: nh_bins
 real :: nh_rcut
 
+! TEMP
+logical(1) :: switch_temp=.false.
+integer :: lag
+real :: ts
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
@@ -138,7 +144,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut)
+                switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -221,6 +227,10 @@ end if
 if (switch_nh.or.switch_t_order) then
   call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
 end if
+
+!if (switch_temp) then
+!   call temp_alloc(nat)
+!end if
 
 ! Read the whole thing
 counter=0
@@ -305,6 +315,25 @@ do while ( STAT==0 )
       end if
       if (switch_t_order) then
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
+      end if
+
+      if (switch_temp) then
+         if (counter.eq.0) then
+            ! Store the positions of the starting configuration in pos_past
+            ! We do have a "-lag" keyword in the input, but for now only -lag=1 is implemented
+            ! meaning that the traj would have to be sliced - before - feeding it into the HIN code
+            if (lag.ne.1) then 
+               write(99,*) "Only -lag=1 is implemented - slice your traj by hand, please!" 
+               stop
+            else
+               pos_past=pos
+            endif
+         else
+            ! Compute the velocities -> kinetic energy -> temperature     
+            write(*,*) "Computing temperature - have you un-wrapped your trajectory?!"
+            call temp(nat,pos_past,pos,lag,ts,cart,sym)!,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
+            ! Move pos in pos_past
+        endif 
       end if
 
       if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)

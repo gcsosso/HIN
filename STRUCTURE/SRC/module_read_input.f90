@@ -12,7 +12,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                      switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut)
+                      switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -83,6 +83,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    logical(1) :: switch_nh
    integer :: nh_bins
    real :: nh_rcut
+
+   ! TEMP
+   logical(1) :: switch_temp
+   integer :: lag
+   real :: ts
 
    read_loc(:) = 0
 
@@ -207,6 +212,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             switch_nh = .true.
             call read_hydration_arg(args(i,j), eflag, .true._1, nh_bins, nh_rcut)
+         end do
+      else if (args(i,1).eq.'temp') then
+         switch_temp = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_temp_arg(args(i,j), eflag, .true._1, lag, ts)
          end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do

@@ -234,6 +234,20 @@ subroutine read_hydration_arg(arg, eflag, log_errors, nh_bins, nh_rcut)
 
 end subroutine read_hydration_arg
 
+subroutine read_temp_arg(arg, eflag, log_errors, lag, ts)
+
+   implicit none
+
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   integer :: lag
+   real :: ts
+
+   if (arg(1:5).eq.'-lag=') then ; call read_arg(arg(6:), lag, 0.0, '', 'int', 'lag', eflag)
+   else if (arg(1:4).eq.'-ts=') then ; call read_arg(arg(5:), 0, ts, '', 'real', 'ts', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: temp "//trim(arg) ; end if
+
+end subroutine read_temp_arg
 
 subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
 

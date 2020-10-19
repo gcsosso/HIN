@@ -1,0 +1,6 @@
+ Time (ps):           0.000000  Step: 0 Frame: 0
+ Time (ps):           4.000000  Step: 2000 Frame: 1
+ Time (ps):           8.000000  Step: 4000 Frame: 2
+ Time (ps):          12.000000  Step: 6000 Frame: 3
+ We have taken into account            4 frames, from frame            0  to frame            3  with stride            1
+ We have written a subset of the original .xtc trajectory. See: hin_structure.out.xtc
