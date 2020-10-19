@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/cc  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/xdrfile_test.dir/src/tests/test.c.o  -o xdrfile_test -lm lib/libxdrfile.2.1.2.dylib 
