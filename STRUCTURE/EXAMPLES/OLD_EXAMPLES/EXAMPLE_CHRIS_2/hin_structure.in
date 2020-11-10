@@ -1,2 +1,3 @@
-trajectory -tfile=test.xtc -filter=z -min=10.6 -max=16.6
+trajectory -tfile=test.xtc -lframe=10 --progress
+species -OW -filter=z -min=10.6 -max=14.6
 rings -split=13.8 --hbck
