@@ -27,51 +27,86 @@ integer :: nat!, nh_bins, n_all_ws, n_cs
 end subroutine temp_alloc
 !
 !
-subroutine temp(nat,pos_past,pos,lag,ts,cart,sym)!(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+subroutine temp(nat,pos_past,pos,lag,ts,cart,sym,,zmin,zmax,dz,list_ws,n_ws)!(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
 
 implicit none
-
 ! Arguments
 real, allocatable :: pos_past(:,:), pos(:,:)
-integer :: nat, lag, cart !nh_bins, n_all_ws, n_filtered(:)
-real :: ts
+integer :: nat, lag, cart,nz
+real :: ts, zmin,zmax,dz
 character*4, allocatable :: sym(:)
 !integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), list_all_ws(:)
 !real, allocatable :: nh_r(:), filt_param(:)
 
 ! Local
-integer :: i, counter
+integer :: i, counter,l,j
 real, parameter :: m_ow=2.6566962E-26 ! Kg
 real, parameter :: kb=1.380649E-23 ! J K-1 
-real :: vel(cart,nat), v(nat), color(nat), k(nat), t(nat), ave_T
+real :: vel(cart,nat), v(nat), color(nat), k(nat), t(nat), ave_T,lb,ub
+integer, allocatable :: list_ws(:,:),n_ws(:)
+!vel=pos-pos_past
+!ave_T=0.0
+!counter=0
 
+!do i=1,nat
+!  if (trim(adjustl(sym(i))).eq."OW") then
+!    counter=counter+1
+!    v(i)=sqrt(vel(1,i)**2+vel(2,i)**2+vel(3,i)**2)/ts ! magnitude of the velocity vector for each atom, nm / ns - or, indeed, m/s
+!    k(i)=0.5*m_ow*(v(i)**2)
+!    t(i)=(2.0/(3.0*kb))*k(i)
+!    color(i)=t(i)
+!    ave_T=ave_T+color(i)
+!   else
+!    color(i)=0.0
+!  endif
+!enddo
+!
+!write(*,*) "Average temperature [K] - oxygen atoms: ", ave_T/real(counter)
+!open(unit=76, file='temp_color.dat', status="unknown")
+!write(76,*) color(:)
+!pos_past=pos
 
+!_________z_density_____________
+!!copied from Gabriele's code above don't mess with above- incorporate below into Gabriele's
+!code once following checks out!
+nz=int((zmax-zmin)/dz)
 vel=pos-pos_past
 
-ave_T=0.0
-counter=0
+do l=1,nz
+  ave_T=0.0
+  counter=0
+  !
 
-do i=1,nat
-   if (trim(adjustl(sym(i))).eq."OW") then
-      counter=counter+1
-      v(i)=sqrt(vel(1,i)**2+vel(2,i)**2+vel(3,i)**2)/ts ! magnitude of the velocity vector for each atom, nm / ns - or, indeed, m/s
-      k(i)=0.5*m_ow*(v(i)**2)
-      t(i)=(2.0/(3.0*kb))*k(i)
-      color(i)=t(i)
-      ave_T=ave_T+color(i)
-   else
-      color(i)=0.0
-   endif
+  lb=zmin+(l-1)*dz
+  ub=lb+dz
+   do i=1,nat
+     if (trim(adjustl(sym(i))).eq."OW") then
+        if (pos(3,i).gt.lb.and.pos(3,i).le.ub) then
+          counter=counter+1
+          v(i)=sqrt(vel(1,i)**2+vel(2,i)**2+vel(3,i)**2)/(ts) ! magnitude of the velocity vector for each atom, nm / ns - or, indeed, m/s
+          k(i)=0.5*m_ow*(v(i)**2)
+          !t(i)=(2.0/(3.0*kb))*k(i)
+          t(i)=(3.0/(kb))*k(i) !DoF includes Settle and removal of CoM constraints
+          color(i)=t(i)
+          ave_T=ave_T+color(i)
+        else
+          color(i)=0.0
+        endif
+     endif
+   enddo
+
+   !
+   write(*,*) "slice, avg_temp(slice)" ,l, ave_T/real(counter), ave_T,counter
 enddo
-
-write(*,*) "Average temperature [K] - oxygen atoms: ", ave_T/real(counter)
 
 open(unit=76, file='temp_color.dat', status="unknown")
 write(76,*) color(:)
-
 pos_past=pos
 
 end subroutine temp
+
+
+
 !
 !
 !subroutine t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
