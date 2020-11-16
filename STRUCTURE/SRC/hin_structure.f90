@@ -331,7 +331,7 @@ do while ( STAT==0 )
          else
             ! Compute the velocities -> kinetic energy -> temperature     
             write(*,*) "Computing temperature - have you un-wrapped your trajectory?!"
-            call temp(nat,pos_past,pos,lag,ts,cart,sym)!,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
+            call temp(nat,pos_past,pos,lag,ts,cart,sym,zmin,zmax,dz,list_ws,n_ws)!,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
             ! Move pos in pos_past
         endif 
       end if
