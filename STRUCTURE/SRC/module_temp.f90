@@ -27,7 +27,7 @@ integer :: nat!, nh_bins, n_all_ws, n_cs
 end subroutine temp_alloc
 !
 !
-subroutine temp(nat,pos_past,pos,lag,ts,cart,sym,,zmin,zmax,dz,list_ws,n_ws)!(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+subroutine temp(nat,pos_past,pos,lag,ts,cart,sym,zmin,zmax,dz,list_ws,n_ws)!(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
 
 implicit none
 ! Arguments
