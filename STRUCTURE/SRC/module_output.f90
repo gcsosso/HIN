@@ -13,7 +13,7 @@ subroutine output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,de
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_radial,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
+                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
                   switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
 
 implicit none
@@ -43,7 +43,7 @@ real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_A
 real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
 real, allocatable :: rad(:), rad_norm(:), nh_r(:)
 logical(1) :: switch_outxtc, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes, switch_hbck
-logical(1) :: switch_hex, switch_cages, switch_r_cls, switch_ffss, switch_electro, switch_th, switch_radial, switch_nh
+logical(1) :: switch_hex, switch_cages, switch_r_cls, switch_ffss, switch_electro, switch_th, switch_rad, switch_rad_cn, switch_rad_smooth, switch_nh
 logical(1) :: ws1_mol
 character(3) :: switch_water, r_cls_W
 character(4), allocatable :: ws(:), sym(:)
@@ -242,7 +242,7 @@ if (switch_th) then
    endif
 endif
 
-if (switch_radial) then
+if (switch_rad) then
   write(99,*) "We have calculated some radial distribution functions. See: hin_structure.out.radial"
   open(unit=163, file='hin_structure.out.radial', status='unknown')
 
@@ -256,31 +256,43 @@ if (switch_radial) then
     rad_avg(i)=rad_norm(i)/real(dostuff)
   enddo
   ! Smooth
-  do i=1,rad_bins
-    if (i.le.2) then
-      rad_avg_sm(i)=rad_avg_sm(3)
-    elseif (i.ge.rad_bins-2) then
-      rad_avg_sm(i)=rad_avg(rad_bins)
-    else
-      rad_avg_sm(i)=(rad_avg(i-2)+2.0d0*rad_avg(i-1)+3.0d0*rad_avg(i)+2.0d0*rad_avg(i+1)+rad_avg(i+2))/9.0d0 !! Hard coded - use should be able to enter smoothing coarseness
-    endif
-  enddo
-  ! Integrate to find CN
-  do i=1,rad_bins
-    r2 = rad(i)**2.0d0
-    cn_running(i)=cn_running(i)+(rad_avg(i)*r2*dr)
-    if (i.gt.1) then
-      cn_running(i)=cn_running(i)+cn_running(i-1)
-    end if
-  end do
+  if (switch_rad_smooth) then
+    do i=1,rad_bins
+      if (i.le.2) then
+        rad_avg_sm(i)=rad_avg_sm(3)
+      elseif (i.ge.rad_bins-2) then
+        rad_avg_sm(i)=rad_avg(rad_bins)
+      else
+        rad_avg_sm(i)=(rad_avg(i-2)+2.0d0*rad_avg(i-1)+3.0d0*rad_avg(i)+2.0d0*rad_avg(i+1)+rad_avg(i+2))/9.0d0
+      endif
+    enddo
+  endif
+  ! Integrate to find coordination number
+  if (switch_rad_cn) then
+    do i=1,rad_bins
+      r2 = rad(i)**2.0d0
+      cn_running(i)=cn_running(i)+(rad_avg(i)*r2*dr)
+      if (i.gt.1) then
+        cn_running(i)=cn_running(i)+cn_running(i-1)
+      endif
+    enddo
   cell_vol = icell(1)**3.0d0
   cell_dens = n_rad_ws(2)/cell_vol
   cn_running(:)=cn_running(:)*pi4*cell_dens
+  endif
 
   ! Write to file
   do i=1,rad_bins
-      write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), cn_running(i)
-  end do
+      if (switch_rad_cn.and.switch_rad_smooth) then
+        write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), cn_running(i)
+      elseif (switch_rad_cn) then
+        write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), cn_running(i)
+      elseif (switch_rad_smooth) then
+        write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i)
+      else
+        write(163,'(f12.4,f12.4)') rad(i), rad_avg(i)
+      endif
+  enddo
   close(163)
 endif
 

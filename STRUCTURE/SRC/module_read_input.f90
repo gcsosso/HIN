@@ -12,7 +12,8 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                      switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut)
+                      switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
+                      switch_nh, nh_bins, nh_rcut)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -75,9 +76,10 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    real :: e_zmin, e_zmax, e_dz
 
    ! RADIAL
-   logical(1) :: switch_radial
+   logical(1) :: switch_rad, switch_rad_cn, switch_rad_smooth
    character(5) :: rad_ws(2)
    integer :: rad_bins
+   real :: rad_min, rad_max
 
    ! HYDRATION
    logical(1) :: switch_nh
@@ -199,9 +201,9 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
             call read_electro_arg(args(i,j), eflag, .true._1, e_zmin, e_zmax, e_dz)
          end do
       else if (args(i,1).eq.'radial') then
-         switch_radial = .true.
+         switch_rad = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_radial_arg(args(i,j), eflag, .true._1, rad_ws, rad_bins)
+            call read_radial_arg(args(i,j), eflag, .true._1, rad_ws, rad_bins, rad_min, rad_max, switch_rad_cn, switch_rad_smooth)
          end do
       else if (args(i,1).eq.'hydration') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit

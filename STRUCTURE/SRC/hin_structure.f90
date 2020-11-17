@@ -117,9 +117,10 @@ logical(1) :: switch_electro=.false.
 real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
 ! RADIAL
-logical(1) :: switch_radial=.false.
+logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false.
 character(5) :: rad_ws(2)
-integer :: rad_bins=300
+integer :: rad_bins=0
+real :: rad_min=0.0, rad_max=2.0
 
 ! HYDRATION
 logical(1) :: switch_nh=.false.
@@ -138,7 +139,8 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                switch_radial, rad_ws, rad_bins, switch_nh, nh_bins, nh_rcut)
+                switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
+                switch_nh, nh_bins, nh_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -214,8 +216,12 @@ if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) call bondorder_alloc(3)
 if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
-if (switch_radial) then
-  call radial_alloc(nat,sym,resname,cart,icell,rad_ws,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
+if (switch_rad) then
+  call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
+  if (rad_max.gt.icell(1)/2) then
+    write(99,*) "Something is wrong with the input file..."
+    write(99,'(a,f4.2,a,f4.2,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2, ")" ; stop
+  end if
 end if
 
 if (switch_nh.or.switch_t_order) then
@@ -295,7 +301,7 @@ do while ( STAT==0 )
           call bondorder(6,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
                          time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
       end if
-      if (switch_radial) then
+      if (switch_rad) then
         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
 
       end if
@@ -331,7 +337,7 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_radial,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
+                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
                   switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
 
 STAT=xdrfile_close(xd)
