@@ -2,14 +2,14 @@ module MOD_radial
 
 contains
 
-subroutine radial_alloc(nat,sym,resname,cart,icell,rad_ws,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
+subroutine radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
 
 implicit none
 
 ! Arguments
-integer :: nat, cart, rad_bins, delim_index, ws1_start, ws1_end
+integer :: nat, rad_bins, delim_index, ws1_start, ws1_end
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
-real :: icell(cart*cart), dr, half_dr
+real :: dr, half_dr, rad_min, rad_max
 real, allocatable :: rad(:), rad_norm(:)
 character(4), allocatable :: sym(:)
 character(*), allocatable :: resname(:)
@@ -18,7 +18,6 @@ logical(1) :: ws1_mol
 
 ! Local
 integer :: i
-real :: cell_len
 character(1) :: delim=':'
 logical(1) :: ws1_range
 
@@ -54,13 +53,12 @@ do i=1,nat
 enddo
 
 ! Build radial mesh
-cell_len=icell(1)
-dr=cell_len/(2.0d0*rad_bins)
+dr=(rad_max-rad_min)/rad_bins
 half_dr=dr/2.0d0
 
 allocate(rad(rad_bins))
 do i=1,rad_bins
-  rad(i)=(real(i-1)+0.5d0)*dr
+  rad(i)=((real(i-1)+0.5d0)*dr)+rad_min
 enddo
 
 allocate(rad_norm(rad_bins))
