@@ -208,7 +208,7 @@ subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, ra
 
    logical(1) :: eflag, log_errors, switch_rad_cn, switch_rad_smooth
    character(*) :: arg
-   character(5) :: rad_ws(2)
+   character(20) :: rad_ws(2)
    integer :: rad_bins
    real :: rad_min, rad_max
 

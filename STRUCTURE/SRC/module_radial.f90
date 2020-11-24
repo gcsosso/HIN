@@ -13,7 +13,7 @@ real :: dr, half_dr, rad_min, rad_max
 real, allocatable :: rad(:), rad_norm(:)
 character(4), allocatable :: sym(:)
 character(*), allocatable :: resname(:)
-character(5) :: rad_ws(2)
+character(20) :: rad_ws(2)
 logical(1) :: ws1_mol
 
 ! Local
@@ -21,9 +21,11 @@ integer :: i
 character(1) :: delim=':'
 logical(1) :: ws1_range
 
-! Get numbers and indices for each group of species. First species can be given as atom type (e.g. OW, O1), residue name (e.g. PVA, THR) or index range (e.g. 12:12, 0:122). Second species must be atom type (e.g. OW)
-allocate(list_rad_ws(2,nat),n_rad_ws(2))
+! Get numbers and indices for each group of species. First species can be given as atom type (e.g. OW, O1), residue name
+! (e.g. PVA, THR) or index range (e.g. 12:12, 0:122). Second species must be atom type (e.g. OW)
+allocate(list_rad_ws(2,nat),n_rad_ws(2)) 
 n_rad_ws(:)=0
+
 
 ! -ws1 input can be provided as atom index range or residue name
 if (verify(delim,rad_ws(1)).eq.0) then ! If colon detected then interpret as a index range
@@ -89,7 +91,6 @@ allocate(rad_sum(rad_bins),rad_dist(n_rad_ws(2)),min_image(n_images))
 rad_sum(:)=0
 rad_dist(:)=0.0d0
 rad_tmp=0.0d0
-
 
 ! Use for finding minimum distance in minimum image/for anything without spatial extent
 do i=1, n_rad_ws(2) ! First loop over OW

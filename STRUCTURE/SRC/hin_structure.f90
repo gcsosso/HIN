@@ -119,7 +119,7 @@ real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
 ! RADIAL
 logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false.
-character(5) :: rad_ws(2)
+character(20) :: rad_ws(2)
 integer :: rad_bins=0
 real :: rad_min=0.0, rad_max=2.0
 

@@ -77,7 +77,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
 
    ! RADIAL
    logical(1) :: switch_rad, switch_rad_cn, switch_rad_smooth
-   character(5) :: rad_ws(2)
+   character(20) :: rad_ws(2)
    integer :: rad_bins
    real :: rad_min, rad_max
 
