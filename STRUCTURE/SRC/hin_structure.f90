@@ -190,6 +190,8 @@ if (switch_zdens) call zdens_alloc(nz,zmax,zmin,dz,dens,zmesh,ns)
 call read_first_xtc(tfile,switch_outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_out,xd_out,STEP,time, &
                     box_trans,pos,prec,icell,cart)
 
+call box_trans2icell(cart,box_trans,icell)
+
 if (switch_rings.and.switch_r_idx) call read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
 
 if (switch_xyfes) call xyfes_alloc(nxy,xymax,xymin,ddx,ddy,xydens,xmesh,ymesh,ns,icell,cart)
@@ -224,10 +226,6 @@ if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
 if (switch_rad) then
   call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
-  if (rad_max.gt.icell(1)/2) then
-    write(99,*) "Something is wrong with the input file..."
-    write(99,'(a,f4.2,a,f4.2,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2, ")" ; stop
-  end if
 end if
 
 if (switch_nh.or.switch_t_order) then
@@ -312,6 +310,10 @@ do while ( STAT==0 )
                          time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
       end if
       if (switch_rad) then
+         if (rad_max.gt.icell(1)/2.0) then
+           write(99,*) "Something is wrong with the input file..."
+           write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
+         end if    
         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
 
       end if
@@ -350,6 +352,7 @@ do while ( STAT==0 )
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
+   call box_trans2icell(cart,box_trans,icell)
 end do
 
 if (switch_progress) write(6,*) ' Finished.'

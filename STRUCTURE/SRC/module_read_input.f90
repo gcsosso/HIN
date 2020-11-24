@@ -334,13 +334,30 @@ subroutine read_first_xtc(tfile, switch_outxtc, xtcOfile, STAT, NATOMS, nat, xd_
 
    ! Read first frame
    STAT=read_xtc(xd,NATOMS,STEP,time,box_trans,pos,prec)
+   call box_trans2icell(cart,box_trans,icell)
+!   icell(1)=box_trans(1,1) ; icell(2)=box_trans(1,2) ; icell(3)=box_trans(1,3)
+!   icell(4)=box_trans(2,1) ; icell(5)=box_trans(2,2) ; icell(6)=box_trans(2,3)
+!   icell(7)=box_trans(3,1) ; icell(8)=box_trans(3,2) ; icell(9)=box_trans(3,3)
+
+   return
+
+end subroutine read_first_xtc
+
+subroutine box_trans2icell(cart,box_trans,icell)
+
+   implicit none
+
+   integer :: cart
+   real :: box_trans(cart,cart), icell(cart*cart)
+
    icell(1)=box_trans(1,1) ; icell(2)=box_trans(1,2) ; icell(3)=box_trans(1,3)
    icell(4)=box_trans(2,1) ; icell(5)=box_trans(2,2) ; icell(6)=box_trans(2,3)
    icell(7)=box_trans(3,1) ; icell(8)=box_trans(3,2) ; icell(9)=box_trans(3,3)
 
    return
 
-end subroutine read_first_xtc
+end subroutine box_trans2icell
+
 
 subroutine read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
 
