@@ -16,19 +16,24 @@ args = parser.parse_args()
 
 if args.parameter == "qt":
     from FUNCTIONS.qt import *
-    plotType = int(input("Select plot:\n 0   Distance distribution, qT(r)\n 1   Probability density, f(qT)\n\n"))
+    print("\n 0   Radial/Z distribution\n 1   Probability density\n")
+    plotType = int(input("Select plot: "))
 
     if plotType == 0:
-        qtData = qt_r()
+        qtData = qtDist()
         qtData.read()
         qtData.plot()
 
     elif plotType == 1:
-        qtData = f_qt()
+        qtData = qtDens()
         qtData.read()
         qtData.plot()
 
-if (args.parameter == "f3" or "f4"):
+    else:
+        print("Must select either: Radial/Z distribution [enter 0] ; Probability density [enter 1]")
+        exit()
+
+elif (args.parameter == "f3" or "f4"):
     from FUNCTIONS.f3_f4 import *
     if args.parameter == "f3":
         paramLoc=3
@@ -45,3 +50,7 @@ if (args.parameter == "f3" or "f4"):
         qtData = fDens()
         qtData.read(paramLoc,4)
         qtData.plot(paramLoc)
+
+    else:
+        print("Must select either: Radial/Z distribution [enter 0] ; Probability density [enter 1]")
+        exit()

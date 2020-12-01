@@ -97,6 +97,7 @@ class fDist:
         for i in range(self.plts):
             dict = readData(self.paths[i],paramLoc,paramMax)
             pickle.dump(dict, open(('{}/{}.F{}.pkl').format(self.outDir, self.labels[i],paramLoc), "wb"))
+            print("Data saved as dictionary to {}/{}.F{}.pkl".format(self.outdir, self.labels[i],paramLoc))
             avg, mesh = binData(dict,self.bins,self.minFilt,self.maxFilt)
             avgData.append(avg)
             meshData.append(mesh)
@@ -109,11 +110,12 @@ class fDist:
             sns.lineplot(y=self.avg[i],x=self.mesh[i],label=self.labels[i])
         plt.xlim(self.minFilt,self.maxFilt)
         #plt.ylim(0.6,0.7) # User input for these?
-        plt.ylabel('F{}(r)'.format(paramLoc), labelpad=10, fontsize=11)
-        plt.xlabel('r (nm)', labelpad=10, fontsize=11)
+        plt.ylabel('F{}(d)'.format(paramLoc), labelpad=10, fontsize=11)
+        plt.xlabel('Distance (nm)', labelpad=10, fontsize=11)
         plt.legend(prop={'size': 10}) #loc='center left', bbox_to_anchor=(1.05, 0.7))
         plt.tight_layout()
-        plt.savefig('{}/{}.F{}_r.png'.format(self.outDir,'_'.join(self.labels),paramLoc))
+        plt.savefig('{}/{}.F{}Dist.png'.format(self.outDir,'_'.join(self.labels),paramLoc))
+        print("Plot saved as {}/{}.F{}Dist.png".format(self.outdir,'_'.join(self.labels),paramLoc))
 
 # Probability density distribution of qT
 class fDens:
@@ -141,6 +143,7 @@ class fDens:
         for i in range(self.plts):
             dict = readData(self.paths[i],paramLoc,paramMax)
             pickle.dump(dict, open(('{}/{}.F{}.pkl').format(self.outDir, self.labels[i],paramLoc), "wb"))
+            print("Data saved as dictionary to {}/{}.F{}.pkl".format(self.outdir, self.labels[i],paramLoc))
             freq, filt = splitData(dict,self.minFilt,self.maxFilt)
             freqData.append(freq)
             filtData.append(filt)
@@ -152,7 +155,8 @@ class fDens:
             sns.distplot(self.freq[i], ax=ax, hist=False, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
         #plt.xlim(-0.25,1)
         plt.legend(prop={'size': 10})
-        plt.ylabel('f(F{})'.format(paramLoc), labelpad=10, fontsize=11)
+        plt.ylabel('Probability density'.format(paramLoc), labelpad=10, fontsize=11)
         plt.xlabel('F{}'.format(paramLoc), labelpad=10, fontsize=11)
         plt.tight_layout()
-        plt.savefig('{}/{}.f_F{}.png'.format(self.outDir,'_'.join(self.labels),paramLoc))
+        plt.savefig('{}/{}.F{}Dens.png'.format(self.outDir,'_'.join(self.labels),paramLoc))
+        print("Plot saved as {}/{}.F{}Dens.png".format(self.outdir,'_'.join(self.labels),paramLoc))

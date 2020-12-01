@@ -73,7 +73,7 @@ def splitData(data,rmin,rmax):
     return(order_out,filter_out)
 
 # Distance (r or z) distribution of qT
-class qt_r:
+class qtDist:
     def __init__(self):
         self.rmin = float(input("Minimum radius (nm): "))
         self.rmax = float(input("Maximum radius (nm): "))
@@ -99,6 +99,7 @@ class qt_r:
         for i in range(self.plts):
             dict = readData(self.paths[i])
             pickle.dump(dict, open(('{}/{}.qt.pkl').format(self.outdir, self.labels[i]), "wb"))
+            print("Data saved as dictionary to {}/{}.qt.pkl".format(self.outdir, self.labels[i]))
             avg, mesh = binData(dict,self.bins,self.rmin,self.rmax)
             avgData.append(avg)
             meshData.append(mesh)
@@ -111,14 +112,15 @@ class qt_r:
             sns.lineplot(y=self.avg[i],x=self.mesh[i],label=self.labels[i])
         plt.xlim(self.rmin,self.rmax)
         #plt.ylim(0.6,0.7) # User input for these?
-        plt.ylabel('qT(r)', labelpad=10, fontsize=11)
-        plt.xlabel('r (nm)', labelpad=10, fontsize=11)
+        plt.ylabel('qT(d)', labelpad=10, fontsize=11)
+        plt.xlabel('Distance (nm)', labelpad=10, fontsize=11)
         plt.legend(prop={'size': 10}) #loc='center left', bbox_to_anchor=(1.05, 0.7))
         plt.tight_layout()
-        plt.savefig('{}/{}.qt_r.png'.format(self.outdir,'_'.join(self.labels)))
+        plt.savefig('{}/{}.qtDist.png'.format(self.outdir,'_'.join(self.labels)))
+        print ("Plot saved as {}/{}.qtDist.png".format(self.outdir,'_'.join(self.labels)))
 
 # Probability density distribution of qT
-class f_qt:
+class qtDens:
     def __init__(self):
         self.rmin = float(input("Minimum radius (nm): "))
         self.rmax = float(input("Maximum radius (nm): "))
@@ -143,6 +145,7 @@ class f_qt:
         for i in range(self.plts):
             dict = readData(self.paths[i])
             pickle.dump(dict, open(('{}/{}.qt.pkl').format(self.outdir, self.labels[i]), "wb"))
+            print("Data saved as dictionary to {}/{}.qt.pkl".format(self.outdir, self.labels[i]))
             freq, filt = splitData(dict,self.rmin,self.rmax)
             freqData.append(freq)
             filtData.append(filt)
@@ -154,7 +157,8 @@ class f_qt:
             sns.distplot(self.freq[i], ax=ax, hist=False, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
         plt.xlim(-0.25,1)
         plt.legend(prop={'size': 10})
-        plt.ylabel('f (qT)', labelpad=10, fontsize=11)
+        plt.ylabel('Probability density', labelpad=10, fontsize=11)
         plt.xlabel('qT', labelpad=10, fontsize=11)
         plt.tight_layout()
-        plt.savefig('{}/{}.f_qt.png'.format(self.outdir,'_'.join(self.labels)))
+        plt.savefig('{}/{}.qtDens.png'.format(self.outdir,'_'.join(self.labels)))
+        print ("Plot saved as {}/{}.qtDens.png".format(self.outdir,'_'.join(self.labels)))
