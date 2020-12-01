@@ -1,13 +1,19 @@
 import argparse
 import warnings
+import sys
+import os
 warnings.filterwarnings("ignore")
+pathToFunctions=os.getcwd()+"/FUNCTIONS"
+sys.path.append(os.getcwd())
+sys.path.append(pathToFunctions)
+
+from FUNCTIONS.qt import *
+from FUNCTIONS.f3_f4 import *
 
 # To do:
-# - Add default inputs
-# - Inputs for y-axis min and max
-# - Inputs for other style options (if additional flag is included?)
+# - Add new plotting type: 'distance', with options for plotting a pair correlation function or probability density (e.g. for Tom's work)
+# - Inputs for x and y labels/ other style options (if additional flag -s is included?)
 # - Additional informaion for each plotting type: #parser.add_argument("-i","--info", action='store_true', help="Show more information about the plotting parameters for selected plot")
-# - Add DATA folder in PYTHON directory where output files are placed for plotting (without specifying input path)
 
 parser = argparse.ArgumentParser(description="Post-processing and plotting tool for HIN order parameters")
 parser.add_argument("parameter", type=str, help="Specify the order parameter to plot", choices=['qt','f3','f4'])
@@ -15,7 +21,6 @@ parser.add_argument("parameter", type=str, help="Specify the order parameter to 
 args = parser.parse_args()
 
 if args.parameter == "qt":
-    from FUNCTIONS.qt import *
     print("\n 0   Radial/Z distribution\n 1   Probability density\n")
     plotType = int(input("Select plot: "))
 
@@ -34,12 +39,12 @@ if args.parameter == "qt":
         exit()
 
 elif (args.parameter == "f3" or "f4"):
-    from FUNCTIONS.f3_f4 import *
     if args.parameter == "f3":
         paramLoc=3
     elif args.parameter == "f4":
         paramLoc=4
-    plotType = int(input("Select plot:\n 0   Radial/Z distribution\n 1   Probability density\n\n"))
+    print("\n 0   Radial/Z distribution\n 1   Probability density\n")
+    plotType = int(input("Select plot: "))
 
     if plotType == 0:
         fData = fDist()
