@@ -138,21 +138,21 @@ class fDens:
         self.outDir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))+"/PLOTS"
 
     def read(self,paramLoc,paramMax):
-        freqData = []
+        paramData = []
         filtData = []
         for i in range(self.plts):
             dict = readData(self.paths[i],paramLoc,paramMax)
             pickle.dump(dict, open(('{}/{}.F{}.pkl').format(self.outDir, self.labels[i],paramLoc), "wb"))
             print("Data saved as dictionary to {}/{}.F{}.pkl".format(self.outdir, self.labels[i],paramLoc))
-            freq, filt = splitData(dict,self.minFilt,self.maxFilt)
-            freqData.append(freq)
+            param, filt = splitData(dict,self.minFilt,self.maxFilt)
+            paramData.append(param)
             filtData.append(filt)
-        self.freq = freqData
+        self.data = paramData
 
     def plot(self,paramLoc):
         fig, ax = plt.subplots(num=None, figsize=(7,4), dpi=300, facecolor='w', edgecolor='k')
         for i in range(self.plts):
-            sns.distplot(self.freq[i], ax=ax, hist=False, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
+            sns.distplot(self.data[i], ax=ax, hist=False, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
         #plt.xlim(-0.25,1)
         plt.legend(prop={'size': 10})
         plt.ylabel('Probability density'.format(paramLoc), labelpad=10, fontsize=11)

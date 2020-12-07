@@ -3,12 +3,14 @@ import warnings
 import sys
 import os
 warnings.filterwarnings("ignore")
-pathToFunctions=os.getcwd()+"/FUNCTIONS"
-sys.path.append(os.getcwd())
+pathToScript=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+pathToFunctions=pathToScript+"/FUNCTIONS"
+sys.path.append(pathToScript)
 sys.path.append(pathToFunctions)
 
 from FUNCTIONS.qt import *
 from FUNCTIONS.f3_f4 import *
+from FUNCTIONS.dist import *
 
 # To do:
 # - Add new plotting type: 'distance', with options for plotting a pair correlation function or probability density (e.g. for Tom's work)
@@ -16,7 +18,7 @@ from FUNCTIONS.f3_f4 import *
 # - Additional informaion for each plotting type: #parser.add_argument("-i","--info", action='store_true', help="Show more information about the plotting parameters for selected plot")
 
 parser = argparse.ArgumentParser(description="Post-processing and plotting tool for HIN order parameters")
-parser.add_argument("parameter", type=str, help="Specify the order parameter to plot", choices=['qt','f3','f4'])
+parser.add_argument("parameter", type=str, help="Specify the order parameter to plot", choices=['qt','f3','f4','distance'])
 
 args = parser.parse_args()
 
@@ -38,7 +40,7 @@ if args.parameter == "qt":
         print("Must select either: Radial/Z distribution [enter 0] ; Probability density [enter 1]")
         exit()
 
-elif (args.parameter == "f3" or "f4"):
+elif (args.parameter == "f3" or args.parameter == "f4"):
     if args.parameter == "f3":
         paramLoc=3
     elif args.parameter == "f4":
@@ -58,4 +60,17 @@ elif (args.parameter == "f3" or "f4"):
 
     else:
         print("Must select either: Radial/Z distribution [enter 0] ; Probability density [enter 1]")
+        exit()
+
+elif args.parameter == "distance":
+    print("\n 0   Probability density\n")
+    plotType = int(input("Select plot: "))
+
+    if plotType == 0:
+        distData = distDens()
+        distData.read()
+        distData.plot()
+
+    else:
+        print("Must select: Probability density [enter 0]")
         exit()
