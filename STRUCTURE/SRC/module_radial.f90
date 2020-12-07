@@ -149,24 +149,24 @@ endif
 ! enddo
 
 ! Normalisation for g(r)
-! cell_vol=icell(1)**3.0d0
-! fact=pi4*dr*(n_rad_ws(2)/cell_vol)
-!
-! do i=1,rad_bins
-!   r2=rad(i)**2.0d0
-!   if (ws1_mol) then
-!     rad_tmp=rad_sum(i)/(fact*r2*1.0d0)
-!   else
-!     rad_tmp=rad_sum(i)/(fact*r2*n_rad_ws(1))
-!   endif
-!   rad_norm(i)=rad_norm(i)+rad_tmp ! rad_norm is passed to module_output where each bin is averaged across all frames
-! enddo
+cell_vol=icell(1)**3.0d0
+fact=pi4*dr*(n_rad_ws(2)/cell_vol)
+
+do i=1,rad_bins
+  r2=rad(i)**2.0d0
+  if (ws1_mol) then
+    rad_tmp=rad_sum(i)/(fact*r2*1.0d0)
+  else
+    rad_tmp=rad_sum(i)/(fact*r2*n_rad_ws(1))
+  endif
+  rad_norm(i)=rad_norm(i)+rad_tmp ! rad_norm is passed to module_output where each bin is averaged across all frames
+enddo
 
 ! Normalisation for PDF
-do i=1,rad_bins
-  rad_tmp=(real(rad_sum(i))/sum(rad_sum))/dr
-  rad_norm(i)=rad_norm(i)+rad_tmp
-enddo
+! do i=1,rad_bins
+!   rad_tmp=(real(rad_sum(i))/sum(rad_sum))/dr
+!   rad_norm(i)=rad_norm(i)+rad_tmp
+! enddo
 
 end subroutine radial
 
