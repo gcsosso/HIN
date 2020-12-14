@@ -47,7 +47,7 @@ real :: dr, half_dr, fact, ooo_ang(6)
 real, allocatable :: pos(:,:), pos_past(:,:), dens(:,:), zmesh(:), pdbon(:,:,:), stat_nr_AVE(:), xmesh(:), ymesh(:)
 real, allocatable :: pdbon_AVE(:,:,:), cn(:,:), cn_AVE(:,:), xydens(:,:,:), stat_nr_HB_AVE(:)
 real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(:), w_order(:), o_zmesh(:)
-real, allocatable :: rad(:), rad_norm(:)
+real, allocatable :: rad(:), rad_norm(:), rad_pdf(:)
 real, allocatable :: nh_r(:), order_t(:), filt_param(:)
 character :: ch
 logical(1) :: switch_r_idx=.false.
@@ -72,7 +72,8 @@ logical(1) :: switch_outxtc=.true., switch_progress=.false.
 ! SPECIES
 integer :: ns=0
 character(4), allocatable :: ws(:)
-character(7) :: filter='none', centre='none'
+character(7) :: filter='none'
+character(20) :: centre='none'
 logical(1) :: switch_filt_param=.false.
 
 ! ORDER
@@ -118,9 +119,9 @@ logical(1) :: switch_electro=.false.
 real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
 ! RADIAL
-logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false.
+logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false., switch_rad_pdf=.false.
 character(20) :: rad_ws(2)
-integer :: rad_bins=0
+integer :: rad_bins=200
 real :: rad_min=0.0, rad_max=2.0
 
 ! HYDRATION
@@ -145,7 +146,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
+                switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
                 switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
 
 if (lframe.eq.-1) then
@@ -225,7 +226,7 @@ if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
 if (switch_rad) then
-  call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
+  call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf)
 end if
 
 if (switch_nh.or.switch_t_order) then
@@ -313,8 +314,8 @@ do while ( STAT==0 )
          if (rad_max.gt.icell(1)/2.0) then
            write(99,*) "Something is wrong with the input file..."
            write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
-         end if    
-        call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
+         end if
+        call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf)
 
       end if
       if (switch_nh) then
@@ -369,7 +370,7 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
+                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
                   switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
 
 STAT=xdrfile_close(xd)

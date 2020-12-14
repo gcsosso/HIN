@@ -13,7 +13,7 @@ subroutine output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,de
                   rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK, &
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
-                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol, &
+                  switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
                   switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
 
 implicit none
@@ -24,7 +24,7 @@ real :: rstep, h, rsum, r2, cell_vol, cell_dens
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, parameter :: pi=4.0d0*datan(1.0d0), pi4=4.0d0*pi
 real, allocatable :: efield(:), epot(:)
-real, allocatable :: rad_avg(:), rad_avg_sm(:), nh_mol_avg(:), nh_atm_avg(:,:), cn_running(:)
+real, allocatable :: rad_avg(:), rad_avg_sm(:), rad_avg_pdf(:), nh_mol_avg(:), nh_atm_avg(:,:), cn_running(:)
 character*100 :: wformat
 logical :: found_min
 
@@ -41,10 +41,10 @@ real :: delta_AVE, delta_AVE_BULK, delta_AVE_SURF, esse_AVE, esse_AVE_BULK, esse
 real :: dr, icell(cart*cart)
 real, allocatable :: dens(:,:), zmesh(:), stat_nr_AVE(:), pdbon_AVE(:,:,:), cn_AVE(:,:), stat_nr_HB_AVE(:)
 real, allocatable :: xydens(:,:,:), xmesh(:), ymesh(:), d_charge(:), e_zmesh(:), o_zmesh(:), w_order(:)
-real, allocatable :: rad(:), rad_norm(:), nh_r(:)
+real, allocatable :: rad(:), rad_norm(:), nh_r(:), rad_pdf(:)
 logical(1) :: switch_outxtc, switch_zdens, switch_rings, switch_cls, switch_bonds, switch_xyfes, switch_hbck
-logical(1) :: switch_hex, switch_cages, switch_r_cls, switch_ffss, switch_electro, switch_th, switch_rad, switch_rad_cn, switch_rad_smooth, switch_nh
-logical(1) :: ws1_mol
+logical(1) :: switch_hex, switch_cages, switch_r_cls, switch_ffss, switch_electro, switch_th, switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf
+logical(1) :: switch_nh, ws1_mol
 character(3) :: switch_water, r_cls_W
 character(4), allocatable :: ws(:), sym(:)
 character(5), allocatable :: r_ws(:)
@@ -246,15 +246,20 @@ if (switch_rad) then
   write(99,*) "We have calculated some radial distribution functions. See: hin_structure.out.radial"
   open(unit=163, file='hin_structure.out.radial', status='unknown')
 
-  allocate(rad_avg(rad_bins),rad_avg_sm(rad_bins),cn_running(rad_bins))
+  allocate(rad_avg(rad_bins),rad_avg_pdf(rad_bins),rad_avg_sm(rad_bins),cn_running(rad_bins))
   rad_avg(:)=0.0d0
+  rad_avg_pdf(:)=0.0d0
   rad_avg_sm(:)=0.0d0
   cn_running(:)=0.0d0
 
   ! Average over frames
   do i=1,rad_bins
     rad_avg(i)=rad_norm(i)/real(dostuff)
+    if (switch_rad_pdf) then
+      rad_avg_pdf(i)=rad_pdf(i)/real(dostuff)
+    endif
   enddo
+
   ! Smooth
   if (switch_rad_smooth) then
     do i=1,rad_bins
@@ -267,6 +272,7 @@ if (switch_rad) then
       endif
     enddo
   endif
+
   ! Integrate to find coordination number
   if (switch_rad_cn) then
     do i=1,rad_bins
@@ -283,14 +289,26 @@ if (switch_rad) then
 
   ! Write to file
   do i=1,rad_bins
-      if (switch_rad_cn.and.switch_rad_smooth) then
-        write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), cn_running(i)
-      elseif (switch_rad_cn) then
-        write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), cn_running(i)
-      elseif (switch_rad_smooth) then
-        write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i)
+      if (switch_rad_pdf) then
+        if (switch_rad_cn.and.switch_rad_smooth) then
+          write(163,'(f12.4,f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), cn_running(i), rad_avg_pdf(i)
+        elseif (switch_rad_cn) then
+          write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), cn_running(i), rad_avg_pdf(i)
+        elseif (switch_rad_smooth) then
+          write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), rad_avg_pdf(i)
+        else
+          write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_pdf(i)
+        endif
       else
-        write(163,'(f12.4,f12.4)') rad(i), rad_avg(i)
+        if (switch_rad_cn.and.switch_rad_smooth) then
+          write(163,'(f12.4,f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i), cn_running(i)
+        elseif (switch_rad_cn) then
+          write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), cn_running(i)
+        elseif (switch_rad_smooth) then
+          write(163,'(f12.4,f12.4,f12.4)') rad(i), rad_avg(i), rad_avg_sm(i)
+        else
+          write(163,'(f12.4,f12.4)') rad(i), rad_avg(i)
+        endif
       endif
   enddo
   close(163)

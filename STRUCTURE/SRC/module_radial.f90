@@ -2,7 +2,7 @@ module MOD_radial
 
 contains
 
-subroutine radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
+subroutine radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf)
 
 implicit none
 
@@ -10,7 +10,7 @@ implicit none
 integer :: nat, rad_bins, delim_index, ws1_start, ws1_end
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
 real :: dr, half_dr, rad_min, rad_max
-real, allocatable :: rad(:), rad_norm(:)
+real, allocatable :: rad(:), rad_norm(:), rad_pdf(:)
 character(4), allocatable :: sym(:)
 character(*), allocatable :: resname(:)
 character(20) :: rad_ws(2)
@@ -18,7 +18,7 @@ logical(1) :: ws1_mol
 
 ! Local
 integer :: i
-character(1) :: delim=':'
+character(1) :: colon=':'
 logical(1) :: ws1_range
 
 ! Get numbers and indices for each group of species. First species can be given as atom type (e.g. OW, O1), residue name
@@ -26,11 +26,10 @@ logical(1) :: ws1_range
 allocate(list_rad_ws(2,nat),n_rad_ws(2))
 n_rad_ws(:)=0
 
-
 ! -ws1 input can be provided as atom index range or residue name
-if (verify(delim,rad_ws(1)).eq.0) then ! If colon detected then interpret as a index range
+if (verify(colon,rad_ws(1)).eq.0) then ! If colon detected then interpret as a index range
   ws1_range = .true.
-  delim_index = scan(rad_ws(1),delim)
+  delim_index = scan(rad_ws(1),colon)
   read(rad_ws(1)(1:delim_index-1),*) ws1_start
   read(rad_ws(1)(delim_index+1:),*) ws1_end
 else ; ws1_range = .false. ; end if ! Otherwise interpret as resname/atom name
@@ -63,13 +62,14 @@ do i=1,rad_bins
   rad(i)=((real(i-1)+0.5d0)*dr)+rad_min
 enddo
 
-allocate(rad_norm(rad_bins))
+allocate(rad_norm(rad_bins),rad_pdf(rad_bins))
 rad_norm(:)=0.0d0
+rad_pdf(:)=0.0d0
 
 end subroutine radial_alloc
 
 
-subroutine radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
+subroutine radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf)
 
 implicit none
 
@@ -77,13 +77,13 @@ implicit none
 integer :: cart, rad_bins
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
 real :: icell(cart*cart), dr, half_dr, fact
-real, allocatable :: pos(:,:), rad(:), rad_norm(:)
-logical(1) :: ws1_mol
+real, allocatable :: pos(:,:), rad(:), rad_norm(:), rad_pdf(:)
+logical(1) :: ws1_mol, switch_rad_pdf
 
 ! Local
 integer :: i, j, k, i_spc, j_spc, n_images=27
 integer, allocatable :: rad_sum(:)
-real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij, r2, cell_vol, rad_tmp
+real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij, r2, cell_vol, cell_dens, rad_tmp, rad_tmp2
 real, allocatable :: rad_dist(:), min_image(:)
 real(8), parameter :: pi=4.0d0*datan(1.0d0), pi4=4.0d0*pi
 
@@ -149,8 +149,10 @@ endif
 ! enddo
 
 ! Normalisation for g(r)
-cell_vol=icell(1)**3.0d0
-fact=pi4*dr*(n_rad_ws(2)/cell_vol)
+cell_vol=icell(1)*icell(5)*icell(9)
+! cell_vol=icell(1)*icell(5)*26.0d0 ! Hard-coded - use for ice-slab simulations
+cell_dens=n_rad_ws(2)/cell_vol
+fact=pi4*dr*cell_dens
 
 do i=1,rad_bins
   r2=rad(i)**2.0d0
@@ -159,14 +161,12 @@ do i=1,rad_bins
   else
     rad_tmp=rad_sum(i)/(fact*r2*n_rad_ws(1))
   endif
+  if (switch_rad_pdf) then ! Normalisation for pdf
+    rad_tmp2=(real(rad_sum(i))/sum(rad_sum))/dr
+    rad_pdf(i)=rad_pdf(i)+rad_tmp2
+  endif
   rad_norm(i)=rad_norm(i)+rad_tmp ! rad_norm is passed to module_output where each bin is averaged across all frames
 enddo
-
-! Normalisation for PDF
-! do i=1,rad_bins
-!   rad_tmp=(real(rad_sum(i))/sum(rad_sum))/dr
-!   rad_norm(i)=rad_norm(i)+rad_tmp
-! enddo
 
 end subroutine radial
 

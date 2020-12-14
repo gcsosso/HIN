@@ -70,13 +70,16 @@ class distDens:
             #print("Data saved as dictionary to {}/{}.qt.pkl".format(self.outdir, self.labels[i]))
             param, filt = splitData(dict,self.rmin,self.rmax)
             filtData.append(filt)
-        # filtData = [i * 10 for i in filtData] # Convert to Å
+        import numpy as np
+        filtDataNp = np.array(filtData)
+        filtDataNp = filtDataNp * 10
+        filtData = list(filtDataNp)
         self.data = filtData
 
     def plot(self):
         fig, ax = plt.subplots(num=None, figsize=(6,4), dpi=300, facecolor='w', edgecolor='k')
         for i in range(self.plts):
-            sns.distplot(self.data[i], ax=ax, hist=False, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
+            sns.distplot(self.data[i], ax=ax, hist=True, bins=100, kde=True, hist_kws={'edgecolor':'black'}, kde_kws={'shade': True, 'linewidth': 2}, label=self.labels[i])
         plt.xlim(self.rmin,self.rmax)
         plt.legend(prop={'size': 10})
         plt.ylabel('Probability density', labelpad=10, fontsize=11)

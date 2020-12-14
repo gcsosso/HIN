@@ -13,7 +13,7 @@ subroutine initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws
    character(5) :: tmp_ws
    character(4), allocatable :: sym(:), ws(:)
    character*5, allocatable :: resname(:)
-   character(7) :: centre
+   character(20) :: centre
 
    allocate(list_ws(ns,nat), n_ws(ns), list_all_ws(nat), list_cs(nat))
    n_ws(:) = 0

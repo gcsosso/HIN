@@ -202,11 +202,11 @@ subroutine read_electro_arg(arg, eflag, log_errors, e_zmin, e_zmax, e_dz)
 
 end subroutine read_electro_arg
 
-subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, rad_max, switch_rad_cn, switch_rad_smooth)
+subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, rad_max, switch_rad_cn, switch_rad_smooth, switch_rad_pdf)
 
    implicit none
 
-   logical(1) :: eflag, log_errors, switch_rad_cn, switch_rad_smooth
+   logical(1) :: eflag, log_errors, switch_rad_cn, switch_rad_smooth, switch_rad_pdf
    character(*) :: arg
    character(20) :: rad_ws(2)
    integer :: rad_bins
@@ -220,6 +220,7 @@ subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, ra
    else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), rad_bins, 0.0, '', 'int', 'bins', eflag)
    else if (trim(adjustl(arg)).eq.'--cn') then ; switch_rad_cn = .true.
    else if (trim(adjustl(arg)).eq.'--smooth') then ; switch_rad_smooth = .true.
+   else if (trim(adjustl(arg)).eq.'--pdf') then ; switch_rad_pdf = .true.
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: radial "//trim(arg) ; end if
 
 end subroutine read_radial_arg
