@@ -90,13 +90,13 @@ module_temp.mod: $(SRC_DIR)/module_temp.o $(SRC_DIR)/module_temp.f90
 module_temp.o: $(SRC_DIR)/module_temp.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_temp.f90
 module_color.mod: $(SRC_DIR)/module_color.o $(SRC_DIR)/module_color.f90
-                $(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_color.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_color.f90
 module_color.o: $(SRC_DIR)/module_color.f90
-                $(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_color.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_color.f90
 module_solvation.mod: $(SRC_DIR)/module_solvation.o $(SRC_DIR)/module_solvation.f90
-                $(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90
 module_solvation.o: $(SRC_DIR)/module_solvation.f90
-                $(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90	
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90	
 module_output.mod: $(SRC_DIR)/module_output.o $(SRC_DIR)/module_output.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_output.f90
 module_output.o: $(SRC_DIR)/module_output.f90
