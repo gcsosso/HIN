@@ -1,0 +1,5 @@
+# This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
+
+trajectory -fframe=0 -lframe=4 -sfile=conf.gro -tfile=slice.xtc 
+species -OW -C102 -C98 -C92 -C87 -C80 -C76 -C70 -C65 -C59 -C1 -C3 -C8 -C13 -C18 -C23 -C28 -C34 -C39 -C44  
+solv -s_rcut=0.43
