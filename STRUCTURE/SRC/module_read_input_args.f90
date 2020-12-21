@@ -255,6 +255,24 @@ subroutine read_temp_arg(arg, eflag, log_errors, lag, ts)
 
 end subroutine read_temp_arg
 
+
+
+subroutine read_solv_arg(arg,eflag,log_errors,s_rcut)
+
+   implicit none
+
+   real :: s_rcut
+   logical(1) :: eflag, log_errors,switch_color
+   character(*) :: arg
+
+   if (arg(1:8).eq.'-s_rcut=') then ; call read_arg(arg(9:), 0, s_rcut, '', 'real', 'srcut', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: solv "//trim(arg) ; end if
+endsubroutine read_solv_arg
+
+
+
+
+
 subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
 
    logical(1) :: in_arg

@@ -13,7 +13,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                       switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
-                      switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
+                      switch_nh, nh_bins, nh_rcut, switch_temp, lag,ts,switch_solv,s_rcut)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -91,6 +91,10 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    integer :: lag
    real :: ts
 
+   ! SOLVATION
+   logical(1) :: switch_solv
+   real :: s_rcut
+   
    read_loc(:) = 0
 
    num_cl_args = COMMAND_ARGUMENT_COUNT()
@@ -220,6 +224,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             call read_temp_arg(args(i,j), eflag, .true._1, lag, ts)
          end do
+      else if (args(i,1).eq.'solv') then !defines your instruction 'solv'
+         switch_solv = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_solv_arg(args(i,j),eflag, .true._1 ,s_rcut)
+         end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do
 
@@ -238,14 +247,14 @@ end subroutine read_input
 
 
 subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
-                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
+                    natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op,coloring,list_s_ws,current_coord)
 
    implicit none
 
    integer :: r_ns, nat, ns, i, j, idx, n_f_ow, tmp_ws_len
-   integer, allocatable :: n_r_ws(:), list_ws(:,:), list_r_ws(:,:)
-   integer, allocatable :: list_f_ow(:)
-   integer, allocatable :: kto(:), r_color(:), resnum(:)
+   integer, allocatable :: n_r_ws(:), list_ws(:,:),list_r_ws(:,:),list_s_ws(:,:)
+   integer, allocatable :: list_f_ow(:),n_ws(:)
+   integer, allocatable :: kto(:), r_color(:),resnum(:),coloring(:),current_coord(:)
    character(5) :: tmp_ws
    real :: dummyp
    logical(1) ::switch_rings, switch_op, tmp_ws_ast
@@ -261,9 +270,14 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_n
    write(natformat,*) nat
    allocate(sym(nat),list_r_ws(r_ns,nat),r_color(nat),kto(nat),resname(nat),resnum(nat),n_r_ws(r_ns))
    allocate(list_f_ow(nat))
-
+   allocate(coloring(nat))
+   allocate(n_ws(ns))
+   allocate(list_s_ws(ns,nat))
+   allocate(current_coord(2))
+ 
    n_r_ws(:) = 0
    n_f_ow = 0
+   n_ws(:) = 0
 
    do i=1,nat
       read(101,'(i5,2a5,i5,3f8.3,3f8.4)') resnum(i), resname(i), sym(i), idx, dummyp, dummyp, dummyp
@@ -282,6 +296,14 @@ subroutine read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_n
             endif
          enddo
       endif
+
+      do j=1,ns
+         if (trim(adjustl(sym(i))).eq.trim(adjustl(ws(j)))) then
+            n_ws(j)=n_ws(j)+1
+            list_s_ws(j,n_ws(j))=i
+         endif
+      enddo
+
    enddo
 
    close(101)

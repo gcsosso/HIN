@@ -17,7 +17,8 @@ use MOD_radial
 use MOD_hydration
 use MOD_temp
 use MOD_filter
-
+use MOD_color
+use MOD_solvation
 implicit none
 
 integer :: NFRAMES, EST_NFRAMES
@@ -30,8 +31,8 @@ integer ::  idx, nat, dostuff, counter, nl, endf, nxyz, id, ck, ckr, ibin
 integer :: per1, per2, per3, per4, per5, per6, kper135, kper246, r13, r15, r24, r26, nper, n_ddc, n_hc
 integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
 integer :: tmplist, nsurf, nbulk, nq, n_nw
-integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:)
-integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:)
+integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:),dx_cls(:),icy(:),coloring(:),current_color(:),current_coord(:),idx_cls(:)
+integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:),list_s_ws(:,:)
 integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs
 integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:), list_cs(:)
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
@@ -134,6 +135,10 @@ logical(1) :: switch_temp=.false.
 integer :: lag
 real :: ts
 
+! SOLVATION
+logical(1) :: switch_solv=.false.
+real :: s_rcut
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
@@ -147,7 +152,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
-                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
+                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts,switch_solv,s_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -158,7 +163,7 @@ end if
 hbdist2 = hbdist**2.0
 
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
-              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op)
+              natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op,coloring,list_s_ws,current_coord)
 
 if (ns.gt.0) then
    call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
@@ -236,6 +241,13 @@ end if
 !if (switch_temp) then
 !   call temp_alloc(nat)
 !end if
+
+
+if (switch_solv) then
+call icy_water(lframe,idx_cls)
+end if
+
+
 
 ! Read the whole thing
 counter=0
@@ -347,6 +359,11 @@ do while ( STAT==0 )
 
       if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
    end if
+
+      if (switch_solv) then
+           call color_OW(idx_cls,counter,nat,coloring)
+           call solvation(list_s_ws,pos,ns,n_ws,coloring,icell,cart,s_rcut,current_coord,counter+1,ws)
+      end if
 
    counter=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
