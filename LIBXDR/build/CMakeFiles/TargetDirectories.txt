@@ -1,0 +1,2 @@
+/home/chem/msupfv/CODES/HIN/LIBXDR/build/CMakeFiles/xdrfile.dir
+/home/chem/msupfv/CODES/HIN/LIBXDR/build/CMakeFiles/xdrfile_test.dir

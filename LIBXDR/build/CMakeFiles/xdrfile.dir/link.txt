@@ -1,0 +1,1 @@
+/usr/bin/cc  -fPIC    -shared -Wl,-soname,libxdrfile.so.2.1 -o lib/libxdrfile.so.2.1.2 CMakeFiles/xdrfile.dir/src/trr_seek.c.o CMakeFiles/xdrfile.dir/src/xdrfile_trr.c.o CMakeFiles/xdrfile.dir/src/xdrfile_xtc.c.o CMakeFiles/xdrfile.dir/src/xdrfile.c.o CMakeFiles/xdrfile.dir/src/xtc_seek.c.o 

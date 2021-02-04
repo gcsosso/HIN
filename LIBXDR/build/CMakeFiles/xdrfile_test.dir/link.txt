@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/xdrfile_test.dir/src/tests/test.c.o  -o xdrfile_test -rdynamic -lm lib/libxdrfile.so.2.1.2 -Wl,-rpath,/home/chem/msupfv/CODES/HIN/LIBXDR/build/lib 
