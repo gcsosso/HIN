@@ -17,6 +17,7 @@ use MOD_radial
 use MOD_hydration
 use MOD_temp
 use MOD_filter
+use MOD_lsi
 
 implicit none
 
@@ -61,7 +62,9 @@ type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical(1) :: ex, proc, cknn, ws1_mol
 real(dp), allocatable :: qlb_io(:)
-
+integer :: n_ow, o_ns, lsi_bins, lsi_ws
+integer, allocatable :: list_nw(:)
+real , allocatable :: lsi_atm_norm, lsi_mol_norm, o_dist
 integer, parameter :: ARG_LEN=127
 
 ! TRAJECTORY
@@ -133,6 +136,9 @@ logical(1) :: switch_temp=.false.
 integer :: lag
 real :: ts
 
+! LSI
+logical(1) :: switch_lsi=.false.
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
@@ -174,6 +180,11 @@ end if
 !rewind(877)
 !allocate(mflag(nm))
 !do i=1,nm
+!   read(877,*) mflag(i)
+!end do
+!close(877)
+
+! Set the averages to zero !
 !   read(877,*) mflag(i)
 !end do
 !close(877)
@@ -230,6 +241,10 @@ end if
 
 if (switch_nh.or.switch_t_order) then
   call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
+end if
+
+if (switch_lsi) then
+   call lsi_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,o_dist)
 end if
 
 !if (switch_temp) then
@@ -313,15 +328,10 @@ do while ( STAT==0 )
          if (rad_max.gt.icell(1)/2.0) then
            write(99,*) "Something is wrong with the input file..."
            write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
-         end if    
+         end if
         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
 
       end if
-      if (switch_nh) then
-        call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
-
-      end if
-      if (switch_t_order) then
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
 
@@ -344,10 +354,12 @@ do while ( STAT==0 )
         endif
       end if
 
-      if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
-   end if
+      if (switch_lsi) call lsi(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_ws,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,fact,o_dist)
 
-   counter=counter+1
+      if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
+   endif
+
+=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
    ! Read .xtc frame...
