@@ -33,10 +33,10 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
 integer :: tmplist, nsurf, nbulk, nq, n_nw
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:),dx_cls(:),icy(:),coloring(:),current_color(:),current_coord(:),idx_cls(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:),list_s_ws(:,:)
-integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs
+integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs, n_hb_x, sum_hb_bonds(2), sum_hb_filt
 integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:), list_cs(:)
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
-integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:)
+integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:), list_hb_x(:), n_hb_hyd(:), list_hb_hyd(:,:), n_hb_bonds(:,:)
 integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
@@ -58,6 +58,7 @@ character*4, allocatable :: sym(:)
 character*4, allocatable :: atq(:)
 character*100 :: xtcOfile, wformat, natformat, command
 character*100 :: pstring, pstring_C, command1, command2, fcommand, buffer
+character(20), allocatable :: list_hb_bonds(:,:)
 type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical(1) :: ex, proc, cknn, ws1_mol
@@ -127,7 +128,8 @@ real :: rad_min=0.0, rad_max=2.0
 
 ! HYDRATION
 logical(1) :: switch_nh=.false.
-integer :: nh_bins
+character(20) :: hb_ws='OW'
+integer :: nh_bins, w_hb=1
 real :: nh_rcut
 
 ! TEMP
@@ -152,7 +154,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
-                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts,switch_solv,s_rcut)
+                switch_nh, nh_bins, nh_rcut, hb_ws, switch_temp, lag, ts,switch_solv,s_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -235,7 +237,14 @@ if (switch_rad) then
 end if
 
 if (switch_nh.or.switch_t_order) then
-  call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
+  !call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
+  do i=1,ns
+    if (trim(adjustl(hb_ws)).eq.ws(i)) then
+      w_hb=2
+      call hbond2_alloc(ns,n_ws,list_ws,sym,n_hb_x,list_hb_x,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+    endif
+  enddo
+  if (w_hb.eq.1) call hbond1_alloc(nat,sym,resname,pos,cart,icell,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
 end if
 
 !if (switch_temp) then
@@ -327,13 +336,18 @@ do while ( STAT==0 )
            write(99,*) "Something is wrong with the input file..."
            write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
          end if
-        call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf)
+         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf)
 
       end if
       if (switch_nh) then
-        call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+        !call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
+        if (w_hb.eq.1) then
+          call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds)
+        else
+          call hbond2(sym,pos,cart,icell,n_hb_x,list_hb_x,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+        endif
 
-      end if
+      endif
       if (switch_t_order) then
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
@@ -388,7 +402,7 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
                   switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
-                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
+                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw,w_hb,sum_hb_bonds,sum_hb_filt)
 
 STAT=xdrfile_close(xd)
 

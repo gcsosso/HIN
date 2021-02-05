@@ -14,13 +14,13 @@ subroutine output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,de
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
                   switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
-                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw)
+                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw,w_hb,sum_hb_bonds,sum_hb_filt)
 
 implicit none
 
 ! Local
 integer :: i, j, k, ibin, l, n, n_bins
-real :: rstep, h, rsum, r2, cell_vol, cell_dens
+real :: rstep, h, rsum, r2, cell_vol, cell_dens, avg_hb_bonds(2)
 real, parameter :: epsi=0.0055267840353714 ! permettivity of vacuum in e/(V*angs)
 real, parameter :: pi=4.0d0*datan(1.0d0), pi4=4.0d0*pi
 real, allocatable :: efield(:), epot(:)
@@ -31,7 +31,7 @@ logical :: found_min
 ! Arguments
 integer :: dostuff, fframe, stride, lframe, nz, b_bins, nz_bAVE, e_nz, o_nz
 integer :: ns, r_ns, npairs, npairs_cn, maxr, cart, nxy, nsurf, nbulk
-integer :: n_rad_ws(:), rad_bins, nh_bins, n_nw
+integer :: n_rad_ws(:), rad_bins, nh_bins, n_nw, w_hb, sum_hb_bonds(2), sum_hb_filt
 integer, allocatable :: n_ws(:), n_r_ws(:), nh_mol(:), nh_atm(:,:)
 real :: box_trans(cart,cart), zmin, zmax, r_zmin, r_zmax, dz, zop_AVE
 real :: b_zmin, b_zmax, b_dz, b_bmin, b_bmax, xymax, xymin, ze_AVE, ze_AVE_BULK, ze_AVE_SURF
@@ -318,13 +318,23 @@ if (switch_nh) then
   write(99,*) "We have calculated some hydration parameters. See: hin_structure.out.hyd"
   open(unit=164, file='hin_structure.out.hydration', status='unknown')
 
-  allocate(nh_mol_avg(nh_bins),nh_atm_avg(n_nw,nh_bins))
-  do i=1,nh_bins
-    nh_mol_avg(i)=real(nh_mol(i))/real(dostuff)
-    write(164,'(f10.3,f10.3)') nh_r(i), nh_mol_avg(i)
-  enddo
+  ! allocate(nh_mol_avg(nh_bins),nh_atm_avg(n_nw,nh_bins))
+  ! do i=1,nh_bins
+  !   nh_mol_avg(i)=real(nh_mol(i))/real(dostuff)
+  !   write(164,'(f10.3,f10.3)') nh_r(i), nh_mol_avg(i)
+  ! enddo
+
+  if (w_hb.eq.1) then
+    avg_hb_bonds(1)=real(sum_hb_bonds(1))/real(dostuff) ! Average number of hydrogen bond donors
+    avg_hb_bonds(2)=real(sum_hb_bonds(2))/real(dostuff) ! Average number of hydrogen bond acceptors
+    write(164,'(f10.2)') avg_hb_bonds(1), avg_hb_bonds(2)
+  else
+    avg_hb_bonds(1)=real(sum(sum_hb_bonds(:)))/real(sum_hb_filt) ! Average number of hydrogen bonds (donor or acceptor - for OW we don't really care)
+    write(164,'(f10.2)') avg_hb_bonds(1)
+  endif
+
   close(164)
-  close(165) ! Color file
+  !close(165) ! Color file
 endif
 
 end subroutine output
