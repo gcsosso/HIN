@@ -169,6 +169,7 @@ do i=1,n_hb_x
     ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
     call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
     ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
+
     if (ij_dist.lt.hb_cut) then
       if (n_hb_hyd(i).gt.0) then
         do k=1,n_hb_hyd(i) ! loop over bonded hydrogens - check if i could be a H-bond donor
@@ -185,7 +186,7 @@ do i=1,n_hb_x
           theta=acos(cos_theta)
           if (theta.gt.hb_ang) then ! i is a H-bond donor
             n_hb_bonds(i,1)=n_hb_bonds(i,1)+1 ! count number of H-bond donors
-            list_hb_bonds(i,n_hb_bonds(i,1))=trim(char(j_spc))//','//trim(char(k_spc)) ! this will do but probably some better way of labelling H-bonds uniquely
+            !list_hb_bonds(i,n_hb_bonds(i,1))=trim(char(j_spc))//','//trim(char(k_spc)) ! this will do but probably some better way of labelling H-bonds uniquely
           endif
         enddo
       endif
@@ -204,7 +205,7 @@ do i=1,n_hb_x
         theta=acos(cos_theta)
         if (theta.gt.hb_ang) then
           n_hb_bonds(i,2)=n_hb_bonds(i,2)+1
-          list_hb_bonds(i,n_hb_bonds(i,:))=trim(char(j_spc))//','//trim(char(l_spc))
+          !list_hb_bonds(i,n_hb_bonds(i,:))=trim(char(j_spc))//','//trim(char(l_spc))
         endif
       enddo
     endif
