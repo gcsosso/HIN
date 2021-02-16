@@ -64,7 +64,7 @@ logical(1) :: ex, proc, cknn, ws1_mol
 real(dp), allocatable :: qlb_io(:)
 integer :: n_ow, o_ns, lsi_bins, lsi_ws
 integer, allocatable :: list_nw(:)
-real , allocatable :: lsi_atm_norm, lsi_mol_norm, o_dist
+real, allocatable :: lsi_mol_norm(:), lsi_atm_norm(:,:), o_dist(:)
 integer, parameter :: ARG_LEN=127
 
 ! TRAJECTORY
@@ -357,9 +357,8 @@ do while ( STAT==0 )
       if (switch_lsi) call lsi(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_ws,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,fact,o_dist)
 
       if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
-   endif
 
-=counter+1
+counter=counter+1
    if (switch_progress) call progress(real(counter-fframe)/real(lframe-fframe+1))
    if (counter.gt.lframe) exit
    ! Read .xtc frame...

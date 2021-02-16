@@ -1,7 +1,9 @@
 module MOD_lsi
 
 
-contains subroutine lsi_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,o_dist)
+contains
+
+subroutine lsi_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,o_dist)
 
 implicit none
 
@@ -40,9 +42,7 @@ n_oo=((n_ow-1)**2.0+(n_ow-1))/2.0
 ! particle names
 counter=1
 do i=1,nat
-  if
-((sym(i).eq.'OW').or.(sym(i).eq.'HW1').or.(sym(i).eq.'HW2').or.(sym(i).eq.'MW'))
-then
+  if ((sym(i).eq.'OW').or.(sym(i).eq.'HW1').or.(sym(i).eq.'HW2').or.(sym(i).eq.'MW')) then
     continue
   else
     list_nw(counter)=i
@@ -87,17 +87,17 @@ integer, allocatable :: list_ws(:,:), list_nw(:)
 ! Local
 
 integer :: i, j, i_spc, j_spc, ir
-integer, allocatable :: lsi_mol(:), lsi_atm(:,:)
+integer, allocatable :: lsi_mol(:,:), lsi_atm(:,:)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
 real :: r2, num_i, num_j, volume, lsi_tmp
 real(8), parameter :: pi=4.0*datan(1.d0), pi4=4.0*pi
 
-allocate(lsi_mol(lsi_bins),lsi_atm(n_nw,lsi_bins))
-lsi_mol(:)=0
+allocate(lsi_mol(n_ow,lsi_bins),lsi_atm(n_nw,lsi_bins))
+lsi_mol(:,:)=0
 lsi_atm(:,:)=0
 lsi_tmp=0.0d0
 if (lsi_ws.eq.0) then ! for O-O PCF
-  do i=1,n_ow
+   do i=1,n_ow
     i_spc=list_ws(o_ns,i)
     i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
     do j=1,n_ow
@@ -113,7 +113,7 @@ if (lsi_ws.eq.0) then ! for O-O PCF
         r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
         do ir=1,lsi_bins
           if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
-            lsi_mol(ir)=lsi_mol(ir)+1
+            lsi_mol(i,ir)=lsi_mol(i,ir)+1
           endif
         enddo
       endif
@@ -131,13 +131,13 @@ endif
 if ((lsi_ws.eq.0)) then ! For O-O PCF [0]
   do ir=1,lsi_bins
     r2=(rad(ir))**2.0d0
-    lsi_tmp=lsi_mol(ir)/(fact*r2*num_i)
+    lsi_tmp=lsi_mol(i,ir)/(fact*r2*num_i)
     lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
   enddo
 endif
 open(unit=134, file="i_gdr.out", status='unknown')
 do i=1,lsi_bins
-   write(134,*) rad(i), lsi_mol(i)
+   write(134,*) rad(i), lsi_mol(i,ir)
 enddo
 stop
 end subroutine lsi
