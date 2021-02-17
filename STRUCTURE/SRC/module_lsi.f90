@@ -56,6 +56,7 @@ enddo
 if (icell(1).eq.icell(5).and.icell(1).eq.icell(9)) then
 l_box=icell(1)
 else
+        write(*,*) icell(:)
 write(*,*) "only works with cubic boxes"
 endif
 dr=l_box/(real(2.0*lsi_bins))
@@ -91,6 +92,9 @@ integer, allocatable :: lsi_mol(:,:), lsi_atm(:,:)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij
 real :: r2, num_i, num_j, volume, lsi_tmp
 real(8), parameter :: pi=4.0*datan(1.d0), pi4=4.0*pi
+
+
+write(*,*) "HERE"
 
 allocate(lsi_mol(n_ow,lsi_bins),lsi_atm(n_nw,lsi_bins))
 lsi_mol(:,:)=0
@@ -139,7 +143,7 @@ open(unit=134, file="i_gdr.out", status='unknown')
 do i=1,lsi_bins
    write(134,*) rad(i), lsi_mol(i,ir)
 enddo
-stop
+!stop
 end subroutine lsi
 
 end module MOD_lsi

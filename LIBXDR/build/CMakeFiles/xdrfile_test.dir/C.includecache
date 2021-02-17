@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -18,7 +18,7 @@ xdrfile.h
 xdrfile.h
 ../include/xdrfile.h
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/tests/test.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/tests/test.c
 config.h
 -
 stdio.h
@@ -32,7 +32,7 @@ math.h
 limits.h
 -
 unistd.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/tests/unistd.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/tests/unistd.h
 stdint.h
 -
 inttypes.h
@@ -46,9 +46,9 @@ time.h
 float.h
 -
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/tests/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/tests/xdrfile.h
 xdrfile_trr.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/tests/xdrfile_trr.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/tests/xdrfile_trr.h
 xdrfile_xtc.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/tests/xdrfile_xtc.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/tests/xdrfile_xtc.h
 

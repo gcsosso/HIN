@@ -1,6 +1,5 @@
 # This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
 
-trajectory -fframe=0 -lframe=199 -sfile=md.gro -tfile=traj.xtc
-
-radial -ws1=1:992 -ws2=OW -min=0.0 -max=1.68 -bins=400
+trajectory -fframe=0 -lframe=9 -sfile=eql2.gro -tfile=eql2.xtc
+lsi -bins=100 -cut=0.32 # -ws1=1:992 -ws2=OW -min=0.0 -max=1.68 -bins=400
 

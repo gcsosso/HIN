@@ -152,7 +152,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
-                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts)
+                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts, switch_lsi)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -236,6 +236,7 @@ if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
 if (switch_rad) then
+  write(*,*) "DEBUG 0"
   call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol)
 end if
 
@@ -244,6 +245,7 @@ if (switch_nh.or.switch_t_order) then
 end if
 
 if (switch_lsi) then
+   write(*,*) "DEBUG 1"
    call lsi_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,o_dist)
 end if
 
@@ -257,104 +259,113 @@ dostuff=0
 if (switch_progress) call progress(0.0)
 
 do while ( STAT==0 )
+
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-      if (switch_op.or.switch_electro.or.switch_nh) then
-         call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
-                           pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
-      end if
+      !if (switch_op.or.switch_electro.or.switch_nh) then
+      !   call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
+      !                     pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
+      !end if
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
 
-      ! Number density profile along z...
-      if (switch_zdens) call zdens(ns,n_ws,nz,zmin,dz,pos,cart,list_ws,dens)
+      !! Number density profile along z...
+      !if (switch_zdens) call zdens(ns,n_ws,nz,zmin,dz,pos,cart,list_ws,dens)
 
-      ! 2D FES in the xy plane...
-      if (switch_xyfes) call xyfes(ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
+      !! 2D FES in the xy plane...
+      !if (switch_xyfes) call xyfes(ns,n_ws,nxy,xymin,ddx,ddy,pos,cart,list_ws,xydens,xymax,icell)
 
-      ! Rings statistics...
-      if (switch_rings) then
-          call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,filt_min,filt_max,sym,resname,rings_exe,r_color,time,STEP, &
-                     counter,natformat,nat,icell,r_cut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
-                     switch_r_col,switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
-                     patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
-                     n_hc_AVE_SURF,n_hex_AVE_SURF, &
-                     n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
-                     delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
-                     rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,mflag,switch_hbck, &
-                     hbdist,hbdist2,hbangle,stat_nr_HB_AVE,thrSS)
+      !! Rings statistics...
+      !if (switch_rings) then
+      !    call rings(kto,r_ns,r_wh,n_r_ws,pos,cart,list_r_ws,filt_min,filt_max,sym,resname,rings_exe,r_color,time,STEP, &
+      !               counter,natformat,nat,icell,r_cut,n_ddc_AVE,n_hc_AVE,a_thr,maxr,maxr_RINGS,switch_r_split,r_split, &
+      !               switch_r_col,switch_cages,stat_nr_AVE,switch_hex,n_hex_AVE,wcol,box_trans,switch_r_cls,r_cls_W, &
+      !               patch,switch_r_idx,C_size,C_idx,switch_ffss,thrS,nsurf,nbulk,n_ddc_AVE_SURF, &
+      !               n_hc_AVE_SURF,n_hex_AVE_SURF, &
+      !               n_ddc_AVE_BULK,n_hc_AVE_BULK,n_hex_AVE_BULK, &
+      !               delta_AVE,delta_AVE_BULK,delta_AVE_SURF,esse_AVE,esse_AVE_BULK,esse_AVE_SURF, &
+      !               rog_AVE,rog_AVE_BULK,rog_AVE_SURF,ze_AVE,ze_AVE_BULK,ze_AVE_SURF,mflag,switch_hbck, &
+      !               hbdist,hbdist2,hbangle,stat_nr_HB_AVE,thrSS)
 
-      end if
+      !end if
 
-      ! Ice-like clusters...
-      if (switch_cls) call clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
-                                    box_trans,pos,prec,cart,pmpi,switch_cls_stat,r_color,natformat,nat,n_cls_AVE)
+      !! Ice-like clusters...
+      !if (switch_cls) call clusters(plumed_exe,ns,ws,list_ws,NATOMS,STEP,time, &
+      !                              box_trans,pos,prec,cart,pmpi,switch_cls_stat,r_color,natformat,nat,n_cls_AVE)
 
-      ! Clathrates...
-      if (switch_f(3).or.switch_f(4)) then
-        call clathrates(switch_f, f_cut, n_filtered, list_filtered, filt_param, switch_filt_param, counter, time, cart, &
-                        icell, pos, nat, natformat, f_zbins, switch_f_cls, f3_imax, f3_cmax, f4_imax, f4_cmin)
-      end if
+      !! Clathrates...
+      !if (switch_f(3).or.switch_f(4)) then
+      !  call clathrates(switch_f, f_cut, n_filtered, list_filtered, filt_param, switch_filt_param, counter, time, cart, &
+      !                  icell, pos, nat, natformat, f_zbins, switch_f_cls, f3_imax, f3_cmax, f4_imax, f4_cmin)
+      !end if
 
-      ! Bonds statistics...
-      if (switch_bonds) call bonds(filt_min,filt_max,b_dz,pos,icell,pdbon,cart,ns,n_ws,list_ws, &
-                                   ws,b_rcut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
+      !! Bonds statistics...
+      !if (switch_bonds) call bonds(filt_min,filt_max,b_dz,pos,icell,pdbon,cart,ns,n_ws,list_ws, &
+      !                             ws,b_rcut,npairs,b_bins,b_bmin,b_bmax,cn,npairs_cn,cn_AVE,pdbon_AVE)
 
 
-      ! Electrostatic...
-      if (switch_electro) call electro(e_zmin,e_zmax,e_dz,nat,e_nz, &
-                                       pos,d_charge,cart,sym,atq,qqq,nq,qqq_all,middle,mq,mq_all)
+      !! Electrostatic...
+      !if (switch_electro) call electro(e_zmin,e_zmax,e_dz,nat,e_nz, &
+      !                                 pos,d_charge,cart,sym,atq,qqq,nq,qqq_all,middle,mq,mq_all)
 
-      ! Ordering...
-      if (switch_th) then
-         call order(nat, pos, cart, icell, n_filtered(1), list_filtered(1,:), filt_param, switch_filt_param, natformat)
-      end if
+      !! Ordering...
+      !if (switch_th) then
+      !   call order(nat, pos, cart, icell, n_filtered(1), list_filtered(1,:), filt_param, switch_filt_param, natformat)
+      !end if
 
-      ! Q Ordering...
-      if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) then
-          call bondorder(3,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
-                         time,cart,icell,pos,nat,natformat,sym,switch_q(3),switch_qd(3),switch_qt(3),switch_t4,qlb_io)
-      end if
-      if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) then
-          call bondorder(4,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
-                         time,cart,icell,pos,nat,natformat,sym,switch_q(4),switch_qd(4),switch_qt(4),switch_t4,qlb_io)
-      end if
-      if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) then
-          call bondorder(6,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
-                         time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
-      end if
-      if (switch_rad) then
-         if (rad_max.gt.icell(1)/2.0) then
-           write(99,*) "Something is wrong with the input file..."
-           write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
-         end if
-        call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
+      !! Q Ordering...
+      !if (switch_q(3).or.switch_qd(3).or.switch_qt(3)) then
+      !    call bondorder(3,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
+      !                   time,cart,icell,pos,nat,natformat,sym,switch_q(3),switch_qd(3),switch_qt(3),switch_t4,qlb_io)
+      !end if
+      !if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) then
+      !    call bondorder(4,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
+      !                   time,cart,icell,pos,nat,natformat,sym,switch_q(4),switch_qd(4),switch_qt(4),switch_t4,qlb_io)
+      !end if
+      !if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) then
+      !    call bondorder(6,q_cut,qd_cut,qt_cut,counter,list_filtered,n_filtered,filt_param,switch_filt_param,max_shell, &
+      !                   time,cart,icell,pos,nat,natformat,sym,switch_q(6),switch_qd(6),switch_qt(6),switch_t4,qlb_io)
+      !end if
+      !if (switch_rad) then
+      !   if (rad_max.gt.icell(1)/2.0) then
+      !     write(99,*) "Something is wrong with the input file..."
+      !     write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
+      !   end if
+      !  write(*,*) "DEBUG 2"
+      !  call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact)
+      !  write(*,*) "DEBUG 3"
+      !end if
+      !!          write(*,*) "DEBUG 3a"
+      !!  call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
+      !end if
 
-      end if
-        call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
-      end if
+      !  write(*,*) "DEBUG 4" 
 
-      if (switch_temp) then
-         if (counter.eq.0) then
-            ! Store the positions of the starting configuration in pos_past
-            ! We do have a "-lag" keyword in the input, but for now only -lag=1 is implemented
-            ! meaning that the traj would have to be sliced - before - feeding it into the HIN code
-            if (lag.ne.1) then
-               write(99,*) "Only -lag=1 is implemented - slice your traj by hand, please!"
-               stop
-            else
-               pos_past=pos
-            endif
-         else
-            ! Compute the velocities -> kinetic energy -> temperature
-            write(*,*) "Computing temperature - have you un-wrapped your trajectory?!"
-            call temp(nat,pos_past,pos,lag,ts,cart,sym,zmin,zmax,dz,list_ws,n_ws)!,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
-            ! Move pos in pos_past
-        endif
-      end if
+      !if (switch_temp) then
+      !   if (counter.eq.0) then
+      !      ! Store the positions of the starting configuration in pos_past
+      !      ! We do have a "-lag" keyword in the input, but for now only -lag=1 is implemented
+      !      ! meaning that the traj would have to be sliced - before - feeding it into the HIN code
+      !      if (lag.ne.1) then
+      !         write(99,*) "Only -lag=1 is implemented - slice your traj by hand, please!"
+      !         stop
+      !      else
+      !         pos_past=pos
+      !      endif
+      !   else
+      !      ! Compute the velocities -> kinetic energy -> temperature
+      !      write(*,*) "Computing temperature - have you un-wrapped your trajectory?!"
+      !      call temp(nat,pos_past,pos,lag,ts,cart,sym,zmin,zmax,dz,list_ws,n_ws)!,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
+      !      ! Move pos in pos_past
+      !  endif
 
+      write(*,*) "DEBUG 6"
+      write(*,*) switch_lsi
       if (switch_lsi) call lsi(pos,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_ws,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,fact,o_dist)
+      write(*,*) "DEBUG 7"
+
+  endif ! big if
 
       if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
 

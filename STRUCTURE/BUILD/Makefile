@@ -1,10 +1,9 @@
-# If using RINGS with MPI... module load GCC/7.3.0-2.30 OpenMPI/3.1.1
 
-FC_LINUX=gfortran
-FFLAGS_LINUX=-ffree-line-length-512 -fbacktrace -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
+FC_LINUX=gfortran -g 
+FFLAGS_LINUX=-ffree-line-length-512 #-fbacktrace -g -C -fbounds-check -Wall -finit-real=nan # Debugging flags...
 
 # libxdrfile path
-LDLIBS_LINUX=-L/home/chem/msupfv/CODES/HIN/LIBXDR/build/lib -lxdrfile
+LDLIBS_LINUX=-L/Users/wolf/CODES/GIT/HIN/LIBXDR/build/lib -lxdrfile
 
 # RINGS code path
 RINGS_EXE=-L/home/chem/msupfv/CODES/RINGS/rings-code-v1.3.4/BIN/bin/rings

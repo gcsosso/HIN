@@ -254,6 +254,22 @@ subroutine read_temp_arg(arg, eflag, log_errors, lag, ts)
 
 end subroutine read_temp_arg
 
+subroutine read_lsi_arg(arg, eflag, log_errors, nh_bins, nh_rcut)
+
+   implicit none
+
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   integer :: nh_bins
+   real :: nh_rcut
+
+   if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), nh_bins, 0.0, '', 'int', 'bins', eflag)
+   else if (arg(1:5).eq.'-cut=') then ; call read_arg(arg(6:), 0, nh_rcut, '', 'real', 'nhcut', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: lsi "//trim(arg) ; end if
+
+end subroutine read_lsi_arg
+
+
 subroutine read_rings_input(eflag, r_ns, r_wr, r_ws, r_wh, maxr, maxr_RINGS)
 
    logical(1) :: in_arg
