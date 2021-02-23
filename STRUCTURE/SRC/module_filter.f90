@@ -156,39 +156,4 @@ subroutine filter_shell(i, rmin, rmax, op_max_cut, n_filtered, list_filtered, fi
 
 end subroutine filter_shell
 
-subroutine read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
-
-   implicit none
-
-   ! Arguments
-   integer :: lframe, fframe, stride, nat
-   integer, allocatable :: C_size(:), C_idx(:,:)
-
-   ! Local
-   integer :: iostat, counter, i, maxc, j
-   character*100 :: buffer
-
-   maxc=lframe-fframe+1
-
-   allocate(C_size(maxc),C_idx(maxc,nat))
-
-   open(unit=69, file='idx.dat', status='old')
-   counter=0
-   do j=1,maxc
-      counter=counter+1
-      read(69,*) C_size(counter), (C_idx(counter,i),i=1,C_size(counter))
-      !!! DEBUG
-      !write(*,*) "READ", counter, C_size(counter)
-      !!! DEBUG
-   enddo
-
-   if (counter.ne.((lframe-fframe)/stride)+1) then
-      write(99,*) "Nope! idx.dat has to contain the same number of frames as the .xtc. Also, STRIDE has to be =1!"
-      stop
-   endif
-
-   close(69)
-
-end subroutine read_cls_idx
-
 end module MOD_filter
