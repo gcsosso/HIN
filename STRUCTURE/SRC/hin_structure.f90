@@ -129,8 +129,8 @@ real :: rad_min=0.0, rad_max=2.0
 ! HYDRATION
 logical(1) :: switch_nh=.false.
 character(20) :: hb_ws='OW'
-integer :: nh_bins, w_hb=1
-real :: nh_rcut
+integer :: w_hb=1
+real :: hb_dist=0.3d0, hb_ang=150.0d0
 
 ! TEMP
 logical(1) :: switch_temp=.false.
@@ -154,7 +154,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
-                switch_nh, nh_bins, nh_rcut, hb_ws, switch_temp, lag, ts,switch_solv,s_rcut)
+                switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -236,15 +236,14 @@ if (switch_rad) then
   call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf)
 end if
 
-if (switch_nh.or.switch_t_order) then
+if (switch_nh) then
   !call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
-  do i=1,ns
-    if (trim(adjustl(hb_ws)).eq.ws(i)) then
-      w_hb=2
-      call hbond2_alloc(ns,n_ws,list_ws,sym,n_hb_x,list_hb_x,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
-    endif
-  enddo
-  if (w_hb.eq.1) call hbond1_alloc(nat,sym,resname,pos,cart,icell,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+  if (trim(adjustl(hb_ws)).eq.'OW') then
+    call hbond2_alloc(n_ws,ws,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
+    w_hb=2
+  else
+    call hbond1_alloc(nat,sym,resname,pos,cart,icell,ws,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
+  end if
 end if
 
 !if (switch_temp) then
@@ -264,6 +263,7 @@ dostuff=0
 if (switch_progress) call progress(0.0)
 
 do while ( STAT==0 )
+
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
@@ -342,9 +342,9 @@ do while ( STAT==0 )
       if (switch_nh) then
         !call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
         if (w_hb.eq.1) then
-          call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds)
+          call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
         else
-          call hbond2(sym,pos,cart,icell,n_hb_x,list_hb_x,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+          call hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
         endif
 
       endif
@@ -402,7 +402,7 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   ze_AVE_SURF,d_charge,switch_electro,e_nz,e_zmesh, &
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
                   switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
-                  switch_nh,nh_bins,nh_r,nh_mol,nh_atm,n_nw,w_hb,sum_hb_bonds,sum_hb_filt)
+                  switch_nh,nh_r,nh_mol,nh_atm,n_nw,w_hb,sum_hb_bonds,sum_hb_filt)
 
 STAT=xdrfile_close(xd)
 

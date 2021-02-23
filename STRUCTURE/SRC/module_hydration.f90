@@ -27,26 +27,35 @@ end do
 end subroutine hydration_alloc
 
 ! For solute-solvent hbonds
-subroutine hbond1_alloc(nat,sym,resname,pos,cart,icell,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+subroutine hbond1_alloc(nat,sym,resname,pos,cart,icell,ws,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
 
 implicit none
 
 ! Arguments
 integer :: nat, cart, n_hb_x, sum_hb_bonds(2), sum_hb_filt
 integer, allocatable :: list_hb_ws(:), list_hb_x(:),  n_hb_hyd(:), list_hb_hyd(:,:), n_hb_bonds(:,:)
-real :: icell(cart*cart)
+real :: icell(cart*cart), hb_ang
 real, allocatable :: pos(:,:)
-character(4), allocatable :: sym(:)
+character(4), allocatable :: sym(:), ws(:)
 character(*), allocatable :: resname(:)
 character(20) :: hb_ws
 character(20), allocatable :: list_hb_bonds(:,:)
 
 ! Local
-integer :: n_hb_ws, i, j, i_spc, j_spc, delim_index, ws_index(2)
+integer :: n_hb_ws, i, j, i_spc, j_spc, delim_index, ws_index(2), n_ow
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, ij_dist
 real, parameter :: xh_cut=0.12d0 ! Length of covalent bond between X (donor) and H
+real, parameter :: pi=4.0d0*datan(1.0d0)
+real, parameter :: deg2rad=pi/180.0d0
 character(1) :: colon=':'
 logical(1) :: ws_range
+
+open(unit=167, file='hin_structure.out.hbonds.all', status='unknown')
+
+if (ws(1).ne.'OW') then
+  write(99,*) "Something is wrong with the input file..."
+  write(99,*) "Species must be -OW" ; stop
+endif
 
 allocate(list_hb_ws(nat)) ! list_hb_ws(1) = indices of potential donor/acceptor atoms; list_hb_ws(2) = indices of all H atoms in solute
 n_hb_ws=0 ! same format as above but counts instead
@@ -104,6 +113,7 @@ allocate(n_hb_bonds(n_hb_x,2),list_hb_bonds(n_hb_x,4))
 n_hb_bonds(:,:)=0
 sum_hb_bonds(:)=0
 sum_hb_filt=0
+hb_ang=deg2rad*hb_ang ! Convert angle from degrees to radians
 
 ! do i=1,n_hb_x
 !     write(*,*) list_hb_x(i), sym(list_hb_x(i)), n_hb_hyd(i), list_hb_hyd(i,1), list_hb_hyd(i,2), list_hb_hyd(i,3)
@@ -113,49 +123,55 @@ end subroutine hbond1_alloc
 
 
 ! For solute-solute hbonds using filter
-subroutine hbond2_alloc(ns,n_ws,list_ws,sym,n_hb_x,list_hb_x,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+subroutine hbond2_alloc(n_ws,ws,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
 
 implicit none
 
 ! Arguments
-integer :: ns, n_hb_x, sum_hb_bonds(2), sum_hb_filt
-integer, allocatable :: n_ws(:), list_ws(:,:), list_hb_x(:), n_hb_bonds(:,:)
-character(4), allocatable :: sym(:)
+integer :: sum_hb_bonds(2), sum_hb_filt
+integer, allocatable :: n_ws(:), n_hb_bonds(:,:)
+real :: hb_ang
+real, parameter :: pi=4.0d0*datan(1.0d0)
+real, parameter :: deg2rad=pi/180.0d0
+character(4), allocatable :: ws(:)
 character(20), allocatable :: list_hb_bonds(:,:)
 
 ! Local
 integer :: i
-character(20) :: hb_ws
 
-do i=1,ns
-   if (sym(list_ws(i,1)).eq.'OW') n_hb_x=n_ws(i)
-enddo
+open(unit=167, file='hin_structure.out.hbonds.all', status='unknown')
 
-allocate(list_hb_x(n_hb_x),n_hb_bonds(n_hb_x,2),list_hb_bonds(n_hb_x,4)) ! Do we even need list_hb_x ?
+if (ws(1).ne.'OW') then
+  write(99,*) "Something is wrong with the input file..."
+  write(99,*) "Species must be -OW" ; stop
+endif
+
+allocate(n_hb_bonds(n_ws(1),2),list_hb_bonds(n_ws(1),4))
 n_hb_bonds(:,:)=0
 sum_hb_bonds(:)=0
 sum_hb_filt=0
+hb_ang=deg2rad*hb_ang ! Convert angle from degrees to radians
 
 end subroutine hbond2_alloc
 
 
 ! For solute-solvent hbonds
-subroutine hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds)
+subroutine hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
 
 implicit none
 
 ! Arguments
 integer :: cart, n_hb_x, n_filtered(2), sum_hb_bonds(2)
-integer, allocatable :: list_hb_x(:), n_hb_hyd(:), list_hb_hyd(:,:), list_filtered(:,:), n_hb_bonds(:,:)
-real :: icell(cart*cart)
+integer, allocatable :: list_hb_x(:), n_hb_hyd(:), list_hb_hyd(:,:), list_filtered(:,:), list_hb_ow(:), n_hb_bonds(:,:)
+real :: icell(cart*cart), hb_dist, hb_ang
 real, allocatable :: pos(:,:)
 character(4), allocatable :: sym(:)
 character(20), allocatable :: list_hb_bonds(:,:)
+logical(1) :: hb_filt
 
 ! Local
 integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc
 real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
-real, parameter :: hb_cut=0.3d0, hb_ang=2.618 ! = 150 degrees
 
 n_hb_bonds(:,:)=0
 
@@ -170,7 +186,7 @@ do i=1,n_hb_x
     call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
     ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
 
-    if (ij_dist.lt.hb_cut) then
+    if (ij_dist.lt.hb_dist) then
       if (n_hb_hyd(i).gt.0) then
         do k=1,n_hb_hyd(i) ! loop over bonded hydrogens - check if i could be a H-bond donor
           k_spc=list_hb_hyd(i,k)
@@ -191,7 +207,7 @@ do i=1,n_hb_x
         enddo
       endif
 
-      do l=1,2 ! loop over water H atoms - check if i could be a H-bond acceptor
+      do l=1,2 ! loop over water H atoms - check if i could be a H-bond acceptor. Assumes HW1 and HW2 indices immediately follow OW
         l_spc=j_spc+l ! index HW1/HW2
         l_pos(1)=pos(1,l_spc) ; l_pos(2)=pos(2,l_spc) ; l_pos(3)=pos(3,l_spc)
         il(1)=i_pos(1)-l_pos(1) ; il(2)=i_pos(2)-l_pos(2) ; il(3)=i_pos(3)-l_pos(3)
@@ -220,18 +236,20 @@ sum_hb_bonds(2)=sum_hb_bonds(2)+sum(n_hb_bonds(:,2))
 ! enddo
 ! write(*,*) sum(n_hb_bonds(:,:))
 
+write(167,*) (list_hb_x(i), n_hb_bonds(i,1), n_hb_bonds(i,2), i=1,n_hb_x) ! Output format: [index, n_donors, n_acceptors]/atom for all atoms, single line per frame
+
 end subroutine hbond1
 
 
 ! For solute-solute hbonds using filter
-subroutine hbond2(sym,pos,cart,icell,n_hb_x,list_hb_x,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt)
+subroutine hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
 
 implicit none
 
 ! Arguments
-integer :: cart, n_hb_x, n_filtered(2), sum_hb_bonds(2), sum_hb_filt
-integer, allocatable :: list_hb_x(:), list_filtered(:,:), n_hb_bonds(:,:)
-real :: icell(cart*cart)
+integer :: cart, n_filtered(2), sum_hb_bonds(2), sum_hb_filt
+integer, allocatable :: list_filtered(:,:), n_hb_bonds(:,:)
+real :: icell(cart*cart), hb_dist, hb_ang
 real, allocatable :: pos(:,:)
 character(4), allocatable :: sym(:)
 character(20), allocatable :: list_hb_bonds(:,:)
@@ -239,7 +257,8 @@ character(20), allocatable :: list_hb_bonds(:,:)
 ! Local
 integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc
 real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
-real, parameter :: hb_cut=0.3d0, hb_ang=2.70 ! = 150 degrees
+real, parameter :: pi=4.0d0*datan(1.0d0)
+real, parameter :: rad2pi=180.0d0/pi
 
 n_hb_bonds(:,:)=0
 
@@ -256,7 +275,7 @@ do i=1,n_filtered(1)
       call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
       ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
 
-      if (ij_dist.lt.hb_cut) then
+      if (ij_dist.lt.hb_dist) then
         do k=1,2 ! loop over hydrogens on Oi
           k_spc=i_spc+k
           k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
@@ -272,6 +291,7 @@ do i=1,n_filtered(1)
           if (theta.gt.hb_ang) then ! i is an H-bond donor
             n_hb_bonds(i,1)=n_hb_bonds(i,1)+1
             ! list_hb_bonds(i,n_hb_bonds(i,1))=trim(char(j_spc))//','//trim(char(k_spc)) ! this will do but probably some better way of labelling H-bonds uniquely
+            ! write(unit=168,fmt='(f5.1)') theta*rad2pi
           endif
         enddo
 
@@ -290,6 +310,7 @@ do i=1,n_filtered(1)
           if (theta.gt.hb_ang) then
             n_hb_bonds(i,2)=n_hb_bonds(i,2)+1 ! i is an H-bond acceptor
             ! list_hb_bonds(i,n_hb_bonds(i,:))=trim(char(j_spc))//','//trim(char(l_spc))
+            ! write(unit=168,fmt='(f5.1)') theta*rad2pi
           endif
         enddo
       endif
@@ -297,9 +318,15 @@ do i=1,n_filtered(1)
   enddo
 enddo
 
+! do i=1,n_filtered(1)
+!   write(unit=167,fmt='(i5.1)') sum(n_hb_bonds(i,:))
+! enddo
+
 sum_hb_bonds(1)=sum_hb_bonds(1)+sum(n_hb_bonds(:,1))
 sum_hb_bonds(2)=sum_hb_bonds(2)+sum(n_hb_bonds(:,2))
 sum_hb_filt=sum_hb_filt+n_filtered(1)
+
+write(167,*) (list_filtered(1,i), n_hb_bonds(i,1)+n_hb_bonds(i,2), i=1,n_filtered(1)) ! Output format: [index, n_donors, n_acceptors]/atom for all atoms, single line per frame
 
 end subroutine hbond2
 

@@ -225,19 +225,18 @@ subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, ra
 
 end subroutine read_radial_arg
 
-subroutine read_hydration_arg(arg, eflag, log_errors, nh_bins, nh_rcut, hb_ws)
+subroutine read_hydration_arg(arg, eflag, log_errors, hb_ws, hb_dist, hb_ang)
 
    implicit none
 
    logical(1) :: eflag, log_errors
    character(*) :: arg
    character(20) :: hb_ws
-   integer :: nh_bins
-   real :: nh_rcut
+   real :: hb_dist, hb_ang
 
-   if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), nh_bins, 0.0, '', 'int', 'bins', eflag)
-   else if (arg(1:5).eq.'-cut=') then ; call read_arg(arg(6:), 0, nh_rcut, '', 'real', 'nhcut', eflag)
-   else if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), 0, 0.0, hb_ws, 'str', 'ws', eflag)
+   if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), 0, 0.0, hb_ws, 'str', 'ws', eflag)
+   else if (arg(1:6).eq.'-dcut=') then ; call read_arg(arg(7:), 0, hb_dist, '', 'real', 'dcut', eflag)
+   else if (arg(1:6).eq.'-acut=') then ; call read_arg(arg(7:), 0, hb_ang, '', 'real', 'acut', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: hydration "//trim(arg) ; end if
 
 end subroutine read_hydration_arg
