@@ -57,34 +57,42 @@ end subroutine initial_filter
 
 
 subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
-                        pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
+                        pos, filt_param, qlb_io, n_cs, list_cs, cart, icell, C_size, C_idx, counter)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: ns, i, ii, j, n_all_ws, n_filtered(2), n_cs, cart
+   integer :: ns, i, ii, j, n_all_ws, n_filtered(2), n_cs, cart, counter
    integer, allocatable :: list_all_ws(:), list_filtered(:,:), list_cs(:)
    real :: filt_min, filt_max, op_max_cut, icell(cart*cart)
    real, allocatable :: pos(:,:), filt_param(:)
    character(7) :: filter
    character(4), allocatable :: sym(:)
    real(dp), allocatable :: qlb_io(:)
-
-   allocate(list_filtered(2,n_all_ws), filt_param(n_all_ws))
-   n_filtered = 0
-
-   do ii=1,n_all_ws
-      i = list_all_ws(ii)
-      if (trim(adjustl(filter)).eq.'none') then
-         n_filtered(:) = n_all_ws
-         list_filtered(1,:) = list_all_ws(1:n_all_ws) ; list_filtered(2,:) = list_all_ws(1:n_all_ws)
-      else if (trim(adjustl(filter)).eq.'z') then
-        call filter_z(i, filt_min, filt_max, op_max_cut, pos(3,list_all_ws(ii)), n_filtered, list_filtered, filt_param)
-      else if (trim(adjustl(filter)).eq.'shell') then
-        call filter_shell(i, filt_min, filt_max, op_max_cut, n_filtered, list_filtered, filt_param, n_cs, list_cs, pos, cart, icell)
-      end if
-   end do
-   allocate(qlb_io(n_filtered(1)))
+   integer, allocatable :: C_size(:), C_idx(:,:)
+   
+   if (filter.eq.'index') then
+      n_filtered = C_size(counter+1)
+      allocate(list_filtered(2,n_filtered)
+      list_filtered(1,:) = C_idx(count+1,:)
+      list_filtered(2,:) = C_idx(count+1,:)
+   else
+      n_filtered = 0
+      allocate(list_filtered(2,n_all_ws), filt_param(n_all_ws))
+      
+      do ii=1,n_all_ws
+         i = list_all_ws(ii)
+         if (trim(adjustl(filter)).eq.'none') then
+            n_filtered(:) = n_all_ws
+            list_filtered(1,:) = list_all_ws(1:n_all_ws) ; list_filtered(2,:) = list_all_ws(1:n_all_ws)
+         else if (trim(adjustl(filter)).eq.'z') then
+           call filter_z(i, filt_min, filt_max, op_max_cut, pos(3,list_all_ws(ii)), n_filtered, list_filtered, filt_param)
+         else if (trim(adjustl(filter)).eq.'shell') then
+           call filter_shell(i, filt_min, filt_max, op_max_cut, n_filtered, list_filtered, filt_param, n_cs, list_cs, pos, cart, icell)
+         end if
+      end do
+      allocate(qlb_io(n_filtered(1)))
+   end if
 
 end subroutine frame_filter
 
@@ -147,5 +155,40 @@ subroutine filter_shell(i, rmin, rmax, op_max_cut, n_filtered, list_filtered, fi
   end if
 
 end subroutine filter_shell
+
+subroutine read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
+
+   implicit none
+
+   ! Arguments
+   integer :: lframe, fframe, stride, nat
+   integer, allocatable :: C_size(:), C_idx(:,:)
+
+   ! Local
+   integer :: iostat, counter, i, maxc, j
+   character*100 :: buffer
+
+   maxc=lframe-fframe+1
+
+   allocate(C_size(maxc),C_idx(maxc,nat))
+
+   open(unit=69, file='idx.dat', status='old')
+   counter=0
+   do j=1,maxc
+      counter=counter+1
+      read(69,*) C_size(counter), (C_idx(counter,i),i=1,C_size(counter))
+      !!! DEBUG
+      !write(*,*) "READ", counter, C_size(counter)
+      !!! DEBUG
+   enddo
+
+   if (counter.ne.((lframe-fframe)/stride)+1) then
+      write(99,*) "Nope! idx.dat has to contain the same number of frames as the .xtc. Also, STRIDE has to be =1!"
+      stop
+   endif
+
+   close(69)
+
+end subroutine read_cls_idx
 
 end module MOD_filter

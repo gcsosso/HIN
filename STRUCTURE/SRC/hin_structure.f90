@@ -167,7 +167,9 @@ hbdist2 = hbdist**2.0
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op,coloring,list_s_ws,current_coord)
 
-if (ns.gt.0) then
+if (filter.eq.'index') then
+   call read_cls_idx(lframe, fframe, stride, C_size, C_idx, nat)
+else if (ns.gt.0) then
    call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
 end if
 
@@ -199,8 +201,6 @@ call read_first_xtc(tfile,switch_outxtc,xtcOfile,STAT,NATOMS,nat,xd_c,xd,xd_c_ou
                     box_trans,pos,prec,icell,cart)
 
 call box_trans2icell(cart,box_trans,icell)
-
-if (switch_rings.and.switch_r_idx) call read_cls_idx(lframe,fframe,stride,C_size,C_idx,nat)
 
 if (switch_xyfes) call xyfes_alloc(nxy,xymax,xymin,ddx,ddy,xydens,xmesh,ymesh,ns,icell,cart)
 
@@ -269,7 +269,7 @@ do while ( STAT==0 )
       dostuff=dostuff+1
       if (switch_op.or.switch_electro.or.switch_nh) then
          call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
-                           pos, filt_param, qlb_io, n_cs, list_cs, cart, icell)
+                           pos, filt_param, qlb_io, n_cs, list_cs, cart, icell, C_size, C_idx, counter)
       end if
       ! Write .xtc...
       if (switch_outxtc) STAT_OUT=write_xtc(xd_out,NATOMS,STEP,time,box_trans,pos,prec)
