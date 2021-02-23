@@ -71,14 +71,16 @@ subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_a
    real(dp), allocatable :: qlb_io(:)
    integer, allocatable :: C_size(:), C_idx(:,:)
    
+   allocate(filt_param(n_all_ws), qlb_io(n_filtered(1)))
+   
    if (filter.eq.'index') then
-      n_filtered(:) = C_size(counter+1)
-      allocate(list_filtered(2,n_filtered(1)), filt_param(n_all_ws))
+      n_filtered = C_size(counter+1)
+      allocate(list_filtered(2,n_filtered(1)))
       list_filtered(1,:) = C_idx(counter+1,1:n_filtered(1))
       list_filtered(2,:) = C_idx(counter+1,1:n_filtered(1))
    else
       n_filtered = 0
-      allocate(list_filtered(2,n_all_ws), filt_param(n_all_ws))
+      allocate(list_filtered(2,n_all_ws))
       
       do ii=1,n_all_ws
          i = list_all_ws(ii)
@@ -91,7 +93,6 @@ subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_a
            call filter_shell(i, filt_min, filt_max, op_max_cut, n_filtered, list_filtered, filt_param, n_cs, list_cs, pos, cart, icell)
          end if
       end do
-      allocate(qlb_io(n_filtered(1)))
    end if
 
 end subroutine frame_filter
