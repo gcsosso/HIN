@@ -73,9 +73,9 @@ subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_a
    
    if (filter.eq.'index') then
       n_filtered = C_size(counter+1)
-      allocate(list_filtered(2,n_filtered)
-      list_filtered(1,:) = C_idx(count+1,:)
-      list_filtered(2,:) = C_idx(count+1,:)
+      allocate(list_filtered(2,n_filtered))
+      list_filtered(1,:) = C_idx(counter+1,:)
+      list_filtered(2,:) = C_idx(counter+1,:)
    else
       n_filtered = 0
       allocate(list_filtered(2,n_all_ws), filt_param(n_all_ws))
