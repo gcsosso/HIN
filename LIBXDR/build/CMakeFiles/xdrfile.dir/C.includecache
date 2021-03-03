@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -26,7 +26,7 @@ xdrfile.h
 xdrfile.h
 ../include/xdrfile.h
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/trr_seek.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/trr_seek.c
 stdio.h
 -
 stdlib.h
@@ -34,13 +34,13 @@ stdlib.h
 string.h
 -
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.h
 xdrfile_trr.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_trr.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_trr.h
 trr_seek.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/trr_seek.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/trr_seek.h
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.c
 config.h
 -
 stdio.h
@@ -64,9 +64,9 @@ rpc/rpc.h
 rpc/xdr.h
 -
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.h
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_trr.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_trr.c
 stdio.h
 -
 stdlib.h
@@ -74,29 +74,29 @@ stdlib.h
 string.h
 -
 config.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/config.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/config.h
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.h
 xdrfile_trr.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_trr.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_trr.h
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_xtc.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_xtc.c
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.h
 xdrfile_xtc.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_xtc.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_xtc.h
 stdio.h
 -
 stdlib.h
 -
 
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xtc_seek.c
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xtc_seek.c
 xdrfile.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile.h
 xdrfile_xtc.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xdrfile_xtc.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xdrfile_xtc.h
 xtc_seek.h
-/home/chem/msupfv/CODES/HIN/LIBXDR/src/xtc_seek.h
+/Users/wolf/CODES/GIT/HIN/LIBXDR/src/xtc_seek.h
 stdio.h
 -
 stdlib.h

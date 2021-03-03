@@ -54,11 +54,13 @@ enddo
 
 ! Build mesh
 if (icell(1).eq.icell(5).and.icell(1).eq.icell(9)) then
-l_box=icell(1)
+   l_box=icell(1)
 else
-        write(*,*) icell(:)
-write(*,*) "only works with cubic boxes"
+   write(*,*) icell(:)
+   write(*,*) "only works with cubic boxes"
+   stop 
 endif
+
 dr=l_box/(real(2.0*lsi_bins))
 half_dr=dr/2.0
 allocate(rad(lsi_bins))
@@ -98,6 +100,9 @@ allocate(lsi_mol(n_ow,lsi_bins),lsi_atm(n_nw,lsi_bins))
 lsi_mol(:,:)=0
 lsi_atm(:,:)=0
 lsi_tmp=0.0d0
+
+!write(*,*) "lsi_ws", lsi_ws; stop
+
 if (lsi_ws.eq.0) then ! for O-O PCF
    do i=1,n_ow
     i_spc=list_ws(o_ns,i)
@@ -106,8 +111,8 @@ if (lsi_ws.eq.0) then ! for O-O PCF
       j_spc=list_ws(o_ns,j)
       if (i_spc.eq.j_spc) then
         cycle
-    else
-write(*,*) lsi_bins
+      else
+!write(*,*) lsi_bins
         j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
         xdf=i_pos(1)-j_pos(1)
         ydf=i_pos(2)-j_pos(2)
@@ -116,7 +121,7 @@ write(*,*) lsi_bins
         r_ij=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
         do ir=1,lsi_bins
           if ((r_ij.gt.rad(ir)-half_dr).and.(r_ij.le.rad(ir)+half_dr)) then
-            lsi_mol(i,ir)=lsi_mol(i,ir)+1
+            lsi_mol(i,ir)=lsi_mol(i,ir)+1.0
           endif
         enddo
       endif
@@ -128,33 +133,33 @@ endif
 num_j=dble(n_ow)
 volume=icell(1)**3.0d0
 fact=pi4*dr*(num_j/volume)
-if (lsi_ws.eq.0) then ! For O-O PCF [0]
-  num_i=dble(n_ow)
-endif
-if ((lsi_ws.eq.0)) then ! For O-O PCF [0]
-  do ir=1,lsi_bins
-    r2=(rad(ir))**2.0d0
-    lsi_tmp=lsi_mol(i,ir)/(fact*r2*num_i)
-    lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
-  enddo
-endif
+!if (lsi_ws.eq.0) then ! For O-O PCF [0]
+!  num_i=dble(n_ow)
+!  do ir=1,lsi_bins
+!    r2=(rad(ir))**2.0d0
+!    lsi_tmp=lsi_mol(i,ir)/(fact*r2*num_i)
+!    lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
+!  enddo
+!endif
 
 open(unit=135, file="gr_i.out", status="unknown")
-if ((lsi_ws.eq.0)) then ! For O-O PCF [0]
-  do i=1,n_ow 
-    write(135,*) i
+if (lsi_ws.eq.0) then ! For O-O PCF [0]
+!  do i=1,n_ow 
+!    write(135,*) i
     do ir=1,lsi_bins
       r2=(rad(ir))**2.0d0
       lsi_tmp=lsi_mol(i,ir)/(fact*r2)
       lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
       write(135,*) rad(ir), lsi_tmp 
     enddo
-  enddo
+!  enddo
 endif
+
 open(unit=134, file="i_gdr.out", status='unknown')
 do i=1,lsi_bins
-write(134,*) rad(i), lsi_mol(:,i)
+   write(134,*) rad(i), lsi_mol(2,i)
 enddo
+
 !do i=1,2
 !  do j=1,lsi_bins
 !    write(*,*) rad(j), lsi_mol(i,j)
