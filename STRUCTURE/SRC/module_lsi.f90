@@ -94,8 +94,6 @@ real :: r2, num_i, num_j, volume, lsi_tmp
 real(8), parameter :: pi=4.0*datan(1.d0), pi4=4.0*pi
 
 
-write(*,*) "HERE"
-
 allocate(lsi_mol(n_ow,lsi_bins),lsi_atm(n_nw,lsi_bins))
 lsi_mol(:,:)=0
 lsi_atm(:,:)=0
@@ -108,7 +106,8 @@ if (lsi_ws.eq.0) then ! for O-O PCF
       j_spc=list_ws(o_ns,j)
       if (i_spc.eq.j_spc) then
         cycle
-      else
+    else
+write(*,*) lsi_bins
         j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
         xdf=i_pos(1)-j_pos(1)
         ydf=i_pos(2)-j_pos(2)
@@ -139,11 +138,29 @@ if ((lsi_ws.eq.0)) then ! For O-O PCF [0]
     lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
   enddo
 endif
+
+open(unit=135, file="gr_i.out", status="unknown")
+if ((lsi_ws.eq.0)) then ! For O-O PCF [0]
+  do i=1,n_ow 
+    write(135,*) i
+    do ir=1,lsi_bins
+      r2=(rad(ir))**2.0d0
+      lsi_tmp=lsi_mol(i,ir)/(fact*r2)
+      lsi_mol_norm(ir)=lsi_mol_norm(ir)+lsi_tmp
+      write(135,*) rad(ir), lsi_tmp 
+    enddo
+  enddo
+endif
 open(unit=134, file="i_gdr.out", status='unknown')
 do i=1,lsi_bins
-   write(134,*) rad(i), lsi_mol(i,ir)
+write(134,*) rad(i), lsi_mol(:,i)
 enddo
-!stop
+!do i=1,2
+!  do j=1,lsi_bins
+!    write(*,*) rad(j), lsi_mol(i,j)
+!  enddo
+!enddo
+stop
 end subroutine lsi
 
 end module MOD_lsi

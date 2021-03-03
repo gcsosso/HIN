@@ -62,7 +62,7 @@ type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical(1) :: ex, proc, cknn, ws1_mol
 real(dp), allocatable :: qlb_io(:)
-integer :: n_ow, o_ns, lsi_bins, lsi_ws
+integer :: n_ow, o_ns, lsi_ws
 integer, allocatable :: list_nw(:)
 real, allocatable :: lsi_mol_norm(:), lsi_atm_norm(:,:), o_dist(:)
 integer, parameter :: ARG_LEN=127
@@ -138,6 +138,9 @@ real :: ts
 
 ! LSI
 logical(1) :: switch_lsi=.false.
+integer :: lsi_bins
+real :: lsi_rcut
+
 
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
@@ -152,7 +155,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
-                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts, switch_lsi)
+                switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts, switch_lsi, lsi_bins, lsi_rcut)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -245,7 +248,7 @@ if (switch_nh.or.switch_t_order) then
 end if
 
 if (switch_lsi) then
-   write(*,*) "DEBUG 1"
+   write(*,*) "DEBUG 1,", lsi_bins
    call lsi_alloc(nat,sym,ns,n_ws,list_ws,o_ns,cart,icell,list_nw,n_nw,n_ow,lsi_bins,dr,half_dr,rad,lsi_mol_norm,lsi_atm_norm,o_dist)
 end if
 

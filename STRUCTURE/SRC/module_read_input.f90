@@ -13,7 +13,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                       switch_rad, switch_rad_cn, switch_rad_smooth, rad_ws, rad_bins, rad_min, rad_max, &
-                      switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts, switch_lsi)
+                      switch_nh, nh_bins, nh_rcut, switch_temp, lag, ts, switch_lsi, lsi_bins, lsi_rcut)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -93,6 +93,8 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
 
    ! LSI
    logical(1) :: switch_lsi
+   integer :: lsi_bins
+   real :: lsi_rcut
 
    read_loc(:) = 0
 
@@ -226,7 +228,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       else if (args(i,1).eq.'lsi') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             switch_lsi = .true.
-            call read_lsi_arg(args(i,j), eflag, .true._1, nh_bins, nh_rcut)
+            call read_lsi_arg(args(i,j), eflag, .true._1, lsi_bins, lsi_rcut)
          end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
 

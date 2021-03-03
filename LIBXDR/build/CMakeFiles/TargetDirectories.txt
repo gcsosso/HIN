@@ -1,9 +1,2 @@
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/install/strip.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/install.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/xdrfile.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/rebuild_cache.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/edit_cache.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/install/local.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/test.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/list_install_components.dir
-/Users/wolf/CODES/GIT/HIN/LIBXDR/build/CMakeFiles/xdrfile_test.dir
+/home/chem/msupfv/CODES/HIN/LIBXDR/build/CMakeFiles/xdrfile.dir
+/home/chem/msupfv/CODES/HIN/LIBXDR/build/CMakeFiles/xdrfile_test.dir
