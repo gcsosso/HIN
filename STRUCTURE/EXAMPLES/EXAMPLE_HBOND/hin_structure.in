@@ -1,0 +1,7 @@
+# This input file is not fixed format. Mess with the keywords order or line numbers to your hearts content!
+
+trajectory --progress -fframe=1 -lframe=1 -stride=1 -sfile=i150_em.gro -tfile=i150_100f.xtc --noxtc
+
+species -OW -filter=shell -min=0.0 -max=0.5 -centre=i150
+
+hydration -ws1=i150 -ws2=OW -dcut=0.30 -acut=150

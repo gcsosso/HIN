@@ -84,7 +84,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    ! HYDRATION
    logical(1) :: switch_nh
    real :: hb_dist, hb_ang
-   character(20) :: hb_ws
+   character(20) :: hb_ws(2)
 
    ! TEMP
    logical(1) :: switch_temp

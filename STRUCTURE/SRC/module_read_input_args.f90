@@ -231,10 +231,11 @@ subroutine read_hydration_arg(arg, eflag, log_errors, hb_ws, hb_dist, hb_ang)
 
    logical(1) :: eflag, log_errors
    character(*) :: arg
-   character(20) :: hb_ws
+   character(20) :: hb_ws(2)
    real :: hb_dist, hb_ang
 
-   if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), 0, 0.0, hb_ws, 'str', 'ws', eflag)
+   if (arg(1:5).eq.'-ws1=') then ; call read_arg(arg(6:), 0, 0.0, hb_ws(1), 'str', 'ws1', eflag)
+   else if (arg(1:5).eq.'-ws2=') then ; call read_arg(arg(6:), 0, 0.0, hb_ws(2), 'str', 'ws2', eflag)
    else if (arg(1:6).eq.'-dcut=') then ; call read_arg(arg(7:), 0, hb_dist, '', 'real', 'dcut', eflag)
    else if (arg(1:6).eq.'-acut=') then ; call read_arg(arg(7:), 0, hb_ang, '', 'real', 'acut', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: hydration "//trim(arg) ; end if

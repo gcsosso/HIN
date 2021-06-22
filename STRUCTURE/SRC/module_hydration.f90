@@ -26,309 +26,383 @@ end do
 
 end subroutine hydration_alloc
 
-! For solute-solvent hbonds
-subroutine hbond1_alloc(nat,sym,resname,pos,cart,icell,ws,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
+
+subroutine hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
 
 implicit none
 
 ! Arguments
-integer :: nat, cart, n_hb_x, sum_hb_bonds(2), sum_hb_filt
-integer, allocatable :: list_hb_ws(:), list_hb_x(:),  n_hb_hyd(:), list_hb_hyd(:,:), n_hb_bonds(:,:)
+integer :: nat, cart, n_hb_x(2), sum_hb_bonds(2), sum_hb_filt
+integer, allocatable :: n_ws(:), list_hb_ws(:,:), list_hb_x(:,:), n_hb_hyd(:,:), list_hb_hyd_ws1(:,:), list_hb_hyd_ws2(:,:)
 real :: icell(cart*cart), hb_ang
 real, allocatable :: pos(:,:)
 character(4), allocatable :: sym(:), ws(:)
 character(*), allocatable :: resname(:)
-character(20) :: hb_ws
-character(20), allocatable :: list_hb_bonds(:,:)
+character(20) :: hb_ws(2)
+logical(1) :: hb_ws_filt(2)
 
 ! Local
-integer :: n_hb_ws, i, j, i_spc, j_spc, delim_index, ws_index(2), n_ow
-real :: i_pos(3), j_pos(3), xdf, ydf, zdf, ij_dist
-real, parameter :: xh_cut=0.12d0 ! Length of covalent bond between X (donor) and H
+integer :: i, n_ow, n_hb_ws(2)
 real, parameter :: pi=4.0d0*datan(1.0d0)
 real, parameter :: deg2rad=pi/180.0d0
-character(1) :: colon=':'
-logical(1) :: ws_range
 
-open(unit=167, file='hin_structure.out.hbonds.all', status='unknown')
+allocate(list_hb_ws(2,nat),list_hb_x(2,nat),n_hb_hyd(2,nat))
+n_hb_ws(:)=0
+hb_ws_filt(:)=.false.
 
-if (ws(1).ne.'OW') then
-  write(99,*) "Something is wrong with the input file..."
-  write(99,*) "Species must be -OW" ; stop
+if (hb_ws(1).eq.ws(1)) then ! hydration -ws1 input
+  if (ws(1).ne."OW") then ! species -ws input
+    write(99,*) "If using the filter with module_hydration, species -ws must be OW."
+  else
+    hb_ws_filt(1)=.true.
+  endif
+else
+  call get_indices(nat,sym,resname,1,hb_ws,n_hb_ws,list_hb_ws) ! find all OW indices
+  call get_hbda(nat,sym,pos,cart,icell,1,n_hb_ws,list_hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1) ! then find all potential Hbond donors and acceptors
 endif
 
-allocate(list_hb_ws(nat)) ! list_hb_ws(1) = indices of potential donor/acceptor atoms; list_hb_ws(2) = indices of all H atoms in solute
-n_hb_ws=0 ! same format as above but counts instead
-
-! Get numbers and indices for given species. Can be given as atom type (e.g. OW, O1), residue name (e.g. PVA, THR) or index range (e.g. 12:12, 0:122)
-if (verify(colon,hb_ws).eq.0) then ! If colon found then interpret as a index range
-  ws_range = .true.
-  delim_index = scan(hb_ws,colon)
-  read(hb_ws(1:delim_index-1),*) ws_index(1)
-  read(hb_ws(delim_index+1:),*) ws_index(2)
-else ; ws_range = .false. ; end if ! Otherwise interpret as resname/atom name
-
-do i=1,nat
-  if (trim(adjustl(hb_ws)).eq.sym(i)) then
-    n_hb_ws=n_hb_ws+1
-    list_hb_ws(n_hb_ws)=i
-  elseif (trim(adjustl(hb_ws)).eq.resname(i)) then
-    n_hb_ws=n_hb_ws+1
-    list_hb_ws(n_hb_ws)=i
-  elseif ((ws_range).and.(i.ge.ws_index(1)).and.(i.le.ws_index(2))) then ;
-    n_hb_ws=n_hb_ws+1
-    list_hb_ws(n_hb_ws)=i
+if (hb_ws(2).eq.hb_ws(1)) then
+  if (hb_ws_filt(1)) then
+    hb_ws_filt(2)=.true.
+  else
+    n_hb_ws(2)=n_hb_ws(1) ; n_hb_x(2)=n_hb_x(1) ; list_hb_x(2,:)=list_hb_x(1,:) ; n_hb_hyd(2,:)=n_hb_hyd(1,:) ; list_hb_hyd_ws2=list_hb_hyd_ws1
   endif
-enddo
-
-! Once selected species have been found, filter donors/acceptors
-allocate(list_hb_x(n_hb_ws),n_hb_hyd(n_hb_ws),list_hb_hyd(n_hb_ws,3))
-list_hb_hyd(:,:)=0
-n_hb_hyd(:)=0
-n_hb_x=0
-
-do i=1,n_hb_ws
-  i_spc=list_hb_ws(i)
-  if (sum(scan(sym(i_spc),["N","O","F"])).gt.0) then ! If sym(i_spc) contains N, O or F - need to test this works for different inputs
-    n_hb_x=n_hb_x+1
-    list_hb_x(n_hb_x)=i_spc
-    i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
-    do j_spc=1,nat
-      if (scan(sym(j_spc),"H").gt.0) then
-        j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-        xdf=i_pos(1)-j_pos(1) ; ydf=i_pos(2)-j_pos(2) ; zdf=i_pos(3)-j_pos(3)
-        call images(cart,0,1,1,icell,xdf,ydf,zdf)
-        ij_dist=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
-
-        if (ij_dist.lt.xh_cut) then ! If distance between X and H < length of X-H covalent bond
-          n_hb_hyd(n_hb_x)=n_hb_hyd(n_hb_x)+1 ! n_hb_hyd(i) gives number of hydrogens bonded to species list_hb_x(i)
-          list_hb_hyd(n_hb_x,n_hb_hyd(n_hb_x))=j_spc ! list_hb_hyd(i,j) gives index of j-th hydrogen atom bonded to list_hb_x(i)
-        endif
-      endif
-    enddo
+elseif (hb_ws(2).eq.ws(1)) then ! hydration -ws2 input
+  if (ws(1).ne."OW") then ! species -ws input
+    write(99,*) "If using the filter with module_hydration, species -ws must be OW."
+  else
+    hb_ws_filt(2)=.true.
   endif
-enddo
+else
+    call get_indices(nat,sym,resname,2,hb_ws,n_hb_ws,list_hb_ws)
+    call get_hbda(nat,sym,pos,cart,icell,2,n_hb_ws,list_hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws2)
+endif
 
-allocate(n_hb_bonds(n_hb_x,2),list_hb_bonds(n_hb_x,4))
-n_hb_bonds(:,:)=0
+! allocate(n_hb_bonds_ws1(n_hb_x(1),2))
+! allocate(n_hb_bonds_ws2(n_hb_x(2),2))
+
+! if (hb_ws_filt(1)) then
+!   allocate(n_hb_bonds_ws1(n_ws(1),2))
+! else
+!   allocate(n_hb_bonds_ws1(n_hb_x(1),2))
+! endif
+! if (hb_ws_filt(2)) then
+!   allocate(n_hb_bonds_ws2(n_ws(1),2))
+! else
+!   allocate(n_hb_bonds_ws2(n_hb_x(2),2))
+! endif
+
+deallocate(list_hb_ws)
+
 sum_hb_bonds(:)=0
 sum_hb_filt=0
 hb_ang=deg2rad*hb_ang ! Convert angle from degrees to radians
 
-! do i=1,n_hb_x
-!     write(*,*) list_hb_x(i), sym(list_hb_x(i)), n_hb_hyd(i), list_hb_hyd(i,1), list_hb_hyd(i,2), list_hb_hyd(i,3)
-! enddo
+open(unit=167, file='hin_structure.out.hbonds.ws1', status='unknown')
+open(unit=168, file='hin_structure.out.hbonds.ws2', status='unknown')
+open(unit=169, file='hin_structure.out.hbonds', status='unknown')
 
-end subroutine hbond1_alloc
-
-
-! For solute-solute hbonds using filter
-subroutine hbond2_alloc(n_ws,ws,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
-
-implicit none
-
-! Arguments
-integer :: sum_hb_bonds(2), sum_hb_filt
-integer, allocatable :: n_ws(:), n_hb_bonds(:,:)
-real :: hb_ang
-real, parameter :: pi=4.0d0*datan(1.0d0)
-real, parameter :: deg2rad=pi/180.0d0
-character(4), allocatable :: ws(:)
-character(20), allocatable :: list_hb_bonds(:,:)
-
-! Local
-integer :: i
-
-open(unit=167, file='hin_structure.out.hbonds.all', status='unknown')
-
-if (ws(1).ne.'OW') then
-  write(99,*) "Something is wrong with the input file..."
-  write(99,*) "Species must be -OW" ; stop
-endif
-
-allocate(n_hb_bonds(n_ws(1),2),list_hb_bonds(n_ws(1),4))
-n_hb_bonds(:,:)=0
-sum_hb_bonds(:)=0
-sum_hb_filt=0
-hb_ang=deg2rad*hb_ang ! Convert angle from degrees to radians
-
-end subroutine hbond2_alloc
+end subroutine hbond_alloc
 
 
-! For solute-solvent hbonds
-subroutine hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
+subroutine get_indices(nat,sym,resname,ws_i,hb_ws,n_hb_ws,list_hb_ws)  ! Find numbers and indices from user input: atom type (e.g. OW, O1), residue name (e.g. PVA, THR) or index range (e.g. 12:12, 0:122)
 
-implicit none
+  implicit none
 
-! Arguments
-integer :: cart, n_hb_x, n_filtered(2), sum_hb_bonds(2)
-integer, allocatable :: list_hb_x(:), n_hb_hyd(:), list_hb_hyd(:,:), list_filtered(:,:), list_hb_ow(:), n_hb_bonds(:,:)
-real :: icell(cart*cart), hb_dist, hb_ang
-real, allocatable :: pos(:,:)
-character(4), allocatable :: sym(:)
-character(20), allocatable :: list_hb_bonds(:,:)
-logical(1) :: hb_filt
+  integer :: nat, i, ws_i, delim_index, ws_index(2), n_hb_ws(2)
+  integer, allocatable :: list_hb_ws(:,:)
+  character(20) :: hb_ws(2)
+  character(1) :: colon=':'
+  character(4), allocatable :: sym(:)
+  character(*), allocatable :: resname(:)
+  logical(1) :: ws_range
 
-! Local
-integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc
-real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
+  if (verify(colon,hb_ws(ws_i)).eq.0) then ! If colon found then interpret as a index range
+    ws_range = .true.
+    delim_index = scan(hb_ws(ws_i),colon)
+    read(hb_ws(ws_i)(1:delim_index-1),*) ws_index(1)
+    read(hb_ws(ws_i)(delim_index+1:),*) ws_index(2)
 
-n_hb_bonds(:,:)=0
+  else ; ws_range = .false. ; end if ! Otherwise interpret as resname/atom name
 
-do i=1,n_hb_x
-  i_spc=list_hb_x(i)
-  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+  do i=1,nat
+    if (trim(adjustl(hb_ws(ws_i))).eq.sym(i)) then
+      n_hb_ws(ws_i)=n_hb_ws(ws_i)+1
+      list_hb_ws(ws_i,n_hb_ws(ws_i))=i
+    elseif (trim(adjustl(hb_ws(ws_i))).eq.resname(i)) then
+      n_hb_ws(ws_i)=n_hb_ws(ws_i)+1
+      list_hb_ws(ws_i,n_hb_ws(ws_i))=i
+    elseif ((ws_range).and.(i.ge.ws_index(1)).and.(i.le.ws_index(2))) then ;
+      n_hb_ws(ws_i)=n_hb_ws(ws_i)+1
+      list_hb_ws(ws_i,n_hb_ws(ws_i))=i
+    endif
+  enddo
 
-  do j=1,n_filtered(1) ! loop over Ow atoms (filtered)
-    j_spc=list_filtered(1,j)
-    j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-    ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
-    call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
-    ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
+end subroutine get_indices
 
-    if (ij_dist.lt.hb_dist) then
-      if (n_hb_hyd(i).gt.0) then
-        do k=1,n_hb_hyd(i) ! loop over bonded hydrogens - check if i could be a H-bond donor
-          k_spc=list_hb_hyd(i,k)
-          k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
-          ik(1)=i_pos(1)-k_pos(1) ; ik(2)=i_pos(2)-k_pos(2) ; ik(3)=i_pos(3)-k_pos(3)
-          call images(cart,0,1,1,icell,ik(1),ik(2),ik(3))
-          ik_dist=sqrt(ik(1)**2.0+ik(2)**2.0+ik(3)**2.0) ! distance between donor O and hydrogen
-          jk(1)=j_pos(1)-k_pos(1) ; jk(2)=j_pos(2)-k_pos(2) ; jk(3)=j_pos(3)-k_pos(3)
-          call images(cart,0,1,1,icell,jk(1),jk(2),jk(3))
-          dot_prod=((ik(1)*jk(1))+(ik(2)*jk(2))+(ik(3)*jk(3)))
-          jk_dist=sqrt(jk(1)**2.0+jk(2)**2.0+jk(3)**2.0)
-          cos_theta=dot_prod/(ik_dist*jk_dist)
-          theta=acos(cos_theta)
-          if (theta.gt.hb_ang) then ! i is a H-bond donor
-            n_hb_bonds(i,1)=n_hb_bonds(i,1)+1 ! count number of H-bond donors
-            !list_hb_bonds(i,n_hb_bonds(i,1))=trim(char(j_spc))//','//trim(char(k_spc)) ! this will do but probably some better way of labelling H-bonds uniquely
+
+subroutine get_hbda(nat,sym,pos,cart,icell,ws_i,n_hb_ws,list_hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd) ! Filters donors/acceptors from ws inputs
+
+  implicit none
+
+  integer :: nat, cart, i, j, i_spc, j_spc, ws_i, n_hb_ws(2), n_hb_x(2)
+  integer, allocatable :: list_hb_ws(:,:), list_hb_x(:,:), n_hb_hyd(:,:), list_hb_hyd(:,:)
+  real :: icell(cart*cart), i_pos(3), j_pos(3), xdf, ydf, zdf, ij_dist
+  real, allocatable :: pos(:,:)
+  real, parameter :: xh_cut=0.12d0 ! Length of covalent bond between X (donor) and H
+  character(4), allocatable :: sym(:)
+
+  allocate(list_hb_hyd(n_hb_ws(ws_i),3))
+  list_hb_hyd(:,:)=0
+  n_hb_hyd(ws_i,:)=0
+  n_hb_x(ws_i)=0
+
+  do i=1,n_hb_ws(ws_i)
+    i_spc=list_hb_ws(ws_i,i)
+    if (sum(scan(sym(i_spc),["N","O","F"])).gt.0) then ! If sym(i_spc) contains N, O or F - need to test this works for different inputs
+      n_hb_x(ws_i)=n_hb_x(ws_i)+1
+      list_hb_x(ws_i,n_hb_x(ws_i))=i_spc
+      i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+      do j_spc=1,nat
+        if (scan(sym(j_spc),"H").gt.0) then
+          j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+          xdf=i_pos(1)-j_pos(1) ; ydf=i_pos(2)-j_pos(2) ; zdf=i_pos(3)-j_pos(3)
+          call images(cart,0,1,1,icell,xdf,ydf,zdf)
+          ij_dist=sqrt(xdf**2.0+ydf**2.0+zdf**2.0)
+
+          if (ij_dist.lt.xh_cut) then ! If distance between X and H < length of X-H covalent bond
+            n_hb_hyd(ws_i,n_hb_x(ws_i))=n_hb_hyd(ws_i,n_hb_x(ws_i))+1 ! n_hb_hyd(ws_i,i) gives number of hydrogens bonded to species list_hb_x(ws_i,i)
+            list_hb_hyd(n_hb_x(ws_i),n_hb_hyd(ws_i,n_hb_x(ws_i)))=j_spc ! list_hb_hyd(ws_i,j) gives index of j-th hydrogen atom bonded to list_hb_x(ws_i,i)
           endif
-        enddo
-      endif
-
-      do l=1,2 ! loop over water H atoms - check if i could be a H-bond acceptor. Assumes HW1 and HW2 indices immediately follow OW
-        l_spc=j_spc+l ! index HW1/HW2
-        l_pos(1)=pos(1,l_spc) ; l_pos(2)=pos(2,l_spc) ; l_pos(3)=pos(3,l_spc)
-        il(1)=i_pos(1)-l_pos(1) ; il(2)=i_pos(2)-l_pos(2) ; il(3)=i_pos(3)-l_pos(3)
-        jl(1)=j_pos(1)-l_pos(1) ; jl(2)=j_pos(2)-l_pos(2) ; jl(3)=j_pos(3)-l_pos(3)
-        call images(cart,0,1,1,icell,il(1),il(2),il(3))
-        call images(cart,0,1,1,icell,jl(1),jl(2),jl(3))
-        il_dist=sqrt(il(1)**2.0+il(2)**2.0+il(3)**2.0)
-        jl_dist=sqrt(jl(1)**2.0+jl(2)**2.0+jl(3)**2.0)
-        dot_prod=((il(1)*jl(1))+(il(2)*jl(2))+(il(3)*jl(3)))
-        cos_theta=dot_prod/(il_dist*jl_dist)
-        theta=acos(cos_theta)
-        if (theta.gt.hb_ang) then
-          n_hb_bonds(i,2)=n_hb_bonds(i,2)+1
-          !list_hb_bonds(i,n_hb_bonds(i,:))=trim(char(j_spc))//','//trim(char(l_spc))
         endif
       enddo
     endif
   enddo
-enddo
 
-sum_hb_bonds(1)=sum_hb_bonds(1)+sum(n_hb_bonds(:,1))
-sum_hb_bonds(2)=sum_hb_bonds(2)+sum(n_hb_bonds(:,2))
-
-! do i=1,n_hb_x
-!   write(*,*) list_hb_x(i), n_hb_bonds(i,1), n_hb_bonds(i,2)
-! enddo
-! write(*,*) sum(n_hb_bonds(:,:))
-
-write(167,*) (list_hb_x(i), n_hb_bonds(i,1), n_hb_bonds(i,2), i=1,n_hb_x) ! Output format: [index, n_donors, n_acceptors]/atom for all atoms, single line per frame
-
-end subroutine hbond1
+end subroutine get_hbda
 
 
-! For solute-solute hbonds using filter
-subroutine hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
+subroutine hbond(sym,pos,cart,icell,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,n_filtered,list_filtered,sum_hb_bonds,hb_dist,hb_ang,dostuff) ! Main routine for hbonds
 
 implicit none
 
 ! Arguments
-integer :: cart, n_filtered(2), sum_hb_bonds(2), sum_hb_filt
-integer, allocatable :: list_filtered(:,:), n_hb_bonds(:,:)
+integer :: cart, n_hb_x(2), n_filtered(2), sum_hb_bonds(2), dostuff
+integer, allocatable :: list_hb_x(:,:), n_hb_hyd(:,:), list_hb_hyd_ws1(:,:), list_hb_hyd_ws2(:,:), list_filtered(:,:), n_hb_bonds_ws1(:,:), n_hb_bonds_ws2(:,:)
 real :: icell(cart*cart), hb_dist, hb_ang
 real, allocatable :: pos(:,:)
+character(20) :: hb_ws(2)
 character(4), allocatable :: sym(:)
-character(20), allocatable :: list_hb_bonds(:,:)
+logical(1) :: hb_ws_filt(2)
 
 ! Local
-integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc
+integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc, ih_spc, jh_spc, n_hb_bonds
 real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
+
+! For alanine analysis (remove later)
 real, parameter :: pi=4.0d0*datan(1.0d0)
-real, parameter :: rad2pi=180.0d0/pi
+real, parameter :: rad2deg=180.0/pi
+integer :: n_angs
+real, allocatable :: hb_angs(:)
+allocate(hb_angs(n_filtered(1)*2))
+n_angs=0
+hb_angs(:)=0.0d0
 
-n_hb_bonds(:,:)=0
+if (hb_ws_filt(1)) then
+  allocate(n_hb_bonds_ws1(n_filtered(1),2))
+else
+  allocate(n_hb_bonds_ws1(n_hb_x(1),2))
+endif
+if (hb_ws_filt(2)) then
+  allocate(n_hb_bonds_ws2(n_filtered(1),2))
+else
+  allocate(n_hb_bonds_ws2(n_hb_x(2),2))
+endif
 
-do i=1,n_filtered(1)
-  i_spc=list_filtered(1,i)
-  i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+n_hb_bonds_ws1(:,:)=0
+n_hb_bonds_ws2(:,:)=0
+n_hb_bonds=0
 
-  do j=1,n_filtered(2)
-    j_spc=list_filtered(2,j)
+if (hb_ws_filt(1)) then
+  do i=1, n_filtered(1)
+    i_spc=list_filtered(1,i)
+    i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
 
-    if (j_spc.ne.i_spc) then
-      j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
-      ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
-      call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
-      ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
+    if (hb_ws_filt(2)) then
+      do j=i+1,n_filtered(1)
+        j_spc=list_filtered(1,j)
+        j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+        ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
+        call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
+        ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
 
-      if (ij_dist.lt.hb_dist) then
-        do k=1,2 ! loop over hydrogens on Oi
-          k_spc=i_spc+k
-          k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
-          ik(1)=i_pos(1)-k_pos(1) ; ik(2)=i_pos(2)-k_pos(2) ; ik(3)=i_pos(3)-k_pos(3)
-          call images(cart,0,1,1,icell,ik(1),ik(2),ik(3))
-          ik_dist=sqrt(ik(1)**2.0+ik(2)**2.0+ik(3)**2.0) ! distance between donor O and hydrogen
-          jk(1)=j_pos(1)-k_pos(1) ; jk(2)=j_pos(2)-k_pos(2) ; jk(3)=j_pos(3)-k_pos(3)
-          call images(cart,0,1,1,icell,jk(1),jk(2),jk(3))
-          dot_prod=((ik(1)*jk(1))+(ik(2)*jk(2))+(ik(3)*jk(3)))
-          jk_dist=sqrt(jk(1)**2.0+jk(2)**2.0+jk(3)**2.0)
-          cos_theta=dot_prod/(ik_dist*jk_dist)
-          theta=acos(cos_theta)
-          if (theta.gt.hb_ang) then ! i is an H-bond donor
-            n_hb_bonds(i,1)=n_hb_bonds(i,1)+1
-            ! list_hb_bonds(i,n_hb_bonds(i,1))=trim(char(j_spc))//','//trim(char(k_spc)) ! this will do but probably some better way of labelling H-bonds uniquely
-            ! write(unit=168,fmt='(f5.1)') theta*rad2pi
+        if (ij_dist.lt.hb_dist) then
+          do k=1,2
+            ih_spc=i_spc+k ! H atom bound to Oi
+            jh_spc=j_spc+k ! H atom bound to Oj
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta)! check if Oi-Hi-Oj bond meets criteria (i=donor, j=acc)
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Oi-Hj-Oj bond meets criteria (j=donor, i=acc)
+          enddo
+        endif
+      enddo
+
+    else
+      do j=1, n_hb_x(2)
+        j_spc=list_hb_x(2,j)
+        j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+        ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
+        call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
+        ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
+
+        if (ij_dist.lt.hb_dist) then
+          do k=1,2
+            ih_spc=i_spc+k ! H atom bound to Oi
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Oi-Hi-Xj bond meets criteria
+          enddo
+          do l=1,n_hb_hyd(2,j)
+            jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Oi-Hj-Xj bond meets criteria
+          enddo
+        endif
+      enddo
+    endif
+  enddo
+
+else
+  do i=1, n_hb_x(1) ! Loop through potential hbond donors/acceptors
+    i_spc=list_hb_x(1,i) ! i_spc=list_hb_x(2,j)
+    i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+
+    if (hb_ws_filt(2)) then
+      do j=1, n_filtered(1)
+        j_spc=list_filtered(1,j)
+        j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+        ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
+        call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
+        ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
+
+        if (ij_dist.lt.hb_dist) then
+          do k=1,n_hb_hyd(1,i)
+            ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Oj bond meets criteria
+          enddo
+          do l=1,2
+            jh_spc=j_spc+l ! H atom bound to Oj
+            n_angs=n_angs+1 ! For alanine analysis !! remove theta as argument below after run analysis
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Oj bond meets criteria
+            hb_angs(n_angs)=theta
+          enddo
+        endif
+      enddo
+
+    else
+      if (hb_ws(1).eq.(hb_ws(2))) then ! If -ws1 = -ws2 then must avoid double counting bonds
+        do j=i+1, n_hb_x(2)
+          j_spc=list_hb_x(2,j)
+          j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+          ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
+          call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
+          ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor X
+
+          if (ij_dist.lt.hb_dist) then
+            do k=1,n_hb_hyd(1,i)
+              ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Xj bond meets criteria
+            enddo
+            do l=1,n_hb_hyd(2,j)
+              jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Xj bond meets criteria
+            enddo
           endif
         enddo
 
-        do l=1,2 ! loop over hydrogens on Oj
-          l_spc=j_spc+l
-          l_pos(1)=pos(1,l_spc) ; l_pos(2)=pos(2,l_spc) ; l_pos(3)=pos(3,l_spc)
-          il(1)=i_pos(1)-l_pos(1) ; il(2)=i_pos(2)-l_pos(2) ; il(3)=i_pos(3)-l_pos(3)
-          jl(1)=j_pos(1)-l_pos(1) ; jl(2)=j_pos(2)-l_pos(2) ; jl(3)=j_pos(3)-l_pos(3)
-          call images(cart,0,1,1,icell,il(1),il(2),il(3))
-          call images(cart,0,1,1,icell,jl(1),jl(2),jl(3))
-          il_dist=sqrt(il(1)**2.0+il(2)**2.0+il(3)**2.0)
-          jl_dist=sqrt(jl(1)**2.0+jl(2)**2.0+jl(3)**2.0)
-          dot_prod=((il(1)*jl(1))+(il(2)*jl(2))+(il(3)*jl(3)))
-          cos_theta=dot_prod/(il_dist*jl_dist)
-          theta=acos(cos_theta)
-          if (theta.gt.hb_ang) then
-            n_hb_bonds(i,2)=n_hb_bonds(i,2)+1 ! i is an H-bond acceptor
-            ! list_hb_bonds(i,n_hb_bonds(i,:))=trim(char(j_spc))//','//trim(char(l_spc))
-            ! write(unit=168,fmt='(f5.1)') theta*rad2pi
+      else
+        do j=1, n_hb_x(2)
+          j_spc=list_hb_x(2,j)
+          j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+          ij(1)=i_pos(1)-j_pos(1) ; ij(2)=i_pos(2)-j_pos(2) ; ij(3)=i_pos(3)-j_pos(3)
+          call images(cart,0,1,1,icell,ij(1),ij(2),ij(3))
+          ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor X
+
+          if (ij_dist.lt.hb_dist) then
+            do k=1,n_hb_hyd(1,i)
+              ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Xj bond meets criteria (i=donor, j=acceptor)
+            enddo
+            do l=1,n_hb_hyd(2,j)
+              jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Xj bond meets criteria (j=donor, i=acceptor)
+            enddo
           endif
         enddo
       endif
     endif
   enddo
-enddo
+endif
 
-! do i=1,n_filtered(1)
-!   write(unit=167,fmt='(i5.1)') sum(n_hb_bonds(i,:))
-! enddo
+! Write numbers of hbonds for each atom for every frame to hin_structure.out.hbonds.{ws1/ws2}
+! Output format: [index, n_donors, n_acceptors]/atom for all potential donors or acceptors, single line per frame
+if (hb_ws_filt(1)) then
+  write(167,*) (list_filtered(1,i), n_hb_bonds_ws1(i,1), n_hb_bonds_ws1(i,2), i=1,n_filtered(1))
+else
+  write(167,*) (list_hb_x(1,i), n_hb_bonds_ws1(i,1), n_hb_bonds_ws1(i,2), i=1,n_hb_x(1))
+endif
 
-sum_hb_bonds(1)=sum_hb_bonds(1)+sum(n_hb_bonds(:,1))
-sum_hb_bonds(2)=sum_hb_bonds(2)+sum(n_hb_bonds(:,2))
-sum_hb_filt=sum_hb_filt+n_filtered(1)
+if (hb_ws_filt(2)) then
+  write(168,*) (list_filtered(1,i), n_hb_bonds_ws2(i,1), n_hb_bonds_ws2(i,2), i=1,n_filtered(1))
+else
+  write(168,*) (list_hb_x(2,i), n_hb_bonds_ws2(i,1), n_hb_bonds_ws2(i,2), i=1,n_hb_x(2))
+endif
 
-write(167,*) (list_filtered(1,i), n_hb_bonds(i,1)+n_hb_bonds(i,2), i=1,n_filtered(1)) ! Output format: [index, n_donors, n_acceptors]/atom for all atoms, single line per frame
+! Output for alanine analysis
+write(169,'(i8,i6,20f10.2)') dostuff, n_hb_bonds, (hb_angs(i)*rad2deg, i=1,n_angs) !frame number, num. hbonds, hbond angles
 
-end subroutine hbond2
+! Add frame count to running count
+sum_hb_bonds(1)=sum_hb_bonds(1)+n_hb_bonds
+
+deallocate(n_hb_bonds_ws1,n_hb_bonds_ws2)
+
+end subroutine hbond
+
+
+subroutine check_hbond(sym,pos,cart,icell,i_spc,j_spc,k_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,i_gp,j_gp,theta) ! Checks for hydrogen bond between i_spc, j_spc and k_spc using geometric criteria (hb_ang)
+
+implicit none
+
+integer :: cart, i_spc, j_spc, k_spc, n_hb_bonds, i, j, ac, dn, i_gp, j_gp
+integer, allocatable :: n_hb_bonds_ws1(:,:), n_hb_bonds_ws2(:,:)
+real :: icell(cart*cart), hb_ang, i_pos(3), j_pos(3), k_pos(3), ik(3), jk(3), ik_dist, jk_dist, dot_prod, cos_theta, theta
+real, allocatable :: pos(:,:)
+character(4), allocatable :: sym(:)
+character(20) :: hb_ws(2)
+
+i_pos(1)=pos(1,i_spc) ; i_pos(2)=pos(2,i_spc) ; i_pos(3)=pos(3,i_spc)
+j_pos(1)=pos(1,j_spc) ; j_pos(2)=pos(2,j_spc) ; j_pos(3)=pos(3,j_spc)
+k_pos(1)=pos(1,k_spc) ; k_pos(2)=pos(2,k_spc) ; k_pos(3)=pos(3,k_spc)
+
+ik(1)=i_pos(1)-k_pos(1) ; ik(2)=i_pos(2)-k_pos(2) ; ik(3)=i_pos(3)-k_pos(3)
+call images(cart,0,1,1,icell,ik(1),ik(2),ik(3))
+ik_dist=sqrt(ik(1)**2.0+ik(2)**2.0+ik(3)**2.0) ! distance between donor O and hydrogen
+
+jk(1)=j_pos(1)-k_pos(1) ; jk(2)=j_pos(2)-k_pos(2) ; jk(3)=j_pos(3)-k_pos(3)
+call images(cart,0,1,1,icell,jk(1),jk(2),jk(3))
+jk_dist=sqrt(jk(1)**2.0+jk(2)**2.0+jk(3)**2.0)
+
+dot_prod=((ik(1)*jk(1))+(ik(2)*jk(2))+(ik(3)*jk(3)))
+cos_theta=dot_prod/(ik_dist*jk_dist)
+theta=acos(cos_theta)
+
+if (theta.gt.hb_ang) then ! i is a H-bond donor
+  n_hb_bonds_ws1(i,i_gp)=n_hb_bonds_ws1(i,i_gp)+1 ! count number of H-bond donors (i_gp=1) or acceptors (i_gp=2)
+  n_hb_bonds_ws2(j,j_gp)=n_hb_bonds_ws2(j,j_gp)+1 ! count number of H-bond donors (j_gp=1) or acceptors (j_gp=2)
+  n_hb_bonds=n_hb_bonds+1 ! frame count total
+  if (hb_ws(1).eq.hb_ws(2)) then
+    n_hb_bonds_ws1(j,j_gp)=n_hb_bonds_ws1(j,j_gp)+1
+    n_hb_bonds_ws2(i,i_gp)=n_hb_bonds_ws2(i,i_gp)+1
+  endif
+endif
+
+end subroutine check_hbond
 
 
 subroutine h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)

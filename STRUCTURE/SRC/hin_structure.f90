@@ -33,10 +33,10 @@ integer :: nsix, r_flag, r_flag2, r_flag3, npairs_cn, flag, patch, o_nz, f_zbins
 integer :: tmplist, nsurf, nbulk, nq, n_nw
 integer, allocatable :: n_ws(:), n_r_ws(:), list_ws(:,:), list_r_ws(:,:), r_nper(:), mflag(:), resnum(:),dx_cls(:),icy(:),coloring(:),current_color(:),current_coord(:),idx_cls(:)
 integer, allocatable :: kto(:), r_color(:), r_array(:), p_rings(:,:,:), C_size(:), C_idx(:,:),list_s_ws(:,:)
-integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs, n_hb_x, sum_hb_bonds(2), sum_hb_filt
+integer :: n_f_ow, n_filtered(2), n_all_ws, n_cs, n_hb_x(2), sum_hb_bonds(2), sum_hb_filt
 integer, allocatable :: list_f_ow(:), list_filtered(:,:), list_all_ws(:), list_cs(:)
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
-integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:), list_hb_x(:), n_hb_hyd(:), list_hb_hyd(:,:), n_hb_bonds(:,:)
+integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:), list_hb_x(:,:), n_hb_hyd(:,:), list_hb_hyd(:,:), list_hb_hyd_ws1(:,:), list_hb_hyd_ws2(:,:)
 integer, allocatable :: frame_n_ws(:), frame_list_ws(:,:)
 real :: prec, box(cart,cart), box_trans(cart,cart), time, dummyp, lb, ub, icell(cart*cart)
 real :: rsqdf, posi(cart), posj(cart), ddx, ddy, thr
@@ -51,14 +51,13 @@ real, allocatable :: d_charge(:), e_zmesh(:), qqq(:), qqq_all(:), mq(:), mq_all(
 real, allocatable :: rad(:), rad_norm(:), rad_pdf(:)
 real, allocatable :: nh_r(:), order_t(:), filt_param(:)
 character :: ch
-logical(1) :: switch_r_idx=.false.
+logical(1) :: switch_r_idx=.false., hb_ws_filt(2)
 character*5, allocatable :: resname(:)
 character*4 :: wmol, axis_1, axis_2
 character*4, allocatable :: sym(:)
 character*4, allocatable :: atq(:)
 character*100 :: xtcOfile, wformat, natformat, command
 character*100 :: pstring, pstring_C, command1, command2, fcommand, buffer
-character(20), allocatable :: list_hb_bonds(:,:)
 type(C_PTR) :: xd_c, xd_c_out
 type(xdrfile), pointer :: xd, xd_out
 logical(1) :: ex, proc, cknn, ws1_mol
@@ -128,7 +127,7 @@ real :: rad_min=0.0, rad_max=2.0
 
 ! HYDRATION
 logical(1) :: switch_nh=.false.
-character(20) :: hb_ws='OW'
+character(20) :: hb_ws(2)
 integer :: w_hb=1
 real :: hb_dist=0.3d0, hb_ang=150.0d0
 
@@ -238,12 +237,7 @@ end if
 
 if (switch_nh) then
   !call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
-  if (trim(adjustl(hb_ws)).eq.'OW') then
-    call hbond2_alloc(n_ws,ws,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
-    w_hb=2
-  else
-    call hbond1_alloc(nat,sym,resname,pos,cart,icell,ws,hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_ang)
-  end if
+  call hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
 end if
 
 !if (switch_temp) then
@@ -341,11 +335,12 @@ do while ( STAT==0 )
       end if
       if (switch_nh) then
         !call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
-        if (w_hb.eq.1) then
-          call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
-        else
-          call hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
-        endif
+        ! if (w_hb.eq.1) then
+        !   call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
+        ! else
+        !   call hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
+        ! endif
+        call hbond(sym,pos,cart,icell,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,n_filtered,list_filtered,sum_hb_bonds,hb_dist,hb_ang,dostuff)
 
       endif
       if (switch_t_order) then
