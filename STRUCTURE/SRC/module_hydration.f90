@@ -200,12 +200,14 @@ integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc, ih_spc, jh_spc, n_hb_bonds
 real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
 
 ! For alanine analysis (remove later)
+integer :: n_angs
+real  :: xh_dist(3), xh_ang(2)
 real, parameter :: pi=4.0d0*datan(1.0d0)
 real, parameter :: rad2deg=180.0/pi
-integer :: n_angs
 real, allocatable :: hb_angs(:)
 allocate(hb_angs(n_filtered(1)*2))
 n_angs=0
+xh_dist(:)=0.0d0
 hb_angs(:)=0.0d0
 
 if (hb_ws_filt(1)) then
@@ -240,8 +242,8 @@ if (hb_ws_filt(1)) then
           do k=1,2
             ih_spc=i_spc+k ! H atom bound to Oi
             jh_spc=j_spc+k ! H atom bound to Oj
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta)! check if Oi-Hi-Oj bond meets criteria (i=donor, j=acc)
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Oi-Hj-Oj bond meets criteria (j=donor, i=acc)
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta,ik_dist,jk_dist) ! check if Oi-Hi-Oj bond meets criteria (i=donor, j=acc)
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta,ik_dist,jk_dist) ! check if Oi-Hj-Oj bond meets criteria (j=donor, i=acc)
           enddo
         endif
       enddo
@@ -257,11 +259,11 @@ if (hb_ws_filt(1)) then
         if (ij_dist.lt.hb_dist) then
           do k=1,2
             ih_spc=i_spc+k ! H atom bound to Oi
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Oi-Hi-Xj bond meets criteria
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta,ik_dist,jk_dist) ! check if Oi-Hi-Xj bond meets criteria
           enddo
           do l=1,n_hb_hyd(2,j)
             jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Oi-Hj-Xj bond meets criteria
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta,ik_dist,jk_dist) ! check if Oi-Hj-Xj bond meets criteria
           enddo
         endif
       enddo
@@ -282,16 +284,38 @@ else
         ij_dist=sqrt(ij(1)**2.0+ij(2)**2.0+ij(3)**2.0) ! distance between donor X and acceptor O
 
         if (ij_dist.lt.hb_dist) then
-          do k=1,n_hb_hyd(1,i)
-            ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Oj bond meets criteria
-          enddo
+
+          if (n_hb_hyd(1,i).gt.0) then
+            n_angs=n_angs+1
+            do k=1,n_hb_hyd(1,i)
+              ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta,ik_dist,jk_dist) ! check if Xi-Hi-Oj bond meets criteria
+              xh_dist(k)=jk_dist
+              xh_ang(k)=theta
+            enddo
+            if ((xh_dist(1).lt.xh_dist(2)).and.(xh_dist(1).lt.xh_dist(3))) then ! Only want the angles for the closest H atom
+              hb_angs(n_angs)=xh_ang(1)
+            elseif ((xh_dist(2).lt.xh_dist(1)).and.(xh_dist(2).lt.xh_dist(3))) then
+              hb_angs(n_angs)=xh_ang(2)
+            else
+              hb_angs(n_angs)=xh_ang(3)
+            endif
+          endif
+
+          n_angs=n_angs+1
           do l=1,2
             jh_spc=j_spc+l ! H atom bound to Oj
-            n_angs=n_angs+1 ! For alanine analysis !! remove theta as argument below after run analysis
-            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Oj bond meets criteria
-            hb_angs(n_angs)=theta
+            call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta,ik_dist,jk_dist) ! check if Xi-Hj-Oj bond meets criteria
+            xh_dist(l)=ik_dist
+            xh_ang(l)=theta
           enddo
+
+          if (xh_dist(1).lt.xh_dist(2)) then ! Only want the angles for the closest H atom
+            hb_angs(n_angs)=xh_ang(1)
+          else
+            hb_angs(n_angs)=xh_ang(2)
+          endif
+
         endif
       enddo
 
@@ -307,11 +331,11 @@ else
           if (ij_dist.lt.hb_dist) then
             do k=1,n_hb_hyd(1,i)
               ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
-              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Xj bond meets criteria
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta,ik_dist,jk_dist) ! check if Xi-Hi-Xj bond meets criteria
             enddo
             do l=1,n_hb_hyd(2,j)
               jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
-              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Xj bond meets criteria
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta,ik_dist,jk_dist) ! check if Xi-Hj-Xj bond meets criteria
             enddo
           endif
         enddo
@@ -327,11 +351,11 @@ else
           if (ij_dist.lt.hb_dist) then
             do k=1,n_hb_hyd(1,i)
               ih_spc=list_hb_hyd_ws1(i,k)! H atom bound to Xi
-              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta) ! check if Xi-Hi-Xj bond meets criteria (i=donor, j=acceptor)
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,ih_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,1,2,theta,ik_dist,jk_dist) ! check if Xi-Hi-Xj bond meets criteria (i=donor, j=acceptor)
             enddo
             do l=1,n_hb_hyd(2,j)
               jh_spc=list_hb_hyd_ws2(j,l) ! H atom bound to Xj
-              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta) ! check if Xi-Hj-Xj bond meets criteria (j=donor, i=acceptor)
+              call check_hbond(sym,pos,cart,icell,i_spc,j_spc,jh_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,2,1,theta,ik_dist,jk_dist) ! check if Xi-Hj-Xj bond meets criteria (j=donor, i=acceptor)
             enddo
           endif
         enddo
@@ -365,7 +389,7 @@ deallocate(n_hb_bonds_ws1,n_hb_bonds_ws2)
 end subroutine hbond
 
 
-subroutine check_hbond(sym,pos,cart,icell,i_spc,j_spc,k_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,i_gp,j_gp,theta) ! Checks for hydrogen bond between i_spc, j_spc and k_spc using geometric criteria (hb_ang)
+subroutine check_hbond(sym,pos,cart,icell,i_spc,j_spc,k_spc,hb_ws,hb_ang,n_hb_bonds,n_hb_bonds_ws1,n_hb_bonds_ws2,i,j,i_gp,j_gp,theta,ik_dist,jk_dist) ! Checks for hydrogen bond between i_spc, j_spc and k_spc using geometric criteria (hb_ang)
 
 implicit none
 
