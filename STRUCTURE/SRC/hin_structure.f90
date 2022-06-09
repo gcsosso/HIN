@@ -330,7 +330,7 @@ do while ( STAT==0 )
            write(99,*) "Something is wrong with the input file..."
            write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
          end if
-         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf)
+         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf,dostuff)
 
       end if
       if (switch_nh) then
