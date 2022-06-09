@@ -12,7 +12,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                      switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
+                      switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, &
                       switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut)
 
    implicit none
@@ -76,10 +76,10 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    real :: e_zmin, e_zmax, e_dz
 
    ! RADIAL
-   logical(1) :: switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf
+   logical(1) :: switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh
    character(20) :: rad_ws(2)
    integer :: rad_bins
-   real :: rad_min, rad_max
+   real :: rad_min, rad_max, rad_nh_cut
 
    ! HYDRATION
    logical(1) :: switch_nh
@@ -212,7 +212,7 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
       else if (args(i,1).eq.'radial') then
          switch_rad = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
-            call read_radial_arg(args(i,j), eflag, .true._1, rad_ws, rad_bins, rad_min, rad_max, switch_rad_cn, switch_rad_smooth, switch_rad_pdf)
+            call read_radial_arg(args(i,j), eflag, .true._1, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh)
          end do
       else if (args(i,1).eq.'hydration') then
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit

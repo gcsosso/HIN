@@ -202,15 +202,15 @@ subroutine read_electro_arg(arg, eflag, log_errors, e_zmin, e_zmax, e_dz)
 
 end subroutine read_electro_arg
 
-subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, rad_max, switch_rad_cn, switch_rad_smooth, switch_rad_pdf)
+subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh)
 
    implicit none
 
-   logical(1) :: eflag, log_errors, switch_rad_cn, switch_rad_smooth, switch_rad_pdf
+   logical(1) :: eflag, log_errors, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh
    character(*) :: arg
    character(20) :: rad_ws(2)
    integer :: rad_bins
-   real :: rad_min, rad_max
+   real :: rad_min, rad_max, rad_nh_cut
 
    ! if (arg(1:4).eq.'-ws=') then ; call read_arg(arg(5:), rad_ws, 0.0, '', 'int', 'ws', eflag)
    if (arg(1:5).eq.'-ws1=') then ; call read_arg(arg(6:), 0, 0.0, rad_ws(1), 'str', 'ws1', eflag)
@@ -218,9 +218,11 @@ subroutine read_radial_arg(arg, eflag, log_errors, rad_ws, rad_bins, rad_min, ra
    else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, rad_min, '', 'real', 'min', eflag)
    else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, rad_max, '', 'real', 'max', eflag)
    else if (arg(1:6).eq.'-bins=') then ; call read_arg(arg(7:), rad_bins, 0.0, '', 'int', 'bins', eflag)
+   else if (arg(1:7).eq.'-nhcut=') then ; call read_arg(arg(8:), 0, rad_nh_cut, '', 'real', 'nhcut', eflag)
    else if (trim(adjustl(arg)).eq.'--cn') then ; switch_rad_cn = .true.
    else if (trim(adjustl(arg)).eq.'--smooth') then ; switch_rad_smooth = .true.
    else if (trim(adjustl(arg)).eq.'--pdf') then ; switch_rad_pdf = .true.
+   else if (trim(adjustl(arg)).eq.'--nh') then ; switch_rad_nh = .true.
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: radial "//trim(arg) ; end if
 
 end subroutine read_radial_arg

@@ -2,7 +2,7 @@ module MOD_radial
 
 contains
 
-subroutine radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf)
+subroutine radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf,switch_rad_nh)
 
 implicit none
 
@@ -14,7 +14,7 @@ real, allocatable :: rad(:), rad_norm(:), rad_pdf(:)
 character(4), allocatable :: sym(:)
 character(*), allocatable :: resname(:)
 character(20) :: rad_ws(2)
-logical(1) :: ws1_mol
+logical(1) :: ws1_mol, switch_rad_nh
 
 ! Local
 integer :: i
@@ -66,28 +66,30 @@ allocate(rad_norm(rad_bins),rad_pdf(rad_bins))
 rad_norm(:)=0.0d0
 rad_pdf(:)=0.0d0
 
-open(unit=170, file='hin_structure.out.radial.nh', status='unknown')
+if (switch_rad_nh) then
+  open(unit=170, file='hin_structure.out.radial.nh', status='unknown')
+endif
 
 end subroutine radial_alloc
 
 
-subroutine radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf,dostuff)
+subroutine radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf,switch_rad_nh,rad_nh_cut,dostuff)
 
 implicit none
 
 ! Arguments
 integer :: cart, rad_bins, dostuff
 integer, allocatable :: list_rad_ws(:,:), n_rad_ws(:)
-real :: icell(cart*cart), dr, half_dr, fact
+real :: icell(cart*cart), dr, half_dr, fact, rad_nh_cut
 real, allocatable :: pos(:,:), rad(:), rad_norm(:), rad_pdf(:)
-logical(1) :: ws1_mol, switch_rad_pdf
+logical(1) :: ws1_mol, switch_rad_pdf, switch_rad_nh
 
 ! Local
 integer :: i, j, k, i_spc, j_spc, n_images=27, rad_count
 integer, allocatable :: rad_sum(:)
 real :: i_pos(3), j_pos(3), xdf, ydf, zdf, r_ij, r2, cell_vol, cell_dens, rad_tmp, rad_tmp2
 real, allocatable :: rad_dist(:), min_image(:)
-real(8), parameter :: pi=4.0d0*datan(1.0d0), pi4=4.0d0*pi, rad_cut=0.3292d0
+real(8), parameter :: pi=4.0d0*datan(1.0d0), pi4=4.0d0*pi
 
 allocate(rad_sum(rad_bins),rad_dist(n_rad_ws(2)),min_image(n_images))
 rad_sum(:)=0
@@ -134,13 +136,16 @@ if (ws1_mol) then ! Binning for cases where ws1 is a molecule/residue/group of a
   enddo
 endif
 
-rad_count=0
-do i=1, n_rad_ws(2)
-  if (rad_dist(i).le.rad_cut) then
-    rad_count=rad_count+1
-  endif
-enddo
-write(170,'(i8,i6)') dostuff, rad_count ! frame number, number waters within radius rad_cut
+! Calculate hydration number using rad_nh_cut
+if (switch_rad_nh) then
+  rad_count=0
+  do i=1, n_rad_ws(2)
+    if (rad_dist(i).le.rad_nh_cut) then
+      rad_count=rad_count+1
+    endif
+  enddo
+  write(170,'(i8,i6)') dostuff, rad_count ! frame number, number Ow within radius rad_nh_cut (i.e. hydration number)
+endif
 
 ! Use for finding minimum distance in all images/for things with spatial extent
 ! do i=1,n_rad_ws(2)

@@ -120,10 +120,10 @@ logical(1) :: switch_electro=.false.
 real :: e_zmin=0.0, e_zmax=10.0, e_dz=0.1
 
 ! RADIAL
-logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false., switch_rad_pdf=.false.
+logical(1) :: switch_rad=.false., switch_rad_cn=.false., switch_rad_smooth=.false., switch_rad_pdf=.false., switch_rad_nh=.false.
 character(20) :: rad_ws(2)
 integer :: rad_bins=200
-real :: rad_min=0.0, rad_max=2.0
+real :: rad_min=0.0, rad_max=2.0, rad_nh_cut=0.0
 
 ! HYDRATION
 logical(1) :: switch_nh=.false.
@@ -152,7 +152,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_zdens, zmin, zmax, dz, switch_xyfes, xymin, xymax, nxy, &
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
-                switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, rad_ws, rad_bins, rad_min, rad_max, &
+                switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, &
                 switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut)
 
 if (lframe.eq.-1) then
@@ -232,7 +232,7 @@ if (switch_q(4).or.switch_qd(4).or.switch_qt(4)) call bondorder_alloc(4)
 if (switch_q(6).or.switch_qd(6).or.switch_qt(6)) call bondorder_alloc(6)
 
 if (switch_rad) then
-  call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf)
+  call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf,switch_rad_nh)
 end if
 
 if (switch_nh) then
@@ -330,7 +330,7 @@ do while ( STAT==0 )
            write(99,*) "Something is wrong with the input file..."
            write(99,'(a,f10.4,a,f10.4,a)') " Radial -max (", rad_max, ") must be smaller than half the cell length (", icell(1)/2.0, ")" ; stop
          end if
-         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf,dostuff)
+         call radial(cart,icell,pos,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,fact,rad_pdf,switch_rad_pdf,switch_rad_nh,rad_nh_cut,dostuff)
 
       end if
       if (switch_nh) then
