@@ -110,11 +110,11 @@ subroutine hist_output(hist_x, hist_min, hist_max, hist_nbins, hist_counts)
       binstart = binend
       binend = binstart + binsize
       if (hist_counts(2,i).gt.0) then
-        frac = hist_counts(1,i)/hist_counts(2,i)
+        frac = real(hist_counts(1,i))/real(hist_counts(2,i))
       else
         frac = 0
       end if
-      write(111,'(F9.5,X,F9.5,X,E9.4,X,E9.4,X,F9.7)') binstart, binend, hist_counts(1,i), hist_counts(2,i), frac
+      write(111,'(F9.5,X,F9.5,X,E9.4,X,E9.4,X,F9.7)') binstart, binend, real(hist_counts(1,i)), real(hist_counts(2,i)), frac
    end do
 
 end subroutine hist_output
