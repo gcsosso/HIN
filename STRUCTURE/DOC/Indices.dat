@@ -15,7 +15,8 @@ This is a record of the file indices used in Fortran.  Please update with any ne
      108 : hin_structure.out.rings.hex 					[module_rings.f90]
      109 : hin_structure.out.cls.color 					[module_clusters.f90]
      110 : hin_structure.out.cls.lambda 					[module_clusters.f90]
- 111-162 : ***unused***
+     111 : hin_structure.out.hist                           [module_hist.f90]
+ 110-162 : ***unused***
      163 : hin_structure.out.gr							      [module_output.f90]
      164 : hin_structure.out.hydration						[module_output.f90]
      165 : hin_structure.out.hydration.color      [module_hydration.f90]

@@ -97,3 +97,17 @@ AXIS     OW MW                                                         # define 
 O_ZMIN    0.0                                                          # if WMOL = HO4 (or any other water...), than we get profiles along z... else dummy
 O_ZMAX   30.0
 O_DZ     0.1
+
+# Q Order
+Q3   no
+Q4   no
+Q6   no
+Q_LOCAL   no
+Q_DELLAGO   no
+Q_TIANSHU   no
+Q_ZMIN   10.2
+Q_ZMAX   18.0
+Q_CUT    0.32
+QD_CUT   0.7
+QT_CUT   0.32
+MAX_COORD 30

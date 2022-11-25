@@ -266,12 +266,35 @@ subroutine read_solv_arg(arg,eflag,log_errors,s_rcut)
    implicit none
 
    real :: s_rcut
-   logical(1) :: eflag, log_errors,switch_color
+   logical(1) :: eflag, log_errors, switch_color
    character(*) :: arg
 
-   if (arg(1:8).eq.'-s_rcut=') then ; call read_arg(arg(9:), 0, s_rcut, '', 'real', 'srcut', eflag)
+   if (arg(1:8).eq.'-s_rcut=') then ; call read_arg(arg(9:), 0, s_rcut, '', 'real', 's_rcut', eflag)
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: solv "//trim(arg) ; end if
-endsubroutine read_solv_arg
+
+end subroutine read_solv_arg
+
+
+
+subroutine read_hist_arg(arg,eflag,log_errors,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
+
+   implicit none
+
+   logical(1) :: eflag, log_errors
+   character(*) :: arg
+   character(5) :: hist_x
+   character(20) :: hist_centre
+	real :: hist_min, hist_max
+   integer :: hist_nbins
+
+   if (arg(1:3).eq.'-x=') then ; call read_arg(arg(4:), 0, 0.0, hist_x, 'str', 'x', eflag)
+   else if (arg(1:8).eq.'-centre=') then ; call read_arg(arg(9:), 0, 0.0, hist_centre, 'str', 'centre', eflag)
+   else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, hist_min, '', 'real', 'min', eflag)
+   else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, hist_max, '', 'real', 'max', eflag)
+   else if (arg(1:7).eq.'-nbins=') then ; call read_arg(arg(8:), hist_nbins, 0.0, '', 'int', 'nbins', eflag)
+   else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: hist "//trim(arg) ; end if
+
+end subroutine read_hist_arg
 
 
 

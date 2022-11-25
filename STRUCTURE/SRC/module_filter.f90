@@ -2,42 +2,29 @@ module MOD_filter
 
 contains
 
-subroutine initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
+subroutine initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs, filter)
 
    implicit none
 
-   logical(1) :: tmp_ws_ast, centre_range
-   integer :: nat, ns, i, j, tmp_ws_len, n_all_ws, n_cs, delim_index, centre_start, centre_end
+   logical(1) :: tmp_ws_ast
+   integer :: nat, ns, i, j, tmp_ws_len, n_all_ws, n_cs
    integer, allocatable :: n_ws(:), list_ws(:,:), list_all_ws(:), list_cs(:)
-   character(1) :: delim=':'
    character(5) :: tmp_ws
    character(4), allocatable :: sym(:), ws(:)
    character*5, allocatable :: resname(:)
    character(20) :: centre
+	character(*) :: filter
 
    allocate(list_ws(ns,nat), n_ws(ns), list_all_ws(nat), list_cs(nat))
    n_ws(:) = 0
    n_all_ws = 0
    n_cs = 0
 
-   ! -centre input can be provided as atom index range or residue name
-   if (verify(delim,centre).eq.0) then ! If colon detected then interpret as a index range
-     centre_range = .true.
-     delim_index = scan(centre,delim)
-     read(centre(1:delim_index-1),*) centre_start
-     read(centre(delim_index+1:),*) centre_end
-   else ; centre_range = .false. ; end if ! Otherwise interpret as resname
+   if (filter.eq.'shell') call read_shell_centre(nat, centre, resname, n_cs, list_cs)
 
    do i=1,nat
       ! Filter by ws. An * can be used at the end of a species name to select anything with the same starting characters.
       ! E.g. HW* for both HW1 and HW2.
-      if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
-      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
-      end if
       do j=1,ns
          tmp_ws_ast = .false.
          tmp_ws = ws(j)
@@ -74,10 +61,11 @@ subroutine frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_a
    allocate(filt_param(n_all_ws), qlb_io(n_filtered(1)))
    
    if (filter.eq.'index') then
-      n_filtered = C_size(counter+1)
+      n_filtered(1) = C_size(counter+1)
+      n_filtered(2) = n_all_ws
       allocate(list_filtered(2,n_filtered(1)))
       list_filtered(1,:) = C_idx(counter+1,1:n_filtered(1))
-      list_filtered(2,:) = C_idx(counter+1,1:n_filtered(1))
+      list_filtered(2,:) = list_all_ws
    else
       n_filtered = 0
       allocate(list_filtered(2,n_all_ws))
@@ -109,11 +97,12 @@ subroutine filter_z(i, zmin, zmax, op_max_cut, zpos, n_filtered, list_filtered, 
 
    if ((zpos.ge.zmin).and.(zpos.le.zmax)) then
       n_filtered(1) = n_filtered(1) + 1 ; n_filtered(2) = n_filtered(2) + 1
-      list_filtered(1,n_filtered) = i ; list_filtered(2,n_filtered) = i
-      filt_param(n_filtered) = zpos
+      list_filtered(1,n_filtered(1)) = i ; list_filtered(2,n_filtered(2)) = i
+      filt_param(n_filtered(1)) = zpos
    else if ((zpos.ge.(zmin-op_max_cut)).and.(zpos.le.(zmax+op_max_cut))) then
       n_filtered(2) = n_filtered(2) + 1
-      list_filtered(2,n_filtered) = i
+      list_filtered(2,n_filtered(2)) = i
+      list_filtered(2,n_filtered(2)) = i
    end if
 
 end subroutine filter_z
@@ -156,5 +145,36 @@ subroutine filter_shell(i, rmin, rmax, op_max_cut, n_filtered, list_filtered, fi
   end if
 
 end subroutine filter_shell
+
+subroutine read_shell_centre(nat, centre, resname, n_cs, list_cs)
+
+   implicit none
+
+   logical(1) :: centre_range
+   integer :: nat, i, n_cs, delim_index, centre_start, centre_end
+   integer, allocatable :: list_cs(:)
+   character(1) :: delim=':'
+   character*5, allocatable :: resname(:)
+   character(20) :: centre
+
+   ! -centre input can be provided as atom index range or residue name
+   if (verify(delim,centre).eq.0) then ! If colon detected then interpret as a index range
+     centre_range = .true.
+     delim_index = scan(centre,delim)
+     read(centre(1:delim_index-1),*) centre_start
+     read(centre(delim_index+1:),*) centre_end
+   else ; centre_range = .false. ; end if ! Otherwise interpret as resname
+
+   do i=1,nat
+      if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
+        n_cs = n_cs + 1
+        list_cs(n_cs) = i
+      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
+        n_cs = n_cs + 1
+        list_cs(n_cs) = i
+      end if
+	end do
+
+end subroutine read_shell_centre
 
 end module MOD_filter

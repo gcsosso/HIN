@@ -15,8 +15,8 @@ XTC_INTERFACE_DIR=../../XTC_INTERFACE
 BIN_DIR=../BIN
 EXE_MAC=hin_structure_MacOS.x
 
-mac: set-exe xtc-interface.o module_read_input_args.o module_read_input.o module_filter.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_radial.o module_hydration.o module_temp.o module_color.o module_solvation.o module_output.o hin_structure.o nn.o images.o
-	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input_args.o module_read_input.o module_filter.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_radial.o module_hydration.o module_temp.o module_color.o module_solvation.o module_output.o hin_structure.o nn.o images.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
+mac: set-exe xtc-interface.o module_read_input_args.o module_read_input.o module_filter.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_radial.o module_hydration.o module_temp.o module_color.o module_solvation.o module_hist.o module_output.o hin_structure.o nn.o images.o
+	$(FC_MAC) $(FFLAGS_MAC) xtc-interface.o module_read_input_args.o module_read_input.o module_filter.o module_zdens.o module_xyfes.o module_dfs.o module_vector3.o module_rings.o module_clusters.o module_clathrates.o module_bonds.o module_electro.o module_order.o module_bondorder.o module_radial.o module_hydration.o module_temp.o module_color.o module_solvation.o module_hist.o module_output.o hin_structure.o nn.o images.o $(LDLIBS_MAC) -o $(BIN_DIR)/$(EXE_MAC)
 xtc-interface.mod: $(XTC_INTERFACE_DIR)/xtc-interface.o $(XTC_INTERFACE_DIR)/xtc-interface.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(XTC_INTERFACE_DIR)/xtc-interface.f90
 xtc-interface.o: $(XTC_INTERFACE_DIR)/xtc-interface.f90
@@ -96,7 +96,11 @@ module_color.o: $(SRC_DIR)/module_color.f90
 module_solvation.mod: $(SRC_DIR)/module_solvation.o $(SRC_DIR)/module_solvation.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90
 module_solvation.o: $(SRC_DIR)/module_solvation.f90
-	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90	
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_solvation.f90		
+module_hist.mod: $(SRC_DIR)/module_hist.o $(SRC_DIR)/module_hist.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_hist.f90
+module_hist.o: $(SRC_DIR)/module_hist.f90
+	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_hist.f90
 module_output.mod: $(SRC_DIR)/module_output.o $(SRC_DIR)/module_output.f90
 	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_output.f90
 module_output.o: $(SRC_DIR)/module_output.f90

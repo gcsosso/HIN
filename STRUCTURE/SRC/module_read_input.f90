@@ -13,7 +13,8 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
                       switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                       f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                       switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, &
-                      switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut)
+                      switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut, &
+							 switch_hist,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
 
    implicit none
    integer, parameter :: LINE_LEN=255, MAX_ARGS=31, CATEGORIES=15
@@ -94,6 +95,14 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
    ! SOLVATION
    logical(1) :: switch_solv
    real :: s_rcut
+
+   ! HISTOGRAM
+   logical(1) :: switch_hist
+   character(5) :: hist_x
+   character(20) :: hist_centre
+	real :: hist_min, hist_max
+   integer :: hist_nbins
+   
 
    read_loc(:) = 0
 
@@ -228,6 +237,11 @@ subroutine read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outx
          switch_solv = .true.
          do j=2,num_args(i) ; if (args(i,j).eq.'') exit
             call read_solv_arg(args(i,j),eflag, .true._1 ,s_rcut)
+         end do
+      else if (args(i,1).eq.'hist') then
+         switch_hist = .true.
+         do j=2,num_args(i) ; if (args(i,j).eq.'') exit
+            call read_hist_arg(args(i,j),eflag, .true._1 ,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
          end do
       else ; eflag = .true. ; write(99,*) "I don't understand the argument: "//trim(args(i,1)) ; end if
    end do

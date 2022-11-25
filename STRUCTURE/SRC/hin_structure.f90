@@ -19,6 +19,8 @@ use MOD_temp
 use MOD_filter
 use MOD_color
 use MOD_solvation
+use MOD_hist
+
 implicit none
 
 integer :: NFRAMES, EST_NFRAMES
@@ -140,6 +142,14 @@ real :: ts
 logical(1) :: switch_solv=.false.
 real :: s_rcut
 
+! HISTOGRAM
+logical(1) :: switch_hist=.false.
+character(5) :: hist_x='z'
+character(20) :: hist_centre='none'
+real :: hist_min=0.0, hist_max=1.0
+integer, allocatable :: hist_counts(:,:), list_hist_cs(:)
+integer :: hist_nbins=100, n_hist_cs
+
 ! Open the .log file
 open(unit=99, file='hin_structure.log', status='unknown')
 
@@ -153,7 +163,8 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 switch_cls, switch_f_cls, switch_cls_stat, plumed_exe, vmd_exe, &
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, &
-                switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut)
+                switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut, &
+					 switch_hist,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -169,7 +180,7 @@ call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws
 if (filter.eq.'index') then
    call read_cls_idx(lframe, fframe, stride, C_size, C_idx, nat)
 else if (ns.gt.0) then
-   call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs)
+   call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs, filter)
 end if
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
@@ -235,10 +246,9 @@ if (switch_rad) then
   call radial_alloc(nat,sym,resname,rad_ws,rad_min,rad_max,rad_bins,list_rad_ws,n_rad_ws,dr,half_dr,rad,rad_norm,ws1_mol,rad_pdf,switch_rad_nh)
 end if
 
-if (switch_nh) then
-  !call hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
-  call hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
-end if
+if (switch_nh) call hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
+
+if (switch_hist) call hist_alloc(nat,hist_centre,resname,n_hist_cs,list_hist_cs,hist_x,hist_nbins,hist_counts)
 
 !if (switch_temp) then
 !   call temp_alloc(nat)
@@ -261,7 +271,7 @@ do while ( STAT==0 )
    if (mod(counter,stride).eq.0.and.counter.ge.fframe.and.counter.le.lframe) then
       write(99,'(a,f18.6,a,i0,a,i0)') " Time (ps): ", time, "  Step: ", STEP, " Frame: ", counter
       dostuff=dostuff+1
-      if (switch_op.or.switch_electro.or.switch_nh) then
+      if (switch_op.or.switch_electro.or.switch_nh.or.switch_hist) then
          call frame_filter(filter, filt_min, filt_max, op_max_cut, n_all_ws, list_all_ws, n_filtered, list_filtered, sym, ns, &
                            pos, filt_param, qlb_io, n_cs, list_cs, cart, icell, C_size, C_idx, counter)
       end if
@@ -346,6 +356,9 @@ do while ( STAT==0 )
       if (switch_t_order) then
         call t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
       end if
+		
+		if (switch_hist) call hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hist_max, hist_nbins, &
+	 				 						n_filtered, list_filtered, hist_counts, cart, icell)
 
       if (switch_temp) then
          if (counter.eq.0) then
@@ -398,6 +411,8 @@ call output(dostuff,lframe,fframe,stride,switch_outxtc,ns,ws,n_ws,zmesh,dens,nz,
                   switch_th,switch_water,o_nz,o_zmesh,w_order,zop_AVE,stat_nr_HB_AVE,switch_hbck, &
                   switch_rad,switch_rad_cn,switch_rad_smooth,rad_bins,dr,rad,n_rad_ws,rad_norm,icell,ws1_mol,rad_pdf,switch_rad_pdf, &
                   switch_nh,nh_r,nh_mol,nh_atm,n_nw,w_hb,sum_hb_bonds,sum_hb_filt)
+
+if (switch_hist) call hist_output(hist_x, hist_min, hist_max, hist_nbins, hist_counts)
 
 STAT=xdrfile_close(xd)
 
