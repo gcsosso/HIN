@@ -26,7 +26,7 @@ subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x
 		stop
 	end if
 	
-	allocate(hist_counts(2,hist_nbins))
+	allocate(hist_counts(2,hist_nbins), list_hist_cs(nat))
 	hist_counts(:,:) = 0
 
 end subroutine hist_alloc
@@ -115,32 +115,32 @@ end subroutine hist_output
 
 
 
-subroutine read_shell_centre(nat, centre, resname, n_cs, list_cs)
+subroutine read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
 
    implicit none
 
    logical(1) :: centre_range
-   integer :: nat, i, n_cs, delim_index, centre_start, centre_end
-   integer, allocatable :: list_cs(:)
+   integer :: nat, i, n_hist_cs, delim_index, centre_start, centre_end
+   integer, allocatable :: list_hist_cs(:)
    character(1) :: delim=':'
    character*5, allocatable :: resname(:)
-   character(20) :: centre
+   character(20) :: hist_centre
 
    ! -centre input can be provided as atom index range or residue name
-   if (verify(delim,centre).eq.0) then ! If colon detected then interpret as a index range
+   if (verify(delim,hist_centre).eq.0) then ! If colon detected then interpret as a index range
      centre_range = .true.
-     delim_index = scan(centre,delim)
+     delim_index = scan(hist_centre,delim)
      read(centre(1:delim_index-1),*) centre_start
      read(centre(delim_index+1:),*) centre_end
    else ; centre_range = .false. ; end if ! Otherwise interpret as resname
 
    do i=1,nat
       if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
-      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
+        n_hist_cs = n_hist_cs + 1
+        list_hist_cs(n_hist_cs) = i
+      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(hist_centre)))) then ;
+        n_hist_cs = n_hist_cs + 1
+        list_hist_cs(n_hist_cs) = i
       end if
 	end do
 
