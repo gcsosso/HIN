@@ -1,0 +1,12 @@
+HBOND_COORD SPECIES=515-28423:4 HYDROGENS=516-28424:4,517-28425:4 RCUTOO=0.324 RCUTOH=0.25 ACUT=0.20pi LABEL=hb # Criteria for the HB
+MFILTER_BETWEEN DATA=hb LOWER=3.9 UPPER=4.1 SMEAR=0.0 LABEL=rsumsb # Selecting those oxygens with 4 HB
+Q6 SPECIES=rsumsb                SWITCH={GAUSSIAN D_0=0.324  R_0=0.00001 D_MAX=0.3241} LABEL=q6  LOWMEM # Q6 for this particular subset -> 1st shell
+LOCAL_Q6 DATA=q6              SWITCH={GAUSSIAN D_0=0.324  R_0=0.00001 D_MAX=0.3241} LABEL=lq6 LOWMEM # LQ6 for this particular subset -> 1st shell
+MFILTER_MORE DATA=lq6            SWITCH={GAUSSIAN D_0=0.45   R_0=0.00001 D_MAX=0.4501} LABEL=cf  # Selecting atoms with a certain LQ6
+CONTACT_MATRIX ATOMS=cf          SWITCH={GAUSSIAN D_0=0.324  R_0=0.00001 D_MAX=0.3241} LABEL=mat # Create a contact matrix based on distance -> 1st shell
+DFSCLUSTERING MATRIX=mat LABEL=cls SERIAL # Clustering, based on MFILTER_MORE and CONTACT_MATRIX
+CLUSTER_WITHSURFACE CLUSTERS=cls RCUT_SURF=0.324 LABEL=scls SERIAL # Includes surface atoms
+
+OUTPUT_CLUSTER CLUSTERS=scls CLUSTER=1 STRIDE=1 FILE=op_ffs.dat
+
+FLUSH STRIDE=1

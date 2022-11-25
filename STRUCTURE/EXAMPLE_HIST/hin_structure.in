@@ -1,0 +1,3 @@
+trajectory --progress -sfile=conf.gro -tfile=traj.xtc --noxtc
+species -OW -filter=index
+hist -x=shell -centre=1:514 -max=6 -nbins=60
