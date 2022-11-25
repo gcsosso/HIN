@@ -379,7 +379,7 @@ do while ( STAT==0 )
         endif
       end if
 
-      if (switch_op.or.switch_electro.or.switch_nh) deallocate(list_filtered, filt_param, qlb_io)
+      if (switch_op.or.switch_electro.or.switch_nh.or.switch_hist) deallocate(list_filtered, filt_param, qlb_io)
    end if
 
       if (switch_solv) then
