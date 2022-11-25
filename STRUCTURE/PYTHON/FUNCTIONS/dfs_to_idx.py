@@ -17,4 +17,4 @@ with open(idx_file, 'w+') as o:
         if i % 2:
             for idx in lines[i][18:].split(): o.write('{} '.format(int(idx)+1))
             o.write('\n')
-        else: o.write('{} '.format(lines[i].split()[-1]))'''
+        else: o.write('{} '.format(lines[i].split()[-1]))
