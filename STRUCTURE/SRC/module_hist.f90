@@ -15,6 +15,8 @@ subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x
 	character(5) :: hist_x
 
    write(99,*) 'We are calculating the histogram.'
+   
+	allocate(list_hist_cs(nat))
    open(unit=111, file='hin_structure.out.hist', status='unknown')
 	if (hist_x.eq.'shell') then
 		call read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
@@ -26,7 +28,7 @@ subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x
 		stop
 	end if
 	
-	allocate(hist_counts(2,hist_nbins), list_hist_cs(nat))
+	allocate(hist_counts(2,hist_nbins))
 	hist_counts(:,:) = 0
 
 end subroutine hist_alloc
