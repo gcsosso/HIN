@@ -177,11 +177,8 @@ hbdist2 = hbdist**2.0
 call read_gro(sfile,nat,sym,list_ws,list_r_ws,r_color,kto,switch_rings,r_ns,r_ws,r_wr,n_r_ws, &
               natformat,ns,resnum,resname,idx,dummyp,ws,list_f_ow,n_f_ow,switch_op,coloring,list_s_ws,current_coord)
 
-if (filter.eq.'index') then
-   call read_cls_idx(lframe, fframe, stride, C_size, C_idx, nat)
-else if (ns.gt.0) then
-   call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs, filter)
-end if
+if (filter.eq.'index') call read_cls_idx(lframe, fframe, stride, C_size, C_idx, nat)
+if (ns.gt.0) call initial_filter(nat, ns, ws, n_ws, list_ws, sym, n_all_ws, list_all_ws, centre, resname, n_cs, list_cs, filter)
 
 !! JPCL stuff : read the flags that tell you whether a conf. is surviving or dying
 !open(unit=877, file='flags.dat', status='old')
