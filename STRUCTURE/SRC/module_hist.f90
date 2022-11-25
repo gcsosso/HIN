@@ -130,8 +130,8 @@ subroutine read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
    if (verify(delim,hist_centre).eq.0) then ! If colon detected then interpret as a index range
      centre_range = .true.
      delim_index = scan(hist_centre,delim)
-     read(centre(1:delim_index-1),*) centre_start
-     read(centre(delim_index+1:),*) centre_end
+     read(hist_centre(1:delim_index-1),*) centre_start
+     read(hist_centre(delim_index+1:),*) centre_end
    else ; centre_range = .false. ; end if ! Otherwise interpret as resname
 
    do i=1,nat
