@@ -102,7 +102,7 @@ subroutine hist_output(hist_x, hist_min, hist_max, hist_nbins, hist_counts)
       write(99,*) "We have calculated the histogram from the index file as a function of z."
    end if
    
-   write(111,*) "  start  |   end   | No. icy |Total No.| Fraction"
+   write(111,*) "   Start   |    End    |  No. icy  | Total No. |  Fraction"
    
    binend = hist_min
    binsize = (hist_max-hist_min)/real(hist_nbins)
@@ -114,7 +114,7 @@ subroutine hist_output(hist_x, hist_min, hist_max, hist_nbins, hist_counts)
       else
         frac = 0
       end if
-      write(111,'(F9.5,X,F9.5,X,E9.4,X,E9.4,X,F9.7)') binstart, binend, real(hist_counts(1,i)), real(hist_counts(2,i)), frac
+      write(111,'(F11.7,X,F11.7,X,E11.4,X,E11.4,X,F11.9)') binstart, binend, real(hist_counts(1,i)), real(hist_counts(2,i)), frac
    end do
 
 end subroutine hist_output
