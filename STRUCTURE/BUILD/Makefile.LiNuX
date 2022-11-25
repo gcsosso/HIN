@@ -101,9 +101,9 @@ module_solvation.mod: $(SRC_DIR)/module_solvation.o $(SRC_DIR)/module_solvation.
 module_solvation.o: $(SRC_DIR)/module_solvation.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_solvation.f90	
 module_hist.mod: $(SRC_DIR)/module_hist.o $(SRC_DIR)/module_hist.f90
-	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_hist.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_hist.f90
 module_hist.o: $(SRC_DIR)/module_hist.f90
-	$(FC_MAC) $(FFLAGS_MAC) -c $(SRC_DIR)/module_hist.f90
+	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_hist.f90
 module_output.mod: $(SRC_DIR)/module_output.o $(SRC_DIR)/module_output.f90
 	$(FC_LINUX) $(FFLAGS_LINUX) -c $(SRC_DIR)/module_output.f90
 module_output.o: $(SRC_DIR)/module_output.f90
