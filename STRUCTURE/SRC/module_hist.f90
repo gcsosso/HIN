@@ -75,7 +75,7 @@ subroutine hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hi
 				dsq = dx*dx + dy*dy + dz*dz
 				if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
 				 	bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
-					hist_counts(1,bin) = hist_counts(2,bin) + 1
+					hist_counts(2,bin) = hist_counts(2,bin) + 1
 				end if
 			 end do
 		 end do
@@ -109,7 +109,11 @@ subroutine hist_output(hist_x, hist_min, hist_max, hist_nbins, hist_counts)
    do i=1,hist_nbins
       binstart = binend
       binend = binstart + binsize
-      frac = hist_counts(1,i)/hist_counts(2,i)
+      if (hist_counts(2,i).gt.0) then
+        frac = hist_counts(1,i)/hist_counts(2,i)
+      else
+        frac = 0
+      end if
       write(111,'(F9.5,X,F9.5,X,E9.4,X,E9.4,X,F9.7)') binstart, binend, hist_counts(1,i), hist_counts(2,i), frac
    end do
 
