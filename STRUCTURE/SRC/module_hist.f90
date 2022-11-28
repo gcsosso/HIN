@@ -19,7 +19,7 @@ subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x
 	allocate(list_hist_cs(nat))
    open(unit=111, file='hin_structure.out.hist', status='unknown')
 	if (hist_x.eq.'shell') then
-		call read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
+		call read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
 	else if (hist_x.eq.'z') then
 		write(99,*) "Slab based histogram computing is not yet implemented."
 		stop
@@ -123,7 +123,7 @@ end subroutine hist_output
 
 
 
-subroutine read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
+subroutine read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
 
    implicit none
 
@@ -152,6 +152,6 @@ subroutine read_shell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
       end if
 	end do
 
-end subroutine read_shell_centre
+end subroutine read_hshell_centre
 
 end module MOD_hist
