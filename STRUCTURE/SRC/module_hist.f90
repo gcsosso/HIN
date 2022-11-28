@@ -43,41 +43,43 @@ subroutine hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hi
    character*5, allocatable :: resname(:), list_all_ws(:)
 	character(5) :: hist_x
 	real, allocatable :: pos(:,:)
-	real :: hist_min, hist_max, dx, dy, dz, dsq
+	real :: hist_min, hist_max, dx, dy, dz, dsq, tmp_dsq
 	real :: icell(cart*cart)
 	
 	if (hist_x.eq.'shell') then
 		 do i=1,n_filtered(1)
 			 ii = list_filtered(1,i)
+          dsq = hist_max*hist_max+1
 			 do j=1,n_hist_cs
 				jj = list_hist_cs(j)
-
 				dx = pos(1,ii)-pos(1,jj)
 				dy = pos(2,ii)-pos(2,jj)
 				dz = pos(3,ii)-pos(3,jj)
 				call images(cart,0,1,1,icell,dx,dy,dz)
-				dsq = dx*dx + dy*dy + dz*dz
-				if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
-				 	bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
-					hist_counts(1,bin) = hist_counts(1,bin) + 1
-				end if
-			 end do
+				tmp_dsq = dx*dx + dy*dy + dz*dz
+            if (tmp_dsq.lt.dsq) dsq = tmp_dsq
+          end do
+          if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
+            bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
+            hist_counts(1,bin) = hist_counts(1,bin) + 1
+          end if
 		 end do
 		 do i=1,n_filtered(2)
 			 ii = list_filtered(2,i)
+          dsq = hist_max*hist_max+1
 			 do j=1,n_hist_cs
 				jj = list_hist_cs(j)
-
 				dx = pos(1,ii)-pos(1,jj)
 				dy = pos(2,ii)-pos(2,jj)
 				dz = pos(3,ii)-pos(3,jj)
 				call images(cart,0,1,1,icell,dx,dy,dz)
-				dsq = dx*dx + dy*dy + dz*dz
-				if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
-				 	bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
-					hist_counts(2,bin) = hist_counts(2,bin) + 1
-				end if
-			 end do
+				tmp_dsq = dx*dx + dy*dy + dz*dz
+            if (tmp_dsq.lt.dsq) dsq = tmp_dsq
+          end do
+          if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
+				bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
+				hist_counts(2,bin) = hist_counts(2,bin) + 1
+          end if
 		 end do
 	else if (hist_x.eq.'z') then
 		! Slab based histogram to go here
