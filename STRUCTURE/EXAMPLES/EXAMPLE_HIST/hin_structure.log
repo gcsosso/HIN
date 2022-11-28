@@ -1,0 +1,29 @@
+ We are calculating the histogram.
+ Time (ps):      200000.000000  Step: 100000000 Frame: 0
+ Time (ps):      204000.000000  Step: 102000000 Frame: 1
+ Time (ps):      208000.000000  Step: 104000000 Frame: 2
+ Time (ps):      212000.000000  Step: 106000000 Frame: 3
+ Time (ps):      216000.000000  Step: 108000000 Frame: 4
+ Time (ps):      220000.000000  Step: 110000000 Frame: 5
+ Time (ps):      224000.000000  Step: 112000000 Frame: 6
+ Time (ps):      228000.000000  Step: 114000000 Frame: 7
+ Time (ps):      232000.000000  Step: 116000000 Frame: 8
+ Time (ps):      236000.000000  Step: 118000000 Frame: 9
+ Time (ps):      240000.000000  Step: 120000000 Frame: 10
+ Time (ps):      244000.000000  Step: 122000000 Frame: 11
+ Time (ps):      248000.000000  Step: 124000000 Frame: 12
+ Time (ps):      252000.000000  Step: 126000000 Frame: 13
+ Time (ps):      256000.000000  Step: 128000000 Frame: 14
+ Time (ps):      260000.000000  Step: 130000000 Frame: 15
+ Time (ps):      264000.000000  Step: 132000000 Frame: 16
+ Time (ps):      268000.000000  Step: 134000000 Frame: 17
+ Time (ps):      272000.000000  Step: 136000000 Frame: 18
+ Time (ps):      276000.000000  Step: 138000000 Frame: 19
+ Time (ps):      280000.000000  Step: 140000000 Frame: 20
+ Time (ps):      284000.000000  Step: 142000000 Frame: 21
+ Time (ps):      288000.000000  Step: 144000000 Frame: 22
+ Time (ps):      292000.000000  Step: 146000000 Frame: 23
+ Time (ps):      296000.000000  Step: 148000000 Frame: 24
+ Time (ps):      300000.000000  Step: 150000000 Frame: 25
+ We have taken into account           26 frames, from frame            0  to frame           25  with stride            1
+ We have calculated the histogram from the index file as a function of distance from the specified centre.
