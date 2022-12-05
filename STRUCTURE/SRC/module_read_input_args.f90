@@ -276,11 +276,11 @@ end subroutine read_solv_arg
 
 
 
-subroutine read_hist_arg(arg,eflag,log_errors,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
+subroutine read_hist_arg(arg,eflag,log_errors,hist_x,hist_centre,hist_min,hist_max,hist_nbins,switch_hist_noh)
 
    implicit none
 
-   logical(1) :: eflag, log_errors
+   logical(1) :: eflag, log_errors, switch_hist_noh
    character(*) :: arg
    character(5) :: hist_x
    character(20) :: hist_centre
@@ -292,6 +292,7 @@ subroutine read_hist_arg(arg,eflag,log_errors,hist_x,hist_centre,hist_min,hist_m
    else if (arg(1:5).eq.'-min=') then ; call read_arg(arg(6:), 0, hist_min, '', 'real', 'min', eflag)
    else if (arg(1:5).eq.'-max=') then ; call read_arg(arg(6:), 0, hist_max, '', 'real', 'max', eflag)
    else if (arg(1:7).eq.'-nbins=') then ; call read_arg(arg(8:), hist_nbins, 0.0, '', 'int', 'nbins', eflag)
+   else if (arg(1:12).eq.'--nohydrogen') then ; switch_hist_noh = .true.
    else ; eflag = .true. ; if (log_errors) write(99,*) "I don't understand the argument: hist "//trim(arg) ; end if
 
 end subroutine read_hist_arg

@@ -3,23 +3,24 @@ module MOD_hist
 contains
 
 ! Creates output directories and files and reads 
-subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x, hist_nbins, hist_counts)
+subroutine hist_alloc(nat, hist_centre, resname, n_hist_cs, list_hist_cs, hist_x, hist_nbins, hist_counts, switch_hist_noh, sym)
 
    implicit none
 	
-   logical(1) :: tmp_hs_ast
+   logical(1) :: tmp_hs_ast, switch_hist_noh
    integer :: nat, n_hist_cs, hist_nbins
    integer, allocatable :: list_hist_cs(:), hist_counts(:,:)
 	character*5, allocatable :: resname(:)
    character(20) :: hist_centre
 	character(5) :: hist_x
+   character*4, allocatable :: sym(:)
 
    write(99,*) 'We are calculating the histogram.'
    
 	allocate(list_hist_cs(nat))
    open(unit=111, file='hin_structure.out.hist', status='unknown')
 	if (hist_x.eq.'shell') then
-		call read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
+		call read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs, switch_hist_noh, sym)
 	else if (hist_x.eq.'z') then
 		write(99,*) "Slab based histogram computing is not yet implemented."
 		stop
@@ -60,7 +61,7 @@ subroutine hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hi
             if (tmp_dsq.lt.dsq) dsq = tmp_dsq
           end do
           if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
-            bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
+            bin = ceiling((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min))
             hist_counts(1,bin) = hist_counts(1,bin) + 1
           end if
 		 end do
@@ -77,7 +78,7 @@ subroutine hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hi
             if (tmp_dsq.lt.dsq) dsq = tmp_dsq
           end do
           if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
-				bin = floor((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min)) + 1
+				bin = ceiling((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min))
 				hist_counts(2,bin) = hist_counts(2,bin) + 1
           end if
 		 end do
@@ -123,16 +124,17 @@ end subroutine hist_output
 
 
 
-subroutine read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs)
+subroutine read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs, switch_hist_noh, sym)
 
    implicit none
 
-   logical(1) :: centre_range
+   logical(1) :: centre_range, switch_hist_noh
    integer :: nat, i, n_hist_cs, delim_index, centre_start, centre_end
    integer, allocatable :: list_hist_cs(:)
    character(1) :: delim=':'
    character*5, allocatable :: resname(:)
    character(20) :: hist_centre
+   character*4, allocatable :: sym(:)
 
    ! -centre input can be provided as atom index range or residue name
    if (verify(delim,hist_centre).eq.0) then ! If colon detected then interpret as a index range
@@ -144,11 +146,15 @@ subroutine read_hshell_centre(nat, hist_centre, resname, n_hist_cs, list_hist_cs
 
    do i=1,nat
       if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
-        n_hist_cs = n_hist_cs + 1
-        list_hist_cs(n_hist_cs) = i
+        if (.not.switch_hist_noh.or.(sym(i)(1:1).ne.'H')) then
+            n_hist_cs = n_hist_cs + 1
+            list_hist_cs(n_hist_cs) = i
+        end if
       else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(hist_centre)))) then ;
-        n_hist_cs = n_hist_cs + 1
-        list_hist_cs(n_hist_cs) = i
+        if (.not.switch_hist_noh.or.(sym(i)(1:1).ne.'H')) then
+            n_hist_cs = n_hist_cs + 1
+            list_hist_cs(n_hist_cs) = i
+        end if
       end if
 	end do
 

@@ -143,7 +143,7 @@ logical(1) :: switch_solv=.false.
 real :: s_rcut
 
 ! HISTOGRAM
-logical(1) :: switch_hist=.false.
+logical(1) :: switch_hist=.false., switch_hist_noh=.false.
 character(5) :: hist_x='z'
 character(20) :: hist_centre='none'
 real :: hist_min=0.0, hist_max=1.0
@@ -164,7 +164,7 @@ call read_input(ARG_LEN, sfile, tfile, fframe, lframe, stride, switch_outxtc, sw
                 f3_imax, f3_cmax, f4_imax, f4_cmin, ohstride, pmpi, switch_electro, e_zmin, e_zmax, e_dz, &
                 switch_rad, switch_rad_cn, switch_rad_smooth, switch_rad_pdf, switch_rad_nh, rad_ws, rad_bins, rad_min, rad_max, rad_nh_cut, &
                 switch_nh, hb_ws, hb_dist, hb_ang, switch_temp, lag,ts,switch_solv,s_rcut, &
-					 switch_hist,hist_x,hist_centre,hist_min,hist_max,hist_nbins)
+					 switch_hist,hist_x,hist_centre,hist_min,hist_max,hist_nbins,switch_hist_noh)
 
 if (lframe.eq.-1) then
    STAT=read_xtc_n_frames(trim(adjustl(tfile))//C_NULL_CHAR, NFRAMES, EST_NFRAMES, OFFSETS)
@@ -245,7 +245,7 @@ end if
 
 if (switch_nh) call hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
 
-if (switch_hist) call hist_alloc(nat,hist_centre,resname,n_hist_cs,list_hist_cs,hist_x,hist_nbins,hist_counts)
+if (switch_hist) call hist_alloc(nat,hist_centre,resname,n_hist_cs,list_hist_cs,hist_x,hist_nbins,hist_counts,switch_hist_noh,sym)
 
 !if (switch_temp) then
 !   call temp_alloc(nat)
