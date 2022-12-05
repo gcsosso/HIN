@@ -20,7 +20,7 @@ if len(sys.argv) > 1:
                 min_size = int(sys.argv[4])
 
 with open('{}_{}.dat'.format(dfs_file,N), 'r') as f: lines = f.readlines()
-lentraj = len(lines)/2
+lentraj = int(len(lines)/2)
 with open(idx_file, 'w+') as o:
     for i in range(lentraj):
         line_count = 0
