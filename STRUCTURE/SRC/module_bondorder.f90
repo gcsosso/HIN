@@ -49,7 +49,7 @@ subroutine bondorder(l, q_cut, qd_cut, qt_cut, counter, list_filtered, n_filtere
    real(dp) :: ql_mol(n_filtered(1)), qlb_mol(n_filtered(1)), qlt_mol(n_filtered(1))
    real(dp) :: t4_mol(n_filtered(1)), t4_col(nat)
    integer :: size_first(n_filtered(2))
-   real(dp) :: qlb_io(:)
+   real(dp), allocatable :: qlb_io(:)
    real(dp) :: ql_atom, qlb_atom, qlt_atom
    character*100 :: n_mol_format
    character*4 :: sym(:)
