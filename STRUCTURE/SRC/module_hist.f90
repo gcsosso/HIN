@@ -79,6 +79,7 @@ subroutine hist(nat, hist_x, n_hist_cs, list_hist_cs, resname, pos, hist_min, hi
           end do
           if ((dsq.lt.(hist_max*hist_max)).and.(dsq.ge.(hist_min*hist_min))) then
 				bin = ceiling((sqrt(dsq)*real(hist_nbins))/(hist_max-hist_min))
+            if (bin.eq.0) bin = 1
 				hist_counts(2,bin) = hist_counts(2,bin) + 1
           end if
 		 end do
