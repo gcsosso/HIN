@@ -341,12 +341,6 @@ do while ( STAT==0 )
 
       end if
       if (switch_nh) then
-        !call h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
-        ! if (w_hb.eq.1) then
-        !   call hbond1(sym,pos,cart,icell,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,hb_dist,hb_ang)
-        ! else
-        !   call hbond2(sym,pos,cart,icell,n_filtered,list_filtered,n_hb_bonds,list_hb_bonds,sum_hb_bonds,sum_hb_filt,hb_dist,hb_ang)
-        ! endif
         call hbond(sym,pos,cart,icell,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,n_filtered,list_filtered,sum_hb_bonds,hb_dist,hb_ang,dostuff)
 
       endif

@@ -2,31 +2,6 @@ module MOD_hydration
 
 contains
 
-subroutine hydration_alloc(nat,nh_bins,nh_rcut,nh_r,nh_mol,nh_atm,nh_color,o_nhbrs,ooo_ang,order_t,n_all_ws,list_all_ws,list_cs,n_cs)
-
-implicit none
-
-! Arguments
-integer :: nat, nh_bins, n_all_ws, n_cs
-integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), o_nhbrs(:,:), list_all_ws(:), list_cs(:)
-real :: nh_rcut, ooo_ang(6)
-real, allocatable :: nh_r(:), order_t(:)
-
-! Local
-integer :: i
-real :: nh_dr
-
-allocate(nh_r(nh_bins),nh_mol(nh_bins),nh_atm(n_cs,nh_bins),nh_color(nat),o_nhbrs(n_all_ws,4),order_t(n_all_ws))
-nh_mol(:)=0
-nh_atm(:,:)=0
-nh_dr=nh_rcut/(real(nh_bins))
-do i=1,nh_bins
-  nh_r(i)=(real(i)*nh_dr)
-end do
-
-end subroutine hydration_alloc
-
-
 subroutine hbond_alloc(nat,sym,resname,pos,cart,icell,ws,n_ws,hb_ws,hb_ws_filt,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws1,list_hb_hyd_ws2,sum_hb_bonds,sum_hb_filt,hb_ang)
 
 implicit none
@@ -78,20 +53,6 @@ else
     call get_hbda(nat,sym,pos,cart,icell,2,n_hb_ws,list_hb_ws,n_hb_x,list_hb_x,n_hb_hyd,list_hb_hyd_ws2)
 endif
 
-! allocate(n_hb_bonds_ws1(n_hb_x(1),2))
-! allocate(n_hb_bonds_ws2(n_hb_x(2),2))
-
-! if (hb_ws_filt(1)) then
-!   allocate(n_hb_bonds_ws1(n_ws(1),2))
-! else
-!   allocate(n_hb_bonds_ws1(n_hb_x(1),2))
-! endif
-! if (hb_ws_filt(2)) then
-!   allocate(n_hb_bonds_ws2(n_ws(1),2))
-! else
-!   allocate(n_hb_bonds_ws2(n_hb_x(2),2))
-! endif
-
 deallocate(list_hb_ws)
 
 sum_hb_bonds(:)=0
@@ -100,7 +61,7 @@ hb_ang=deg2rad*hb_ang ! Convert angle from degrees to radians
 
 open(unit=167, file='hin_structure.out.hbonds.ws1', status='unknown')
 open(unit=168, file='hin_structure.out.hbonds.ws2', status='unknown')
-open(unit=169, file='hin_structure.out.hbonds', status='unknown')
+!open(unit=169, file='hin_structure.out.hbonds.angs', status='unknown')
 
 end subroutine hbond_alloc
 
@@ -199,9 +160,9 @@ logical(1) :: hb_ws_filt(2)
 integer :: i, j, k, l, i_spc, j_spc, k_spc, l_spc, ih_spc, jh_spc, n_hb_bonds
 real :: ij(3), ik(3), jk(3), il(3), jl(3), i_pos(3), j_pos(3), k_pos(3), l_pos(3), ij_dist, ik_dist, jk_dist, il_dist, jl_dist, dot_prod, cos_theta, theta
 
-! For alanine analysis (remove later)
+! Angles analysis
 integer :: n_angs
-real  :: xh_dist(3), xh_ang(2)
+real  :: xh_dist(3), xh_ang(3)
 real, parameter :: pi=4.0d0*datan(1.0d0)
 real, parameter :: rad2deg=180.0/pi
 real, allocatable :: hb_angs(:)
@@ -378,8 +339,8 @@ else
   write(168,*) (list_hb_x(2,i), n_hb_bonds_ws2(i,1), n_hb_bonds_ws2(i,2), i=1,n_hb_x(2))
 endif
 
-! Output for alanine analysis
-write(169,'(i8,i6,20f10.2)') dostuff, n_hb_bonds, (hb_angs(i)*rad2deg, i=1,n_angs) !frame number, num. hbonds, hbond angles
+! Output for angles analysis
+!write(169,'(i8,i6,20f10.2)') dostuff, n_hb_bonds, (hb_angs(i)*rad2deg, i=1,n_angs) !frame number, num. hbonds, hbond angles
 
 ! Add frame count to running count
 sum_hb_bonds(1)=sum_hb_bonds(1)+n_hb_bonds
@@ -429,35 +390,6 @@ endif
 end subroutine check_hbond
 
 
-subroutine h_number(nh_bins,nh_r,nh_mol,nh_atm,nh_color,n_all_ws,n_filtered,list_all_ws,filt_param)
-
-implicit none
-
-! Arguments
-integer :: nh_bins, n_all_ws, n_filtered(:)
-integer, allocatable :: nh_mol(:), nh_atm(:,:), nh_color(:), list_all_ws(:)
-real, allocatable :: nh_r(:), filt_param(:)
-
-! Local
-integer :: i, j, i_spc
-
-nh_color(:)=0
-do i=1,n_filtered(1)
-  do j=1,nh_bins
-    if (filt_param(i).le.nh_r(j)) then
-      nh_mol(j)=nh_mol(j)+1
-      i_spc=list_all_ws(i)
-      nh_color(i_spc)=1
-    endif
-  enddo
-enddo
-
-open(unit=165, file='hin_structure.out.hydration.color', status='unknown')
-write(165,*) nh_color(:) ! Write color file
-
-end subroutine h_number
-
-
 subroutine t_order(pos,cart,icell,o_nhbrs,ooo_ang,order_t,t_rcut,resname,resnum,filt_max,list_filtered,n_filtered,filt_param)
 
 ! Arguments
@@ -500,12 +432,10 @@ do i=1,n_filtered(1)
       endif
     endif
   enddo
-  !write(*,*) i_spc, o_nhbrs(i,:), oo_dist(:)
 enddo
 
 ! Find Oi-Oj-Ok angle and calculate t parameter
 do i=1,n_filtered(1)
-  !counter=1
   t_sum=0.0d0
   t_ord=0.0d0
   i_spc=list_filtered(1,i)
@@ -535,16 +465,15 @@ do i=1,n_filtered(1)
         v_prod=((v_ij(1)*v_ik(1))+(v_ij(2)*v_ik(2))+(v_ij(3)*v_ik(3)))
         r_prod=r_ij*r_ik
         theta=acos(v_prod/r_prod)
-        t_sum=t_sum+(cos(theta)+(1.0d0/3.0d0))**2 ! cos(acos(x))==x so could condense these lines
+        t_sum=t_sum+(cos(theta)+(1.0d0/3.0d0))**2
       end if
     enddo
   enddo
   t_ord=1.0d0-((3.0d0/8.0d0)*t_sum)
   order_t(i)=t_ord
-  !write(166,"(i6,a6,i6,i6,i6,i6,f8.3,f8.3)") resnum(i_spc), resname(i_spc), resnum(o_nhbrs(i,1)), resnum(o_nhbrs(i,2)), resnum(o_nhbrs(i,3)), resnum(o_nhbrs(i,4)), t_ord, filt_param(i)
+  write(166,"(i6,a6,i6,i6,i6,i6,f8.3,f8.3)") resnum(i_spc), resname(i_spc), resnum(o_nhbrs(i,1)), resnum(o_nhbrs(i,2)), resnum(o_nhbrs(i,3)), resnum(o_nhbrs(i,4)), t_ord, filt_param(i)
 enddo
 
-write(166,*) (list_filtered(1,i), filt_param(i), order_t(i), i=1,n_filtered(1)) ! Output format: [index, distance, order]/atom for all atoms, single line per frame
 
 end subroutine t_order
 
