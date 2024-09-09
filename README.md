@@ -17,3 +17,6 @@ Makefiles for both Linux and MacOS are provided in the `BUILD` directory within 
 The R.I.N.G.S. code (https://sourceforge.net/projects/rings-code/) is optional - it is used to compute rings statistics as well as other topological features of the water/ice network, such as the "cages" discussed in, e.g., this paper: https://doi.org/10.1073/pnas.1509267112. Note that the R.I.N.G.S. code has now evolved into the I.S.A.A.C. code (http://people.se.cmich.edu/petko1vg/isaacs/phys/rings.html), which however we have not tested just yet.
 
 The PLUMED code (https://www.plumed.org) is also optional - it is used to identify ice clusters within the liquid water phase.
+
+## Documentation
+Please refer to the Wiki: https://github.com/gcsosso/HIN/wiki, bearing in mind this documentation refers to the `clathrate` branch of the code.
