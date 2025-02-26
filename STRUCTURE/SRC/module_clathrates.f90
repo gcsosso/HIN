@@ -63,14 +63,15 @@ subroutine clathrates(switch_f, f_cut, n_filtered, list_filtered, filt_param, sw
    integer :: first_coord_shell_ndx(20)    ! First coordination shell atom indices
    integer :: size_first_coord_shell       ! Size of first coordination shell
    real(dp) :: F3_atom, F4_atom                ! F3 parameter for triples, atoms
-   real :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
+   real(dp) :: F3_avg, F4_avg                  ! F3 parameter for frame-wide avg
    real :: pos(:,:), filt_param(:)
    real :: F3_col(nat), F4_col(nat)
    character*100 :: natformat, n_mol_format
-   integer :: f_zbins
+   integer :: f_zbins, valid_count
    integer :: F3_zbin_len(f_zbins), F4_zbin_len(f_zbins)
    real :: F3_zbin(f_zbins,nat), F4_zbin(f_zbins,nat)
    real(dp) :: F3_mol(n_filtered(1)), F4_mol(n_filtered(1))
+   logical :: valid_f4
      
    F3_avg = 0
    F4_avg = 0
@@ -108,20 +109,38 @@ subroutine clathrates(switch_f, f_cut, n_filtered, list_filtered, filt_param, sw
       end if
       if (switch_f(4)) then
           ! Compute the F4 parameter for the atom
-          call compute_f4(i, F4_atom, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
-                          cart, icell, pos)
+          !call compute_f4(i, F4_atom, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
+          !                cart, icell, pos)
+          call compute_f4(i, F4_atom, valid_f4, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
+                cart, icell, pos)
 
-          ! Calculate average F4 for the frame (per species)
-          !F4_avg = F4_avg + F4_atom
-          !F4_col(list_f_ow(i)) = F4_atom
-          F4_mol(ii) = F4_atom
-          !do j=1,f_zbins
-          !    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
-          !        F4_zbin_len(j) = F4_zbin_len(j) + 1
-          !        F4_zbin(j,F4_zbin_len(j)) = F4_atom
-          !        exit
-          !    end if
-          !end do
+          valid_count = 0
+
+          if (valid_f4) then
+             F4_mol(ii) = F4_atom
+             F4_avg = F4_avg + F4_atom
+             valid_count = valid_count + 1  ! Count only valid contributions
+          end if
+
+          !! Calculate average F4 for the frame (per species)
+          !!F4_avg = F4_avg + F4_atom
+          !!F4_col(list_f_ow(i)) = F4_atom
+          !F4_mol(ii) = F4_atom
+          !!do j=1,f_zbins
+          !!    if (pos(cart,list_f_ow(i))<=(((f_zmax-f_zmin)*j/f_zbins)+f_zmin)) then
+          !!        F4_zbin_len(j) = F4_zbin_len(j) + 1
+          !!        F4_zbin(j,F4_zbin_len(j)) = F4_atom
+          !!        exit
+          !!    end if
+          !!end do
+
+          if (valid_count > 0) then
+             F4_avg = F4_avg / valid_count
+          else
+             F4_avg = 0.0  ! Avoid division by zero
+          end if
+
+
      end if
    end do
    
@@ -272,13 +291,15 @@ end subroutine compute_f3
 
 
 ! Computes F4 order parameter for an atom
-subroutine compute_f4(i, F4_atom, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
+!subroutine compute_f4(i, F4_atom, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
+!                      cart, icell, pos)
+subroutine compute_f4(i, F4_atom, valid_f4, first_coord_shell, first_coord_shell_ndx, size_first_coord_shell, &
                       cart, icell, pos)
 
    implicit none
 
    integer, parameter :: dp = kind(1.d0)
-   integer :: i, j, jj, cart
+   integer :: i, j, jj, cart, h1_idx, h2_idx
    real :: first_coord_shell(20,4)         ! First coordination shell of the current atom: (dx, dy, dz, dsq)
    integer :: first_coord_shell_ndx(20)    ! First coordination shell indices
    integer :: size_first_coord_shell       ! Size of first coordination shell
@@ -289,78 +310,96 @@ subroutine compute_f4(i, F4_atom, first_coord_shell, first_coord_shell_ndx, size
    real :: h1x, h1y, h1z, h2x, h2y, h2z    ! Positional vector components for H1 and H2 (H1-O1..O2-H2, O1 is origin)
    real :: ux, uy, uz, vx, vy, vz          ! Vectors in (H1-O1..O2), (O1..O2,H2) planes, perp to intersection
    real :: lambda, mu                      ! u = (1,lambda), v=(1,mu) under bases: {h1, o2} and {h2, o2}, resp.
-   real :: h1_dot_o2, h2_dot_o2, u_dot_v
+   real :: h1_dot_o2, h2_dot_o2, u_dot_v, d1, d2
    real :: cos_phi                         ! phi is the torsional angle (H1-O1..O2-H2)
+   logical :: valid_f4
+   valid_f4 = .true.
 
    if (size_first_coord_shell.gt.0) then
-      F4_atom = 0
-      do jj=1,size_first_coord_shell ; j = first_coord_shell_ndx(jj)
-         ! Choose Hydrogen from O1. I.e. furthest from O2.
-         dx1 = pos(1,i+1)-pos(1,j)
-         dy1 = pos(2,i+1)-pos(2,j)
-         dz1 = pos(3,i+1)-pos(3,j)
-         call images(cart,0,1,1,icell,dx1,dy1,dz1)
-         dx2 = pos(1,i+2)-pos(1,j)
-         dy2 = pos(2,i+2)-pos(2,j)
-         dz2 = pos(3,i+2)-pos(3,j)
-         call images(cart,0,1,1,icell,dx2,dy2,dz2)
-         if (dx1*dx1+dy1*dy1+dz1*dz1>dx2*dx2+dy2*dy2+dz2*dz2) then
-            ! Calculate h1-o1
-            h1x = pos(1,i+1)-pos(1,i)
-            h1y = pos(2,i+1)-pos(2,i)
-            h1z = pos(3,i+1)-pos(3,i)
-            call images(cart,0,1,1,icell,h1x,h1y,h1z)
-         else
-            ! Calculate h1-o1
-            h1x = pos(1,i+2)-pos(1,i)
-            h1y = pos(2,i+2)-pos(2,i)
-            h1z = pos(3,i+2)-pos(3,i)
-            call images(cart,0,1,1,icell,h1x,h1y,h1z)
-         end if
+    F4_atom = 0
+    do jj=1,size_first_coord_shell
+        j = first_coord_shell_ndx(jj)
 
-         ! Choose Hydrogen from O2. I.e. furthest from O1.
-         dx1 = pos(1,j+1)-pos(1,i)
-         dy1 = pos(2,j+1)-pos(2,i)
-         dz1 = pos(3,j+1)-pos(3,i)
-         call images(cart,0,1,1,icell,dx1,dy1,dz1)
-         dx2 = pos(1,j+2)-pos(1,i)
-         dy2 = pos(2,j+2)-pos(2,i)
-         dz2 = pos(3,j+2)-pos(3,i)
-         call images(cart,0,1,1,icell,dx2,dy2,dz2)
-         if (dx1*dx1+dy1*dy1+dz1*dz1>dx2*dx2+dy2*dy2+dz2*dz2) then
+        ! Choose Hydrogen from O1 (farthest from O2)
+        dx1 = pos(1,i+1) - pos(1,j)
+        dy1 = pos(2,i+1) - pos(2,j)
+        dz1 = pos(3,i+1) - pos(3,j)
+        call images(cart,0,1,1,icell,dx1,dy1,dz1)
+        d1 = dx1*dx1 + dy1*dy1 + dz1*dz1
+
+        dx2 = pos(1,i+2) - pos(1,j)
+        dy2 = pos(2,i+2) - pos(2,j)
+        dz2 = pos(3,i+2) - pos(3,j)
+        call images(cart,0,1,1,icell,dx2,dy2,dz2)
+        d2 = dx2*dx2 + dy2*dy2 + dz2*dz2
+
+        if (d1 > d2) then
+            h1_idx = i+1
+            h1x = dx1
+            h1y = dy1
+            h1z = dz1
+        else
+            h1_idx = i+2
+            h1x = dx2
+            h1y = dy2
+            h1z = dz2
+        end if
+
+        ! Choose Hydrogen from O2 (farthest from O1)
+        dx1 = pos(1,j+1) - pos(1,i)
+        dy1 = pos(2,j+1) - pos(2,i)
+        dz1 = pos(3,j+1) - pos(3,i)
+        call images(cart,0,1,1,icell,dx1,dy1,dz1)
+        d1 = dx1*dx1 + dy1*dy1 + dz1*dz1
+
+        dx2 = pos(1,j+2) - pos(1,i)
+        dy2 = pos(2,j+2) - pos(2,i)
+        dz2 = pos(3,j+2) - pos(3,i)
+        call images(cart,0,1,1,icell,dx2,dy2,dz2)
+        d2 = dx2*dx2 + dy2*dy2 + dz2*dz2
+
+        if (d1 > d2) then
+            h2_idx = j+1
             h2x = dx1
             h2y = dy1
             h2z = dz1
-         else
+        else
+            h2_idx = j+2
             h2x = dx2
             h2y = dy2
             h2z = dz2
-         end if
+        end if
 
-         ! Calculate lambda, mu
-         h1_dot_o2 = h1x*first_coord_shell(jj,1) + h1y*first_coord_shell(jj,2) + h1z*first_coord_shell(jj,3)
-         h2_dot_o2 = h2x*first_coord_shell(jj,1) + h2y*first_coord_shell(jj,2) + h2z*first_coord_shell(jj,3)
-         lambda = -h1_dot_o2/first_coord_shell(jj,4)
-         mu = -h2_dot_o2/first_coord_shell(jj,4)
+        ! 🔹 Calculate lambda, mu
+        h1_dot_o2 = h1x * first_coord_shell(jj,1) + h1y * first_coord_shell(jj,2) + h1z * first_coord_shell(jj,3)
+        h2_dot_o2 = h2x * first_coord_shell(jj,1) + h2y * first_coord_shell(jj,2) + h2z * first_coord_shell(jj,3)
+        lambda = -h1_dot_o2 / first_coord_shell(jj,4)
+        mu = -h2_dot_o2 / first_coord_shell(jj,4)
 
-         ! Calculate u, v
-         ux = h1x + lambda*first_coord_shell(jj,1)
-         uy = h1y + lambda*first_coord_shell(jj,2)
-         uz = h1z + lambda*first_coord_shell(jj,3)
-         vx = h2x + mu*first_coord_shell(jj,1)
-         vy = h2y + mu*first_coord_shell(jj,2)
-         vz = h2z + mu*first_coord_shell(jj,3)
+        ! 🔹 Calculate u, v vectors
+        ux = h1x + lambda * first_coord_shell(jj,1)
+        uy = h1y + lambda * first_coord_shell(jj,2)
+        uz = h1z + lambda * first_coord_shell(jj,3)
+        vx = h2x + mu * first_coord_shell(jj,1)
+        vy = h2y + mu * first_coord_shell(jj,2)
+        vz = h2z + mu * first_coord_shell(jj,3)
 
-         ! Calculate F4 contribution
-         u_dot_v = ux*vx + uy*vy + uz*vz
-         cos_phi = u_dot_v/sqrt((ux*ux+uy*uy+uz*uz)*(vx*vx+vy*vy+vz*vz))
-         F4_part = 4*cos_phi**3 - 3*cos_phi
+        ! 🔹 Calculate F4 contribution
+        u_dot_v = ux*vx + uy*vy + uz*vz
+        cos_phi = u_dot_v / sqrt((ux*ux + uy*uy + uz*uz) * (vx*vx + vy*vy + vz*vz))
+        F4_part = cos(3.0 * acos(cos_phi))
 
-         ! Add F4/#combinations to total F4
-         F4_atom = F4_atom + F4_part/size_first_coord_shell
-      end do
-      
-   else ; F4_atom = -2 ; end if
+        ! Add F4/#combinations to total F4
+        F4_atom = F4_atom + F4_part / size_first_coord_shell
+
+        ! 🔹 Debug output
+        !write(*,*) "O1:", i-1, "O2:", j-1, "H1:", h1_idx-1, "H2:", h2_idx-1, "F4_part:", F4_part
+    end do
+
+      else
+         valid_f4 = .false.
+         return
+      end if
 
 end subroutine compute_f4
 
