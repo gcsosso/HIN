@@ -76,7 +76,7 @@ logical(1) :: switch_outxtc=.true., switch_progress=.false.
 integer :: ns=0
 character(4), allocatable :: ws(:)
 character(7) :: filter='none'
-character(20) :: centre='none'
+character(100) :: centre='none'
 logical(1) :: switch_filt_param=.false.
 
 ! ORDER

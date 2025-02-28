@@ -153,27 +153,42 @@ subroutine read_shell_centre(nat, centre, resname, n_cs, list_cs)
    logical(1) :: centre_range
    integer :: nat, i, n_cs, delim_index, centre_start, centre_end
    integer, allocatable :: list_cs(:)
-   character(1) :: delim=':'
+   character(1) :: delim=':', delim2='&'
    character*5, allocatable :: resname(:)
    character(20) :: centre
 
+   logical(1) :: res_range
+   
+   ! Support for residue list in the format  "RES1&RES2&RES3 ..."
+   res_range = .false.
    ! -centre input can be provided as atom index range or residue name
    if (verify(delim,centre).eq.0) then ! If colon detected then interpret as a index range
      centre_range = .true.
      delim_index = scan(centre,delim)
      read(centre(1:delim_index-1),*) centre_start
      read(centre(delim_index+1:),*) centre_end
+   elseif (verify(delim2,centre).eq.0) then
+      res_range = .true.
    else ; centre_range = .false. ; end if ! Otherwise interpret as resname
 
-   do i=1,nat
-      if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
-      else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
-        n_cs = n_cs + 1
-        list_cs(n_cs) = i
-      end if
-	end do
+   if (res_range) then
+      do i=1,nat
+         if (index(trim(adjustl(centre)),trim(adjustl(resname(i))))>0) then
+            n_cs = n_cs + 1
+            list_cs(n_cs) = i
+         end if
+      enddo
+   else
+      do i=1,nat
+         if (centre_range.and.(i.ge.centre_start).and.(i.le.centre_end)) then ;
+         n_cs = n_cs + 1
+         list_cs(n_cs) = i
+         else if ((.not.centre_range).and.(trim(adjustl(resname(i))).eq.trim(adjustl(centre)))) then ;
+         n_cs = n_cs + 1
+         list_cs(n_cs) = i
+         end if
+      end do
+   endif
 
 end subroutine read_shell_centre
 
